@@ -811,7 +811,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Send transmit data to the device.
       @returns the number of samples placed in the queue for transmission
-      @param data the complex @p itn16_t samples to be sent
+      @param data the @p complex<int16_t> vector of data to be sent
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -822,7 +822,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Send transmit data to the device.
       @returns the number of samples placed in the queue for transmission
-      @param data the complex @p itn16_t samples to be sent
+      @param data the @p complex<float> vector of data to be sent
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -833,7 +833,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Receive data from the device and return it in a vector.
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
-      @param data the vector for the received data
+      @param data the @p complex<int16_t> vector for the received data
       @param n_desired the number of samples to be received (0 means use data.size(); if data.size() < n_desired, only data.size() will be acquired)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
@@ -846,7 +846,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Receive data from the device and return it in a vector.
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
-      @param data the vector for the received data
+      @param data the @p complex<float> vector for the received data
       @param n_desired the number of samples to be received (0 means use data.size(); if data.size() < n_desired, only data.size() will be acquired)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
