@@ -17,8 +17,16 @@ Introduction
 This is the host library for the VXSDR software defined radio API;
 it lets you control the radio and send and receive data. 
 
+Licensing
+---------
+
 The library source code is licensed under the GNU GPL version 3 or (at your option) any later version. 
 See the LICENSE file for the complete terms of the source code license. 
+
+Documentation
+=============
+
+Documentation for the host library is available at https://libvxsdr.readthedocs.io.
 
 The documentation is licensed under the Creative Commons Attribution-ShareAlike 4.0 
 International Public License; see
