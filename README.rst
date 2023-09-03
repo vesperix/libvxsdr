@@ -87,8 +87,8 @@ Downloading, building, and installing the library
 .. highlight:: shell
 .. code-block::
 
-   git clone git@github.com:vesperix/vxsdr_lib.git
-   cd vxsdr_lib
+   git clone git@github.com:vesperix/libvxsdr.git
+   cd libvxsdr
    cmake -B build
    cmake --build build
    sudo cmake --install build
