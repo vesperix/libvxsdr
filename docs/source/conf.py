@@ -24,7 +24,7 @@ copyright = '2023, Vesperix Corporation'
 author = 'Vesperix Corporation'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = '0.9'
 
 
 # -- General configuration ---------------------------------------------------
@@ -56,18 +56,6 @@ exclude_patterns = []
 html_theme = 'furo'
 html_theme_options = {
     'canonical_url': '',
-    'analytics_id': '',
-    'display_version': True,
-    'prev_next_buttons_location': 'bottom',
-    'style_external_links': False,
-    'logo_only': False,
-
-    # Toc options
-    'collapse_navigation': True,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False
 }
 
 #custom file to allow tweaking
