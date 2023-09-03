@@ -19,7 +19,7 @@ subprocess.call('doxygen', shell=True)
 
 # -- Project information -----------------------------------------------------
 
-project = 'vxsdr_lib'
+project = 'libvxsdr'
 copyright = '2023, Vesperix Corporation'
 author = 'Vesperix Corporation'
 
