@@ -1,0 +1,11 @@
+*.o
+*.dat
+*.sh
+*.pdf
+*.json
+*.so
+*.a
+.vscode
+build/*
+docs/build/*
+docs/xml/*

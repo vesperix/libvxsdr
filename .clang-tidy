@@ -1,0 +1,24 @@
+ExtraArgs:
+    - '--std=c++17'
+Checks: >
+    boost-*,
+    bugprone-*,
+    cert-*,
+    clang-analyzer-*,
+    concurency-*,
+    cppcoreguidelines-*,
+    hicpp-*,
+    misc-*,
+    modernize-*,
+    performance-*,
+    portability-*,
+    readability-*,
+    -modernize-use-trailing-return-type,
+    -readability-avoid-const-params-in-decls,
+    -readability-magic-numbers,
+    -readability-convert-member-functions-to-static,
+    -readability-identifier-length,
+    -readability-function-cognitive-complexity,
+    -bugprone-easily-swappable-parameters,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-pro-bounds-constant-array-index

@@ -1,0 +1,28 @@
+name: macOS Build Status
+
+on:
+  workflow_dispatch:
+    branches: [ "main", "develop" ]
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-13
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Prerequisites
+      run:  brew install cmake boost spdlog pybind11
+
+    - name: Configure
+      run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -S ${{github.workspace}} -B ${{github.workspace}}/build
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
