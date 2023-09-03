@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16..3.27)
 
-set(vxsdr_lib_version_major  1)
-set(vxsdr_lib_version_minor  2)
-set(vxsdr_lib_version_patch  7)
+set(vxsdr_lib_version_major  0)
+set(vxsdr_lib_version_minor  9)
+set(vxsdr_lib_version_patch  0)
 
 set(vxsdr_lib_version ${vxsdr_lib_version_major}.${vxsdr_lib_version_minor}.${vxsdr_lib_version_patch})
 
@@ -20,7 +20,6 @@ option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" OFF)
 option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
-option(VXSDR_STANDALONE_ASIO "Use standalone asio instead of boost::asio" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type defined -- assuming Release")
@@ -71,23 +70,6 @@ set(vxsdr_build_defs -DVERSION_STRING="${vxsdr_lib_version}"
                      -DVERSION_PATCH=${vxsdr_lib_version_patch}
                      -DCOMPILER_INFO="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
                      -DSYSTEM_INFO="${CMAKE_SYSTEM}")
-if(VXSDR_STANDALONE_ASIO)
-    message(STATUS "Using standalone asio instead of boost::asio")
-    find_package(Asio QUIET)
-    # Maybe get this working
-    #if (NOT Asio_FOUND)
-    #    FetchContent_Declare(asio GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git GIT_TAG asio-1-28-1)
-    #    FetchContent_GetProperties(asio)
-    #    if (NOT asio_POPULATED)
-    #        FetchContent_Populate(asio)
-    #        add_library(asio INTERFACE)
-    #        target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
-    #        target_compile_definitions(asio INTERFACE ASIO_STANDALONE ASIO_NO_DEPRECATED)
-    #        target_link_libraries(asio INTERFACE Threads::Threads)
-    #    endif ()
-    #endif()
-    list(APPEND vxsdr_build_defs -DVXSDR_STANDALONE_ASIO)
-endif()
 
 if(UNIX)
     if(NOT APPLE)
