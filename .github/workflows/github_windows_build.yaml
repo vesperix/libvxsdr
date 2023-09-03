@@ -2,7 +2,7 @@ name: Windows Build Status
 
 on:
   workflow_dispatch:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "release" ]
   # Disabling these until build fixed
   #push:
   #  branches: [ "main" ]

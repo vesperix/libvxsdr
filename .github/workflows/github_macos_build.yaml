@@ -2,7 +2,7 @@ name: macOS Build Status
 
 on:
   workflow_dispatch:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "release" ]
   push:
     branches: [ "main" ]
   pull_request:
