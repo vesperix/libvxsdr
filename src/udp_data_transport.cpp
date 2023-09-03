@@ -301,15 +301,10 @@ void udp_data_transport::data_receive() {
                         tx_buffer_used_bytes = r->value3;
                         tx_buffer_size_bytes = r->value4;
                         tx_packet_oos_count  = r->value5;
-                        // FIXME!!!
-                        unsigned old_percent = tx_buffer_fill_percent;
                         if (tx_buffer_size_bytes > 0) {
                             tx_buffer_fill_percent = (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
                         } else {
                             tx_buffer_fill_percent = 0;
-                        }
-                        if (old_percent != tx_buffer_fill_percent) {
-                            LOG_DEBUG("tx_buffer_fill_percent = {:3d}", tx_buffer_fill_percent);
                         }
                     } else {
                         LOG_WARN("udp data rx discarded incorrect packet (type {:d})", (int)recv_buffer.hdr.packet_type);
