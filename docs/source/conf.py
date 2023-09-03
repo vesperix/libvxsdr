@@ -55,7 +55,7 @@ exclude_patterns = []
 
 html_theme = 'furo'
 html_theme_options = {
-    'canonical_url': '',
+
 }
 
 #custom file to allow tweaking

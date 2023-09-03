@@ -760,6 +760,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       repeating with a delay after each transmission of @p t_delay, for @p n_repeat iterations.
       If @p t is less than the current time, start immediately;
       if @p n_repeat is 0, continue until a stop command is sent.
+      Note that if you wish to send the samples to be looped only once, @p n_samples must be
+      small enough that the entire looped waveform fits in the device's transmit buffer.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
       @param n the number of samples to send

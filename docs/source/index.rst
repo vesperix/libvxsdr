@@ -3,8 +3,8 @@
    SPDX-License-Identifier: CC-BY-SA-4.0
 
 
-Documentation for the VXSDR host library
-========================================
+VXSDR host library
+==================
 
 .. toctree::
    :maxdepth: 2
