@@ -2,13 +2,13 @@
    Copyright (c) 2023 Vesperix Corporation
    SPDX-License-Identifier: CC-BY-SA-4.0
 
-.. |linux_build_status| image:: https://github.com/vesperix/vxsdr_lib/actions/workflows/github_linux_build.yaml/badge.svg
+.. |linux_build_status| image:: https://github.com/vesperix/libvxsdr/actions/workflows/github_linux_build.yaml/badge.svg
    :alt: Linux build status badge
 
-.. |macos_build_status| image:: https://github.com/vesperix/vxsdr_lib/actions/workflows/github_macos_build.yaml/badge.svg
+.. |macos_build_status| image:: https://github.com/vesperix/libvxsdr/actions/workflows/github_macos_build.yaml/badge.svg
    :alt: macOS build status badge
 
-.. |windows_build_status| image:: https://github.com/vesperix/vxsdr_lib/actions/workflows/github_windows_build.yaml/badge.svg
+.. |windows_build_status| image:: https://github.com/vesperix/libvxsdr/actions/workflows/github_windows_build.yaml/badge.svg
    :alt: Windows build status badge
 
 Introduction
