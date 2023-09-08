@@ -73,6 +73,4 @@ int main(int argc, char* argv[]) {
     std::cout << (pass ? "passed" : "failed") << std::endl;
 
     return (pass ? 0 : 1);
-
-    return 0;
 }

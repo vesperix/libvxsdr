@@ -71,20 +71,23 @@ bool receive_packet(net::ip::udp::socket& receiver_socket,
 }
 
 bool receive_device_cmd_response_packet(net::ip::udp::socket& receiver_socket,
+                                        net::ip::udp::endpoint& device_endpoint,
                                         largest_cmd_or_rsp_packet& results,
                                         const double timeout_s) {
     net::ip::udp::endpoint remote_endpoint;
     largest_data_packet packet;
     unsigned timeout_ms = std::lround(1000 * timeout_s);
-    while (true) {
+    auto timeout = std::chrono::milliseconds(timeout_ms);
+    auto start_time = std::chrono::steady_clock::now();
+    while(std::chrono::steady_clock::now() - start_time <= timeout) {
         if (receive_packet(receiver_socket, packet, remote_endpoint, timeout_ms)) {
-            if (packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) {
+            if (remote_endpoint == device_endpoint and packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) {
                 std::memcpy((void*)&results, &packet, std::min((size_t)packet.hdr.packet_size, sizeof(results)));
                 return true;
             }
         }
     }
-std::cerr << "receive_device_cmd_response_packet: error return" << std::endl;
+    std::cerr << "receive_device_cmd_response_packet: error return" << std::endl;
     return false;
 }
 
@@ -104,7 +107,7 @@ bool send_device_cmd_and_check_response(net::ip::udp::socket& sender_socket,
     if (bytes != packet.hdr.packet_size) {
         return false;
     }
-    if (not receive_device_cmd_response_packet(receiver_socket, r, timeout_s) or r.hdr.command != packet.hdr.command) {
+    if (not receive_device_cmd_response_packet(receiver_socket, device_endpoint, r, timeout_s) or r.hdr.command != packet.hdr.command) {
         return false;
     }
     return true;
