@@ -249,8 +249,6 @@ class data_transport : public packet_transport {
     uint64_t sequence_errors_current_stream  = 0;
     uint64_t samples_received_current_stream = 0;
   public:
-    std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_sent     = {0};
-    std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_received = {0};
 
     data_transport(const std::string& local_address,
                    const std::string& device_address,
@@ -422,10 +420,6 @@ class udp_data_transport : public data_transport {
     std::atomic<unsigned> tx_buffer_used_bytes   = 0;
     std::atomic<unsigned> tx_buffer_fill_percent = 0;
     std::atomic<unsigned> tx_packet_oos_count    = 0;
-
-    // number of samples in current stream (0 if continuous)
-    uint64_t desired_tx_stream_samples = 0;
-    uint64_t desired_rx_stream_samples = 0;
 
   public:
     explicit udp_data_transport(const std::string& local_address,
