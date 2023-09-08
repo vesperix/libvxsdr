@@ -424,6 +424,16 @@ void udp_data_transport::data_send() {
         }
     }
 
+    if (rx_state == TRANSPORT_READY) {
+        // send a last empty packet with an ack request so that the stats are updated
+        data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
+        send_packet(data_buffer[0]);
+        // wait for the response to be received by the data rx
+        std::this_thread::sleep_for(20ms);
+    } else {
+        LOG_WARN("udp data rx unavailable at udp tx shutdown: stats will not be updated");
+    }
+
     tx_state = TRANSPORT_SHUTDOWN;
 
     LOG_DEBUG("udp data tx exiting");

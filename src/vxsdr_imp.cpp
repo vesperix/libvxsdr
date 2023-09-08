@@ -108,9 +108,11 @@ vxsdr::imp::~imp() noexcept {
     LOG_DEBUG("vxsdr destructor entered");
     vxsdr::imp::tx_stop_now();
     vxsdr::imp::rx_stop_now();
+    // tx should be shut down before rx because
+    // tx sends a message to get final stats
+    // and rx must be up to receive it
     vxsdr::imp::set_tx_enabled(false);
     vxsdr::imp::set_rx_enabled(false);
-    vxsdr::imp::log_transport_stats(true);
     async_handler_stop_flag = true;
     LOG_DEBUG("joining error_handler thread");
     if (async_handler_thread.joinable()) {
@@ -744,7 +746,7 @@ std::string vxsdr::imp::radio_cmd_to_name(const uint8_t cmd) const {
 
 std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
     uint8_t typ = msg & ASYNC_ERROR_TYPE_MASK;
-    uint8_t sys = (msg & ASYNC_AFFECTED_SYSTEM_MASK) >> 4U;
+    uint8_t sys = msg & ASYNC_AFFECTED_SYSTEM_MASK;
     std::string subsys;
     std::string typstr;
     switch(sys) {
