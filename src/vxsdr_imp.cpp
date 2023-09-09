@@ -208,15 +208,16 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         int64_t n_remaining = (int64_t)n_desired - (int64_t)n_received;
         // setting rx_data_queue_wait_us = 0 results in a busy wait
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
-            std::complex<int16_t>* packet_data = nullptr;
-            auto data_samples = vxsdr::imp::get_packet_data_ptr(q, packet_data);
+            auto packet_data = vxsdr::imp::get_packet_data_span(q);
+            int64_t data_samples = packet_data.size();
             if (data_samples > 0) {
                 if constexpr(std::is_same<T, int16_t>()) {
-                    std::copy_n(packet_data, std::min(n_remaining, (int64_t)data_samples), std::back_inserter(data));
+                    for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
+                        data[n_received + i] = packet_data[i];
+                    }                    
                 } else if constexpr(std::is_floating_point<T>()) {
                     constexpr T scale = 1.0 / 32'768.0;
-                    for(int64_t i = 0; i < std::min(n_remaining, (int64_t)data_samples); i++) {
-                        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                    for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
                         data[n_received + i] = std::complex<T>(scale * (T)packet_data[i].real(), scale * (T)packet_data[i].imag());
                     }
                 }
@@ -807,13 +808,14 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
     return subsys + " " + typstr;
 }
 
-size_t vxsdr::imp::get_packet_data_ptr(packet& q, std::complex<int16_t>*& d) const {
+std::span<std::complex<int16_t>> vxsdr::imp::get_packet_data_span(packet& q) const {
     constexpr int64_t packet_header_only_size = sizeof(packet_header);
     constexpr int64_t packet_header_time_size = sizeof(packet_header) + sizeof(time_spec_t);
     constexpr int64_t  packet_header_stream_size = sizeof(packet_header) + sizeof(stream_spec_t);
     constexpr int64_t packet_header_time_stream_size = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
     constexpr int64_t sample_size = sizeof(std::complex<int16_t>);
 
+    std::complex<int16_t>* d;
     size_t data_samples = 0;
     int64_t data_bytes = 0;
     const int64_t packet_bytes = q.hdr.packet_size;
@@ -848,9 +850,8 @@ size_t vxsdr::imp::get_packet_data_ptr(packet& q, std::complex<int16_t>*& d) con
     } else {
         data_samples = data_bytes / sample_size;
     }
-    return data_samples;
-};
-
+    return std::span(d, data_samples);
+}
 
 std::map<std::string, int64_t> vxsdr::imp::apply_settings(const std::map<std::string, int64_t>& settings) const {
     std::map<std::string, int64_t> config = vxsdr::imp::default_settings;

@@ -11,6 +11,7 @@
 #include <optional>
 #include <thread>
 #include <vector>
+#include <span>
 #include <ratio>
 #include <string>
 #include <array>
@@ -198,6 +199,6 @@ class vxsdr::imp {
     void duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts);
     void simple_async_message_handler(const command_queue_element& a);
     size_t get_packet_header_size(const packet_header& hdr) const;
-    size_t get_packet_data_ptr(packet& q, std::complex<int16_t>*& d) const;
+    std::span<std::complex<int16_t>> get_packet_data_span(packet& q) const;
     std::map<std::string, int64_t> apply_settings(const std::map<std::string, int64_t>& settings) const;
 };
