@@ -108,9 +108,6 @@ vxsdr::imp::~imp() noexcept {
     LOG_DEBUG("vxsdr destructor entered");
     vxsdr::imp::tx_stop_now();
     vxsdr::imp::rx_stop_now();
-    // tx should be shut down before rx because
-    // tx sends a message to get final stats
-    // and rx must be up to receive it
     vxsdr::imp::set_tx_enabled(false);
     vxsdr::imp::set_rx_enabled(false);
     async_handler_stop_flag = true;

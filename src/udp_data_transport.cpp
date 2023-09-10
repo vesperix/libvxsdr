@@ -193,6 +193,14 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
 
 udp_data_transport::~udp_data_transport() noexcept {
     LOG_DEBUG("udp data transport destructor entered");
+    // tx must shut down before rx since tx sends a final ack request to update stats
+    LOG_DEBUG("joining udp data sender thread");
+    tx_state = TRANSPORT_SHUTDOWN;
+    sender_thread_stop_flag = true;
+    if (sender_thread.joinable()) {
+        sender_thread.join();
+    }
+    LOG_DEBUG("joining udp data receiver thread");
     rx_state = TRANSPORT_SHUTDOWN;
     receiver_thread_stop_flag = true;
     net_error_code err;
@@ -213,15 +221,12 @@ udp_data_transport::~udp_data_transport() noexcept {
     if (receiver_thread.joinable()) {
         receiver_thread.join();
     }
-    LOG_DEBUG("joining udp data sender thread");
-    tx_state = TRANSPORT_SHUTDOWN;
-    sender_thread_stop_flag = true;
-    if (sender_thread.joinable()) {
-        sender_thread.join();
-    }
     sender_socket.close(err);
     if (err) {
         LOG_ERROR("udp data sender socket close: {:s}", err.message());
+    }
+    if (log_stats_on_exit) {
+        log_stats();
     }
     LOG_DEBUG("udp data transport destructor complete");
 }
