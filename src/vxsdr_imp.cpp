@@ -52,7 +52,7 @@ vxsdr::imp::imp(const std::string& local_address,
         }
     }
 
-    async_handler_thread        = std::thread([&] { vxsdr::imp::async_handler(); });
+    async_handler_thread        = std::thread([this] { vxsdr::imp::async_handler(); });
 
     auto res = vxsdr::imp::hello();
     if (not res) {

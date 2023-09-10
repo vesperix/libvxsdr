@@ -83,10 +83,10 @@ udp_command_transport::udp_command_transport(const std::string& local_address,
     }
 
     rx_state        = TRANSPORT_STARTING;
-    receiver_thread = std::thread([&] { command_receive(); });
+    receiver_thread = std::thread([this] { command_receive(); });
 
     tx_state      = TRANSPORT_STARTING;
-    sender_thread = std::thread([&] { command_send(); });
+    sender_thread = std::thread([this] { command_send(); });
 
     auto start_time = std::chrono::steady_clock::now();
     while (tx_state != TRANSPORT_READY or rx_state != TRANSPORT_READY) {
