@@ -193,7 +193,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
     } else {
         if (data.size() < n_requested) {
             LOG_WARN("data.size() = {:d} but n_requested = {:d}; resizing data in get_rx_data()", data.size(), n_requested);
-            data.reserve(n_requested);
+            data.resize(n_requested);
         }
     }
 
@@ -202,7 +202,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         return 0;
     }
 
-    data.clear();
+    data.reserve(n_requested);
 
     LOG_INFO("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
 
