@@ -186,8 +186,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_iq_bias(const uint8_t su
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_iq_bias()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -200,8 +199,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_iq_bias(const uint8_t su
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_iq_bias()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -234,8 +232,7 @@ std::optional<std::array<double, 4>> vxsdr::imp::get_tx_iq_corr(const uint8_t su
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_iq_corr()");
     if (res) {
         auto q                     = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                    = reinterpret_cast<four_double_packet*>(&q);
+        auto* r                    = std::bit_cast<four_double_packet*>(&q);
         std::array<double, 4> corr = {r->value1, r->value2, r->value3, r->value4};
         return corr;
     }
@@ -248,8 +245,7 @@ std::optional<std::array<double, 4>> vxsdr::imp::get_rx_iq_corr(const uint8_t su
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_iq_corr()");
     if (res) {
         auto q                     = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                    = reinterpret_cast<four_double_packet*>(&q);
+        auto* r                    = std::bit_cast<four_double_packet*>(&q);
         std::array<double, 4> corr = {r->value1, r->value2, r->value3, r->value4};
         return corr;
     }
@@ -262,8 +258,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_freq_range(const uint8_t
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_freq_range()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -276,8 +271,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_freq_range(const uint8_t
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_freq_range()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -306,8 +300,7 @@ std::optional<double> vxsdr::imp::get_tx_freq(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_freq()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -319,8 +312,7 @@ std::optional<double> vxsdr::imp::get_rx_freq(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_freq()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -332,8 +324,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_gain_range(const uint8_t
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_gain_range()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -346,8 +337,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_gain_range(const uint8_t
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_gain_range()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -374,8 +364,7 @@ std::optional<double> vxsdr::imp::get_tx_gain(const uint8_t subdev, const uint8_
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_gain()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -387,8 +376,7 @@ std::optional<double> vxsdr::imp::get_rx_gain(const uint8_t subdev, const uint8_
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_gain()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -400,8 +388,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_rate_range(const uint8_t
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_rate_range()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -414,8 +401,7 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_rate_range(const uint8_t
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_rate_range()");
     if (res) {
         auto q                    = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                   = reinterpret_cast<two_double_packet*>(&q);
+        auto* r                   = std::bit_cast<two_double_packet*>(&q);
         std::array<double, 2> res = {r->value1, r->value2};
         return res;
     }
@@ -442,8 +428,7 @@ std::optional<double> vxsdr::imp::get_tx_rate(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_rate()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -455,8 +440,7 @@ std::optional<double> vxsdr::imp::get_rx_rate(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_rate()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -522,8 +506,7 @@ std::optional<std::vector<std::complex<int16_t>>> vxsdr::imp::get_tx_filter_coef
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_filter_coeffs()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<filter_coeff_packet*>(&q);
+        auto* r = std::bit_cast<filter_coeff_packet*>(&q);
         std::vector<std::complex<int16_t>> coeffs;
         for (unsigned i = 0; i < r->length; i++) {
             coeffs.push_back(r->coeffs[i]);
@@ -539,8 +522,7 @@ std::optional<std::vector<std::complex<int16_t>>> vxsdr::imp::get_rx_filter_coef
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_filter_coeffs()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<filter_coeff_packet*>(&q);
+        auto* r = std::bit_cast<filter_coeff_packet*>(&q);
         std::vector<std::complex<int16_t>> coeffs;
         for (unsigned i = 0; i < r->length; i++) {
             coeffs.push_back(r->coeffs[i]);
@@ -556,8 +538,7 @@ std::optional<unsigned> vxsdr::imp::get_tx_filter_length(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_filter_length()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -569,8 +550,7 @@ std::optional<unsigned> vxsdr::imp::get_rx_filter_length(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_filter_length()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -582,8 +562,7 @@ std::optional<unsigned> vxsdr::imp::get_tx_num_subdevs() {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_num_subdevs()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -595,8 +574,7 @@ std::optional<unsigned> vxsdr::imp::get_rx_num_subdevs() {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_num_ports()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -608,8 +586,7 @@ bool vxsdr::imp::get_tx_external_lo_enabled(const uint8_t subdev) {
     auto res    = vxsdr::imp::send_packet_and_return_response(p, "get_tx_external_lo_enabled()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1 > 0;
     }
     return false;
@@ -621,8 +598,7 @@ bool vxsdr::imp::get_rx_external_lo_enabled(const uint8_t subdev) {
     auto res    = vxsdr::imp::send_packet_and_return_response(p, "get_rx_external_lo_enabled()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1 > 0;
     }
     return false;
@@ -656,8 +632,7 @@ bool vxsdr::imp::get_tx_lo_locked(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_lo_locked()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1 > 0;
     }
     return false;
@@ -669,8 +644,7 @@ bool vxsdr::imp::get_rx_lo_locked(const uint8_t subdev) {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_lo_locked()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1 > 0;
     }
     return false;
@@ -682,8 +656,7 @@ std::optional<unsigned> vxsdr::imp::get_tx_num_ports(const uint8_t subdev, const
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_num_ports()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -695,8 +668,7 @@ std::optional<unsigned> vxsdr::imp::get_rx_num_ports(const uint8_t subdev, const
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_num_ports()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -708,8 +680,7 @@ std::optional<unsigned> vxsdr::imp::get_tx_num_channels(const uint8_t subdev) {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_num_channels()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -721,8 +692,7 @@ std::optional<unsigned> vxsdr::imp::get_rx_num_channels(const uint8_t subdev) {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_num_channels()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -735,8 +705,7 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
     auto res            = vxsdr::imp::send_packet_and_return_response(p, "get_tx_port_name()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<name_packet*>(&q);
+        auto* r = std::bit_cast<name_packet*>(&q);
         return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
     }
     return std::nullopt;
@@ -749,8 +718,7 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
     auto res            = vxsdr::imp::send_packet_and_return_response(p, "get_rx_port_name()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<name_packet*>(&q);
+        auto* r = std::bit_cast<name_packet*>(&q);
         return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
     }
     return std::nullopt;
@@ -792,8 +760,7 @@ std::optional<unsigned> vxsdr::imp::get_tx_port(const uint8_t subdev, const uint
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_port()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -805,8 +772,7 @@ std::optional<unsigned> vxsdr::imp::get_rx_port(const uint8_t subdev, const uint
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_port()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -840,8 +806,7 @@ bool vxsdr::imp::get_tx_enabled(const uint8_t subdev) {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_enabled()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1 > 0;
     }
     return false;
@@ -853,8 +818,7 @@ bool vxsdr::imp::get_rx_enabled(const uint8_t subdev) {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_enabled()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return r->value1 > 0;
     }
     return false;

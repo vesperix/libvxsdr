@@ -29,8 +29,8 @@ std::optional<std::array<uint32_t, 6>> vxsdr::imp::hello() {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "hello()");
     if (res) {
         auto q                      = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                     = reinterpret_cast<six_uint32_packet*>(&q);
+
+        auto* r                     = std::bit_cast<six_uint32_packet*>(&q);
         std::array<uint32_t, 6> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6};
         return res;
     }
@@ -55,8 +55,8 @@ std::optional<std::array<uint32_t, 8>> vxsdr::imp::get_status(const uint8_t subd
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_status()");
     if (res) {
         auto q                      = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                     = reinterpret_cast<eight_uint32_packet*>(&q);
+
+        auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
         std::array<uint32_t, 8> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
         return res;
     }
@@ -84,8 +84,8 @@ std::optional<vxsdr::time_point> vxsdr::imp::get_time_now() {
     if (res) {
         auto q = res.value();
         if ((q.hdr.flags & FLAGS_TIME_PRESENT) != 0) {
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            auto* r = reinterpret_cast<cmd_or_rsp_packet_time*>(&q);
+
+            auto* r = std::bit_cast<cmd_or_rsp_packet_time*>(&q);
             return vxsdr::time_point(
                 std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::seconds(r->time.seconds) +
                                                                       std::chrono::nanoseconds(r->time.nanoseconds)));
@@ -101,8 +101,8 @@ std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_info(const uint8_t
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_buffer_info()");
     if (res) {
         auto q                      = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                     = reinterpret_cast<two_uint32_packet*>(&q);
+
+        auto* r                     = std::bit_cast<two_uint32_packet*>(&q);
         // order for return is TX, RX, opposite of packet order
         std::array<uint32_t, 2> ret = {r->value2, r->value1};
         return ret;
@@ -116,8 +116,8 @@ std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_use(const uint8_t 
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_buffer_use()");
     if (res) {
         auto q                      = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                     = reinterpret_cast<two_uint32_packet*>(&q);
+
+        auto* r                     = std::bit_cast<two_uint32_packet*>(&q);
         // order for return is TX, RX, opposite of packet order
         std::array<uint32_t, 2> ret = {r->value2, r->value1};
         return ret;
@@ -131,8 +131,8 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_tx_stream_state(const uint8_t
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_stream_state()");
     if (res) {
         auto q                      = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                     = reinterpret_cast<one_uint64_packet*>(&q);
+
+        auto* r                     = std::bit_cast<one_uint64_packet*>(&q);
         bool running_flag = (r->value1 & STREAM_STATE_TX_RUNNING_FLAG) != 0;
         bool waiting_flag = (r->value1 & STREAM_STATE_TX_WAITING_FLAG) != 0;
         vxsdr::stream_state tx_stream_state;
@@ -157,8 +157,8 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_rx_stream_state(const uint8_t
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_stream_state()");
     if (res) {
         auto q                      = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                     = reinterpret_cast<one_uint64_packet*>(&q);
+
+        auto* r                     = std::bit_cast<one_uint64_packet*>(&q);
         bool running_flag = (r->value1 & STREAM_STATE_RX_RUNNING_FLAG) != 0;
         bool waiting_flag = (r->value1 & STREAM_STATE_RX_WAITING_FLAG) != 0;
         vxsdr::stream_state rx_stream_state;
@@ -187,8 +187,8 @@ std::optional<std::array<bool, 3>> vxsdr::imp::get_timing_status() {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_timing_status()");
     if (res) {
         auto q                  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r                 = reinterpret_cast<one_uint32_packet*>(&q);
+
+        auto* r                 = std::bit_cast<one_uint32_packet*>(&q);
         std::array<bool, 3> ret = {(bool)(r->value1 & TIMING_STATUS_EXT_PPS_LOCK),
                                    (bool)(r->value1 & TIMING_STATUS_EXT_10MHZ_LOCK),
                                    (bool)(r->value1 & TIMING_STATUS_REF_OSC_LOCK)};
@@ -203,8 +203,7 @@ std::optional<double> vxsdr::imp::get_timing_resolution() {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_timing_resolution()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;
@@ -283,8 +282,8 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         if (result.wait_for(std::chrono::milliseconds(discover_wait_ms)) == std::future_status::ready) {
             if (result.get() == sizeof(one_uint32_packet) and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP and
                 q.hdr.command == p.hdr.command) {
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+
+                auto* r = std::bit_cast<one_uint32_packet*>(&q);
                 ret.push_back(net::ip::address_v4(r->value1).to_string());
             } else {
                 LOG_WARN("extraneous response received in discover_ipv4_addresses()");
@@ -326,8 +325,7 @@ std::optional<unsigned> vxsdr::imp::get_max_payload_bytes() {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_max_payload_bytes()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return (unsigned)r->value1;
     }
     return std::nullopt;
@@ -346,8 +344,7 @@ std::optional<unsigned> vxsdr::imp::get_num_sensors(const uint8_t subdev) {
     auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_num_sensors()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_uint32_packet*>(&q);
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
         return (unsigned)r->value1;
     }
     return std::nullopt;
@@ -363,8 +360,7 @@ std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
         auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor_names()");
         if (res) {
             auto q  = res.value();
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            auto* r = reinterpret_cast<name_packet*>(&q);
+            auto* r = std::bit_cast<name_packet*>(&q);
             if (strlen(&r->name[0]) > 0) {
                 names.emplace_back(&r->name[0]);
             }
@@ -383,8 +379,7 @@ std::optional<double> vxsdr::imp::get_sensor_reading(const std::string& sensor_n
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor()");
     if (res) {
         auto q  = res.value();
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* r = reinterpret_cast<one_double_packet*>(&q);
+        auto* r = std::bit_cast<one_double_packet*>(&q);
         return r->value1;
     }
     return std::nullopt;

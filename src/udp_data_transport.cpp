@@ -301,8 +301,7 @@ void udp_data_transport::data_receive() {
                             LOG_ERROR("udp data rx discarded rx data packet from unknown subdevice {:d}", recv_buffer.hdr.subdevice);
                         }
                     } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
-                        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                        auto* r = reinterpret_cast<six_uint32_packet*>(&recv_buffer);
+                        auto* r = std::bit_cast<six_uint32_packet*>(&recv_buffer);
                         tx_buffer_used_bytes = r->value3;
                         tx_buffer_size_bytes = r->value4;
                         tx_packet_oos_count  = r->value5;

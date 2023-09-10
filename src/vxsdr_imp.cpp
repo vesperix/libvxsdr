@@ -217,7 +217,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
                 if constexpr(std::is_same<T, int16_t>()) {
                     for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
                         data[n_received + i] = packet_data[i];
-                    }                    
+                    }
                 } else if constexpr(std::is_floating_point<T>()) {
                     constexpr T scale = 1.0 / 32'768.0;
                     for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
@@ -261,8 +261,7 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
     size_t n_put = 0;
     for (size_t i = 0; i < data.size(); i += MAX_DATA_LENGTH_SAMPLES) {
         data_queue_element q;
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* p               = reinterpret_cast<data_packet*>(&q);
+        auto* p               = std::bit_cast<data_packet*>(&q);
         auto n_samples        = (unsigned)std::min((size_t)MAX_DATA_LENGTH_SAMPLES, data.size() - i);
         unsigned n_data_bytes = n_samples * sizeof(std::complex<int16_t>);
         auto packet_size      = (uint16_t)(sizeof(packet_header) + n_data_bytes);
@@ -351,8 +350,7 @@ double vxsdr::imp::get_host_command_timeout() const {
              (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
              (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
             q.hdr.command == p.hdr.command) {
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(reinterpret_cast<error_packet*>(&q)->value1));
+            LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
             return false;
         }
         LOG_ERROR("invalid response received in {:s}", cmd_name);
@@ -378,8 +376,7 @@ double vxsdr::imp::get_host_command_timeout() const {
              (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
              (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
             q.hdr.command == p.hdr.command) {
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(reinterpret_cast<error_packet*>(&q)->value1));
+            LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
             return std::nullopt;
         }
         LOG_ERROR("invalid response received in {:s}", cmd_name);
@@ -390,10 +387,8 @@ double vxsdr::imp::get_host_command_timeout() const {
 }
 
 [[nodiscard]] bool vxsdr::imp::cmd_queue_push_check(packet& p, const std::string& cmd_name) {
-    command_queue_element q;
-    // yes, creating a class object from a bitstream is wrong
-    std::memcpy((void *)&q, &p, std::min((size_t)p.hdr.packet_size, sizeof(q)));
-    if (not command_tport->command_queue.push(q)) {
+    auto* q = std::bit_cast<command_queue_element*>(&p);
+    if (not command_tport->command_queue.push(*q)) {
         LOG_ERROR("error pushing to command queue in {:s}", cmd_name);
         return false;
     }
@@ -827,23 +822,19 @@ std::span<std::complex<int16_t>> vxsdr::imp::get_packet_data_span(packet& q) con
     bool has_stream_id = (bool)(q.hdr.flags & FLAGS_STREAM_ID_PRESENT);
 
     if (not has_time and not has_stream_id) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* p = reinterpret_cast<data_packet*>(&q);
+        auto* p = std::bit_cast<data_packet*>(&q);
         data_bytes = packet_bytes - packet_header_only_size;
         d = (std::complex<int16_t>*)p->data;
     } else if (has_time and not has_stream_id) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* p = reinterpret_cast<data_packet_time*>(&q);
+        auto* p = std::bit_cast<data_packet_time*>(&q);
         data_bytes = packet_bytes - packet_header_time_size;
         d = (std::complex<int16_t>*)p->data;
     } else if (has_stream_id and not has_time) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* p = reinterpret_cast<data_packet_stream*>(&q);
+        auto* p = std::bit_cast<data_packet_stream*>(&q);
         data_bytes = packet_bytes - packet_header_stream_size;
         d = (std::complex<int16_t>*)p->data;
     } else {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto* p = reinterpret_cast<data_packet_time_stream*>(&q);
+        auto* p = std::bit_cast<data_packet_time_stream*>(&q);
         data_bytes = packet_bytes - packet_header_time_stream_size;
         d = (std::complex<int16_t>*)p->data;
     }
