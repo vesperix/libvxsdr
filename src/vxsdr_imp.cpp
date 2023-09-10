@@ -184,11 +184,16 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
     const unsigned timeout_duration_us = std::llround(timeout_s * 1e6);
 
     if (n_desired == 0) {
-        n_desired = data.size();
+        if (data.size() != 0) {
+            n_desired = data.size();
+        } else {
+            LOG_WARN("get_rx_data() called with zero samples requested");
+            return 0;
+        }
     } else {
         if (data.size() < n_desired) {
-            LOG_WARN("data.size() = {:d} but n_desired = {:d}; reducing n_desired in get_rx_data()", data.size(), n_desired);
-            n_desired = data.size();
+            LOG_WARN("data.size() = {:d} but n_desired = {:d}; resizing data in get_rx_data()", data.size(), n_desired);
+            data.reserve(n_desired);
         }
     }
 
@@ -207,6 +212,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
             auto packet_data = vxsdr::imp::get_packet_data_span(q);
             int64_t data_samples = packet_data.size();
+
             if (data_samples > 0) {
                 if constexpr(std::is_same<T, int16_t>()) {
                     for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
@@ -225,7 +231,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
             return n_received;
         }
     }
-    LOG_DEBUG("get_rx_data complete from subdevice {:d} ({:d} samples)", subdev, data.size());
+    LOG_DEBUG("get_rx_data complete from subdevice {:d} ({:d} samples)", subdev, n_received);
     return n_received;
 }
 
