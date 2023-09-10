@@ -737,7 +737,9 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
         auto q  = res.value();
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         auto* r = reinterpret_cast<name_packet*>(&q);
-        return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+        // ensure zero termination
+        r->name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+        return std::string(r->name);
     }
     return std::nullopt;
 }
@@ -751,7 +753,9 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
         auto q  = res.value();
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         auto* r = reinterpret_cast<name_packet*>(&q);
-        return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+        // ensure zero termination
+        r->name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+        return std::string(r->name);
     }
     return std::nullopt;
 }
