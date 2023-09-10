@@ -156,7 +156,8 @@ namespace vxsdr_lib_logging {
             if (!logfile_name_time_format.empty()) {
                 std::stringstream timestr;
                 std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                timestr << std::put_time(std::localtime(&t), logfile_name_time_format.c_str());
+                struct tm tmp;
+                timestr << std::put_time(localtime_r(&t, &tmp), logfile_name_time_format.c_str());
                 logfile_full_name = logfile_name + "-" + timestr.str() + ".log";
             } else {
                 logfile_full_name = logfile_name + ".log";
