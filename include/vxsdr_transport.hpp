@@ -216,7 +216,11 @@ class command_transport : public packet_transport {
             }
         }
         LOG_INFO("   {:15d} bytes sent", bytes_sent);
-        LOG_INFO("   {:15d} send errors", send_errors);
+        if(send_errors == 0) {
+            LOG_INFO("   {:15d} send errors", send_errors);
+        } else {
+            LOG_WARN("   {:15d} send errors", send_errors);
+        }
     }
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
@@ -250,6 +254,8 @@ class data_transport : public packet_transport {
     uint64_t samples_received                = 0;
     uint64_t sequence_errors_current_stream  = 0;
     uint64_t samples_received_current_stream = 0;
+
+    std::atomic<unsigned> tx_packet_oos_count    = 0;
   public:
 
     data_transport(const std::string& local_address,
@@ -288,7 +294,16 @@ class data_transport : public packet_transport {
         }
         LOG_INFO("   {:15d} samples sent", samples_sent);
         LOG_INFO("   {:15d} bytes sent", bytes_sent);
-        LOG_INFO("   {:15d} send errors", send_errors);
+        if(tx_packet_oos_count == 0) {
+            LOG_INFO("   {:15d} packets out of sequence at device", tx_packet_oos_count);
+        } else {
+            LOG_WARN("   {:15d} packets out of sequence at device", tx_packet_oos_count);
+        }
+        if(send_errors == 0) {
+            LOG_INFO("   {:15d} send errors", send_errors);
+        } else {
+            LOG_WARN("   {:15d} send errors", send_errors);
+        }
     }
 
     bool reset_rx() {
@@ -421,7 +436,6 @@ class udp_data_transport : public data_transport {
     std::atomic<unsigned> tx_buffer_size_bytes   = 0;
     std::atomic<unsigned> tx_buffer_used_bytes   = 0;
     std::atomic<unsigned> tx_buffer_fill_percent = 0;
-    std::atomic<unsigned> tx_packet_oos_count    = 0;
 
   public:
     explicit udp_data_transport(const std::string& local_address,
