@@ -130,6 +130,9 @@ udp_command_transport::~udp_command_transport() noexcept {
     if (err) {
         LOG_ERROR("udp command sender socket close: {:s}", err.message());
     }
+    if (log_stats_on_exit) {
+        log_stats();
+    }
     LOG_DEBUG("udp command transport destructor complete");
 }
 

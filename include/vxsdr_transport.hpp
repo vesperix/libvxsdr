@@ -37,6 +37,8 @@ class packet_transport {
 
     std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_sent     = {0};
     std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_received = {0};
+
+    bool log_stats_on_exit = true;
   public:
     packet_transport() = default;
     packet_transport(const std::string& local_address,
@@ -205,7 +207,7 @@ class command_transport : public packet_transport {
         if(sequence_errors == 0) {
             LOG_INFO("   {:15d} sequence errors", sequence_errors);
         } else {
-            LOG_ERROR("   {:15d} sequence errors", sequence_errors);
+            LOG_WARN("   {:15d} sequence errors", sequence_errors);
         }
         LOG_INFO("   {:15d} packets sent", packets_sent);
         for (unsigned i = 0; i < packet_types_sent.size(); i++) {
@@ -276,7 +278,7 @@ class data_transport : public packet_transport {
         if(sequence_errors == 0) {
             LOG_INFO("   {:15d} sequence errors", sequence_errors);
         } else {
-            LOG_ERROR("   {:15d} sequence errors", sequence_errors);
+            LOG_WARN("   {:15d} sequence errors", sequence_errors);
         }
         LOG_INFO("   {:15d} packets sent", packets_sent);
         for (unsigned i = 0; i < packet_types_sent.size(); i++) {
