@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
     net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
 
-    auto context_thread = std::thread([&]() { ctx.run(); });
+    auto context_thread = std::thread([&ctx]() { ctx.run(); });
     if (thread_affinity[0] >= 0) {
         if (set_thread_affinity(context_thread, thread_affinity[0]) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);

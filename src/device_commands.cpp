@@ -225,7 +225,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     net::io_context discover_context;
 
     auto work           = net::make_work_guard(discover_context);
-    auto context_thread = std::thread([&] { discover_context.run(); });
+    auto context_thread = std::thread([&discover_context] { discover_context.run(); });
 
     net::ip::udp::endpoint local_endpoint(local_addr, destination_port);
     net::ip::udp::endpoint device_endpoint(broadcast_addr, destination_port);
@@ -365,8 +365,9 @@ std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
             auto q  = res.value();
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             auto* r = reinterpret_cast<name_packet*>(&q);
-            if (strlen(&r->name[0]) > 0) {
-                names.emplace_back(&r->name[0]);
+            auto s = std::string(&r->name[0], std::min(strlen(&r->name[0]), size_t(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+            if (s.size() > 0) {
+                names.emplace_back(s);
             }
         } else {
             break;
