@@ -25,7 +25,7 @@
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
-#define VXSDR_LIB_LOGGER_NAME          "libvxsdr"
+static const std::string VXSDR_LIB_LOGGER_NAME = "libvxsdr";
 
 namespace vxsdr_lib_logging {
     void init();
