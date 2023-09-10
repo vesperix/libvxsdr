@@ -163,7 +163,7 @@ void vxsdr::imp::log_transport_stats(const bool send_get_status) {
     data_tport->log_stats();
 }
 
-template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data, size_t n_desired, const uint8_t subdev, const double timeout_s) {
+template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
     LOG_DEBUG("get_rx_data from subdevice {:d} entered", subdev);
     size_t n_received = 0;
     data_queue_element q;
@@ -183,17 +183,17 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
     }
     const unsigned timeout_duration_us = std::llround(timeout_s * 1e6);
 
-    if (n_desired == 0) {
+    if (n_requested == 0) {
         if (data.size() != 0) {
-            n_desired = data.size();
+            n_requested = data.size();
         } else {
             LOG_WARN("get_rx_data() called with zero samples requested");
             return 0;
         }
     } else {
-        if (data.size() < n_desired) {
-            LOG_WARN("data.size() = {:d} but n_desired = {:d}; resizing data in get_rx_data()", data.size(), n_desired);
-            data.reserve(n_desired);
+        if (data.size() < n_requested) {
+            LOG_WARN("data.size() = {:d} but n_requested = {:d}; resizing data in get_rx_data()", data.size(), n_requested);
+            data.reserve(n_requested);
         }
     }
 
@@ -204,10 +204,10 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 
     data.clear();
 
-    LOG_INFO("receiving {:d} samples from subdevice {:d}", n_desired, subdev);
+    LOG_INFO("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
 
-    while (n_received < n_desired) {
-        int64_t n_remaining = (int64_t)n_desired - (int64_t)n_received;
+    while (n_received < n_requested) {
+        int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
         // setting rx_data_queue_wait_us = 0 results in a busy wait
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
             auto packet_data = vxsdr::imp::get_packet_data_span(q);
@@ -227,7 +227,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
                 n_received += data_samples;
             }
         } else {
-            LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received, n_desired);
+            LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received, n_requested);
             return n_received;
         }
     }
@@ -236,8 +236,8 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 }
 
 // Need to explicitly instantiate template classes for all allowed types so compiler will include code in library
-template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<int16_t>>& data, size_t n_desired, const uint8_t subdev, const double timeout_s);
-template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<float>>& data, size_t n_desired, const uint8_t subdev, const double timeout_s);
+template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<int16_t>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
+template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<float>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
 
 template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data, const uint8_t subdev, const double timeout_s) {
     LOG_DEBUG("put_tx_data started");

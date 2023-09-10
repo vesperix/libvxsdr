@@ -70,7 +70,7 @@ class vxsdr::imp {
     std::vector<std::string> get_library_details();
     void log_transport_stats(const bool send_get_status = false);
     template <typename T> size_t get_rx_data(std::vector<std::complex<T>>& data,
-                       size_t n_desired,
+                       size_t n_requested,
                        const uint8_t subdev,
                        const double timeout_s);
     template <typename T> size_t put_tx_data(const std::vector<std::complex<T>>& data,
