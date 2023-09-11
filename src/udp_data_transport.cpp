@@ -260,13 +260,11 @@ void udp_data_transport::data_receive() {
         if (not receiver_thread_stop_flag) {
             if (err) {
                 LOG_ERROR("udp data rx packet error: {:s}", err.message());
-                rx_state = TRANSPORT_ERROR;
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     LOG_ERROR("udp data rx discarded packet with incorrect size in header (header {:d}, packet {:d})",
                             (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
-                    rx_state = TRANSPORT_ERROR;
                 } else {
                     // update stats
                     packets_received++;
@@ -279,7 +277,6 @@ void udp_data_transport::data_receive() {
                         LOG_ERROR("udp data rx sequence error (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
                         sequence_errors++;
                         sequence_errors_current_stream++;
-                        rx_state = TRANSPORT_ERROR;
                     }
                     last_seq = recv_buffer.hdr.sequence_counter;
 
