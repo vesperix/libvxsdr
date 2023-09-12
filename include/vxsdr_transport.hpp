@@ -295,9 +295,9 @@ class data_transport : public packet_transport {
         LOG_INFO("   {:15d} samples sent", samples_sent);
         LOG_INFO("   {:15d} bytes sent", bytes_sent);
         if(tx_packet_oos_count == 0) {
-            LOG_INFO("   {:15d} packets out of sequence at device", tx_packet_oos_count);
+            LOG_INFO("   {:15d} packets out of sequence at device", (unsigned)tx_packet_oos_count);
         } else {
-            LOG_WARN("   {:15d} packets out of sequence at device", tx_packet_oos_count);
+            LOG_WARN("   {:15d} packets out of sequence at device", (unsigned)tx_packet_oos_count);
         }
         if(send_errors == 0) {
             LOG_INFO("   {:15d} send errors", send_errors);
