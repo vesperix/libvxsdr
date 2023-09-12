@@ -8,9 +8,13 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <algorithm>
+#include <cctype>
 
 #include "logging.hpp"
-#include "vxsdr_imp.hpp"
+
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 
 #ifndef VXSDR_LIB_DISABLE_LOGGING
 
