@@ -6,15 +6,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <complex>
-#include <fstream>
 #include <optional>
 #include <vector>
 #include <array>
 #include <memory>
 #include <string>
 #include <ratio>
-#include <chrono>
 #include <map>
+#include <chrono>
 using namespace std::chrono_literals;
 
 #include "vxsdr_lib_export.h"
@@ -148,7 +147,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Set the maximum payload size in bytes for transport to and from the device.
       The payload size must be a multiple of 8 bytes (2 samples) and 1024 <= max_payload_bytes <= 16384.
-      We strongly recommend using the default of 8192, which is compatible with a typical jumbo packet 
+      We strongly recommend using the default of 8192, which is compatible with a typical jumbo packet
       MTU of 9000, or a larger value if you are certain your network cards support it.
       @returns @p true if the size is set, @p false otherwise
       @param max_payload_bytes the maximum payload size in bytes

@@ -3,6 +3,14 @@
 
 #include <vxsdr.hpp>
 
+#include <cstddef>
+#include <cstdint>
+#include <array>
+#include <complex>
+#include <map>
+#include <string>
+#include <vector>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
 #include <pybind11/numpy.h>
