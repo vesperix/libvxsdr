@@ -7,6 +7,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <algorithm>
 #include <cctype>
@@ -48,8 +49,9 @@ namespace vxsdr_lib_logging {
 /*
     This sets up logging for the vxsdr library. This is the
     library's logging, not your program's, and it's used to
-    record events in the library. You can disable library logging
-    by defining VXSDR_LIB_DISABLE_LOGGING at build time.
+    record events in the library. You can disable library
+    logging by setting the option VXSDR_ENABLE_LOGGING=OFF
+    on the CMake command line
 
     Logging levels and log entry patterns are set separately
     for the console and the logfile.
