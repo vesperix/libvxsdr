@@ -68,7 +68,6 @@ class vxsdr::imp {
     uint32_t get_library_version();
     uint32_t get_library_packet_version();
     std::vector<std::string> get_library_details();
-    void log_transport_stats(const bool send_get_status = false);
     template <typename T> size_t get_rx_data(std::vector<std::complex<T>>& data,
                        size_t n_requested,
                        const uint8_t subdev,

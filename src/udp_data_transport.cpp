@@ -246,7 +246,7 @@ void udp_data_transport::data_receive() {
     }
 
     rx_state = TRANSPORT_READY;
-    LOG_INFO("udp data rx in READY state");
+    LOG_DEBUG("udp data rx in READY state");
 
     while (rx_state == TRANSPORT_READY and not receiver_thread_stop_flag) {
         static data_queue_element recv_buffer;
@@ -348,7 +348,7 @@ void udp_data_transport::data_send() {
 
 
     tx_state = TRANSPORT_READY;
-    LOG_INFO("udp data tx in READY state");
+    LOG_DEBUG("udp data tx in READY state");
 
     while (not sender_thread_stop_flag) {
         // There are 3 throttling states: no throttling, normal throttling, and hard throttling;

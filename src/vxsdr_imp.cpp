@@ -144,25 +144,6 @@ std::vector<std::string> vxsdr::imp::get_library_details() {
     return ret;
 }
 
-void vxsdr::imp::log_transport_stats(const bool send_get_status) {
-    int tx_packet_oos_count = -1;
-    if (send_get_status) {
-        // the get status command needed to get tx_packet_oos_count
-        auto res = vxsdr::imp::get_status();
-        if (res) {
-            tx_packet_oos_count = res->at(2);
-        }
-        LOG_INFO("device:");
-        if (tx_packet_oos_count > 0) {
-            LOG_ERROR("   {:15d} data packets out of sequence", tx_packet_oos_count);
-        } else {
-            LOG_INFO("   {:15d} data packets out of sequence", tx_packet_oos_count);
-        }
-    }
-    command_tport->log_stats();
-    data_tport->log_stats();
-}
-
 template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
     LOG_DEBUG("get_rx_data from subdevice {:d} entered", subdev);
     size_t n_received = 0;
@@ -204,7 +185,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 
     data.reserve(n_requested);
 
-    LOG_INFO("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
+    LOG_DEBUG("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
 
     while (n_received < n_requested) {
         int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
@@ -217,7 +198,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
                 if constexpr(std::is_same<T, int16_t>()) {
                     for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
                         data[n_received + i] = packet_data[i];
-                    }                    
+                    }
                 } else if constexpr(std::is_floating_point<T>()) {
                     constexpr T scale = 1.0 / 32'768.0;
                     for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {

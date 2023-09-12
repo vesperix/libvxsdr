@@ -144,7 +144,7 @@ void udp_command_transport::command_receive() {
     sequence_errors   = 0;
 
     rx_state = TRANSPORT_READY;
-    LOG_INFO("udp command rx in READY state");
+    LOG_DEBUG("udp command rx in READY state");
 
     while (rx_state == TRANSPORT_READY and not receiver_thread_stop_flag) {
         static command_queue_element recv_buffer;
@@ -224,7 +224,7 @@ void udp_command_transport::command_send() {
     static command_queue_element packet_buffer;
 
     tx_state = TRANSPORT_READY;
-    LOG_INFO("udp command tx in READY state");
+    LOG_DEBUG("udp command tx in READY state");
 
     while (not sender_thread_stop_flag) {
         if (command_queue.pop_or_timeout(packet_buffer, send_thread_wait_us, send_thread_sleep_us)) {
