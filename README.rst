@@ -15,22 +15,22 @@ Introduction
 ============
 
 This is the host library for the VXSDR software defined radio API;
-it lets you control the radio and send and receive data. 
+it lets you control the radio and send and receive data.
 
 Licensing
 ---------
 
-The library source code is licensed under the GNU GPL version 3 or (at your option) any later version. 
-See the LICENSE file for the complete terms of the source code license. 
+The library source code is licensed under the GNU GPL version 3 or (at your option) any later version.
+See the LICENSE file for the complete terms of the source code license.
 
 Documentation
 =============
 
 Documentation for the host library is available at https://libvxsdr.readthedocs.io.
 
-The documentation is licensed under the Creative Commons Attribution-ShareAlike 4.0 
+The documentation is licensed under the Creative Commons Attribution-ShareAlike 4.0
 International Public License; see
-https://creativecommons.org/licenses/by-sa/4.0/legalcode 
+https://creativecommons.org/licenses/by-sa/4.0/legalcode
 for the complete terms of the documentation license.
 
 Building the Library
@@ -44,7 +44,7 @@ on GitHub's CI system:
 
 |linux_build_status|
 
-This is updated each time the main branch is changed. Ports for macOS and Windows 
+This is updated each time the main branch is changed. Ports for macOS and Windows
 are under development, and their build status will be added when they are released.
 
 Prerequisites
@@ -54,8 +54,8 @@ The library currently supports Linux hosts only; macOS and Windows support is un
 
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
 system version 3.16 or higher are required to build the VXSDR host library. (The C++20
-requirement can currently be satisfied by gcc 9.4 or later using the ``-std=c++2a``
-compiler switch; we do not currently use all of the features introduced in C++20.)
+requirement can currently be satisfied by gcc 10 or later, or by clang 10 or later;
+we do not now require all of the features introduced in C++20.)
 
 The library itself depends on Boost 1.67 or higher; this is because it uses boost::lockfree queues
 and the boost::asio networking interface.
@@ -70,7 +70,7 @@ interface is built by default; to disable it, run CMake with ``-DVXSDR_PYTHON_BI
 removes the dependencies on Python and its development files.
 
 
-Installing prerequisites on Ubuntu 20.04 or later
+Installing prerequisites on Ubuntu 22.04 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: shell

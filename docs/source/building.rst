@@ -10,14 +10,14 @@ Prerequisites
 
 The library currently supports Linux hosts only; macOS and Windows
 support is still under development. The "experimental" sections below
-for macOS and Windows document our development build settings, but they are 
-**not yet supported, and neither macOS nor Windows hosts are currently usable**. 
-When the library builds correctly and passes testing with VXSDR devices on a 
+for macOS and Windows document our development build settings, but they are
+**not yet supported, and neither macOS nor Windows hosts are currently usable**.
+When the library builds correctly and passes testing with VXSDR devices on a
 new host OS, we will update the build settings below and remove the "experimental" notation.
 
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
 system version 3.16 or higher are required to build the VXSDR host library. (The C++20
-requirement can currently be satisfied by gcc 9.4 or later, or by clang 10.0 or later;
+requirement can currently be satisfied by gcc 10 or later, or by clang 10 or later;
 we do not now require all of the features introduced in C++20.)
 
 The library itself depends on Boost 1.67 or higher; this is because it uses boost::lockfree queues
@@ -32,7 +32,7 @@ PyBind11 are required. If these are not present, the Python interface will not b
 interface is built by default; to disable it, run CMake with ``-DVXSDR_PYTHON_BINDINGS=OFF``, which
 removes the dependencies on Python and its development files.
 
-Installing prerequisites on Ubuntu 20.04 or later
+Installing prerequisites on Ubuntu 22.04 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: text
@@ -40,7 +40,6 @@ Installing prerequisites on Ubuntu 20.04 or later
 
    sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev
    sudo apt install python3-dev pybind11-dev
-
 
 Installing prerequisites on Fedora 35 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
