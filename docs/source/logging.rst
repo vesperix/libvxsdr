@@ -12,7 +12,7 @@ and is designed not to interfere with any logging your program might
 do, even if your program also uses spdlog.
 
 You can disable library logging
-by setting the option VXSDR_ENABLE_LOGGING=OFF on the cmake command line.
+by setting the option VXSDR_ENABLE_LOGGING=OFF on the CMake command line.
 
 There are two types of log possible, a log sent to the console (standard error)
 and a log sent to a file. Each of these can have their logging level and their

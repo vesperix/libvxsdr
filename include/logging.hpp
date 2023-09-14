@@ -7,7 +7,6 @@
   Logging can be customized by editing the init() function in logging.cpp
 */
 
-#include <iostream>
 #include <string>
 
 #ifndef VXSDR_LIB_DISABLE_LOGGING
@@ -21,11 +20,8 @@
 #define FMT_HEADER_ONLY
 
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/fmt.h>
-#include <spdlog/sinks/stdout_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
 
-#define VXSDR_LIB_LOGGER_NAME          "libvxsdr"
+static const std::string VXSDR_LIB_LOGGER_NAME = "libvxsdr";
 
 namespace vxsdr_lib_logging {
     void init();

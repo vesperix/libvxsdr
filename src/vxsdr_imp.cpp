@@ -52,7 +52,7 @@ vxsdr::imp::imp(const std::string& local_address,
         }
     }
 
-    async_handler_thread        = std::thread([&] { vxsdr::imp::async_handler(); });
+    async_handler_thread        = std::thread([this] { vxsdr::imp::async_handler(); });
 
     auto res = vxsdr::imp::hello();
     if (not res) {
@@ -61,7 +61,7 @@ vxsdr::imp::imp(const std::string& local_address,
     }
     LOG_INFO("device info:");
     LOG_INFO("   device FPGA code version: {:s}", vxsdr::imp::version_number_to_string(res->at(1)));
-    LOG_INFO("   devie MCU code version: {:s}", vxsdr::imp::version_number_to_string(res->at(2)));
+    LOG_INFO("   device MCU code version: {:s}", vxsdr::imp::version_number_to_string(res->at(2)));
     LOG_INFO("   device serial number: {:d}", res->at(3));
     LOG_INFO("   device supported packet version: {:s}", vxsdr::imp::version_number_to_string(res->at(4)));
     // check that library and device support the same packet version
@@ -144,25 +144,6 @@ std::vector<std::string> vxsdr::imp::get_library_details() {
     return ret;
 }
 
-void vxsdr::imp::log_transport_stats(const bool send_get_status) {
-    int tx_packet_oos_count = -1;
-    if (send_get_status) {
-        // the get status command needed to get tx_packet_oos_count
-        auto res = vxsdr::imp::get_status();
-        if (res) {
-            tx_packet_oos_count = res->at(2);
-        }
-        LOG_INFO("device:");
-        if (tx_packet_oos_count > 0) {
-            LOG_ERROR("   {:15d} data packets out of sequence", tx_packet_oos_count);
-        } else {
-            LOG_INFO("   {:15d} data packets out of sequence", tx_packet_oos_count);
-        }
-    }
-    command_tport->log_stats();
-    data_tport->log_stats();
-}
-
 template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
     LOG_DEBUG("get_rx_data from subdevice {:d} entered", subdev);
     size_t n_received = 0;
@@ -204,7 +185,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 
     data.reserve(n_requested);
 
-    LOG_INFO("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
+    LOG_DEBUG("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
 
     while (n_received < n_requested) {
         int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
@@ -489,47 +470,6 @@ std::string vxsdr::imp::version_number_to_string(const uint32_t version) const {
     output << std::to_string(major) << ".";
     output << std::to_string(minor) << ".";
     output << std::to_string(patch);
-    return output.str();
-}
-
-std::string vxsdr::imp::format_time_digits(const vxsdr::time_point t,
-                        const int digits,
-                        const bool use_utc,
-                        const std::string& fmt) const {
-    std::stringstream output;
-    time_t n_seconds = std::chrono::system_clock::to_time_t(std::chrono::round<std::chrono::system_clock::duration>(t));
-    if (use_utc) {
-        output << std::put_time(gmtime(&n_seconds), fmt.c_str());
-    } else {
-        output << std::put_time(localtime(&n_seconds), fmt.c_str());
-    }
-    int32_t ns = 0;
-    if(digits > 0) {
-        ns = (int32_t)std::chrono::duration_cast<std::chrono::nanoseconds>(t - std::chrono::system_clock::from_time_t(n_seconds)).count();
-    }
-    switch (digits) {
-        case 0:
-            break;
-        case 1:
-            output << "."  << std::setfill('0') << std::setw(1) << std::to_string(std::lround(1e-8 * ns));
-            break;
-        case 2:
-            output << "."  << std::setfill('0') << std::setw(2) << std::to_string(std::lround(1e-7 * ns));
-            break;
-        case 3:
-            output << "."  << std::setfill('0') << std::setw(3) << std::to_string(std::lround(1e-6 * ns));
-            break;
-        case 4:
-            output << "."  << std::setfill('0') << std::setw(4) << std::to_string(std::lround(1e-5 * ns));
-            break;
-        case 5:
-            output << "."  << std::setfill('0') << std::setw(5) << std::to_string(std::lround(1e-4 * ns));
-            break;
-        case 6:
-        default:
-            output << "."  << std::setfill('0') << std::setw(6) << std::to_string(std::lround(1e-3 * ns));
-            break;
-    }
     return output.str();
 }
 

@@ -7,10 +7,15 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <memory>
+#include <algorithm>
+#include <cctype>
 
 #include "logging.hpp"
-#include "vxsdr_imp.hpp"
+
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 
 #ifndef VXSDR_LIB_DISABLE_LOGGING
 
@@ -44,8 +49,9 @@ namespace vxsdr_lib_logging {
 /*
     This sets up logging for the vxsdr library. This is the
     library's logging, not your program's, and it's used to
-    record events in the library. You can disable library logging
-    by defining VXSDR_LIB_DISABLE_LOGGING at build time.
+    record events in the library. You can disable library
+    logging by setting the option VXSDR_ENABLE_LOGGING=OFF
+    on the CMake command line
 
     Logging levels and log entry patterns are set separately
     for the console and the logfile.
@@ -156,7 +162,8 @@ namespace vxsdr_lib_logging {
             if (!logfile_name_time_format.empty()) {
                 std::stringstream timestr;
                 std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                timestr << std::put_time(std::localtime(&t), logfile_name_time_format.c_str());
+                struct tm tmp;
+                timestr << std::put_time(localtime_r(&t, &tmp), logfile_name_time_format.c_str());
                 logfile_full_name = logfile_name + "-" + timestr.str() + ".log";
             } else {
                 logfile_full_name = logfile_name + ".log";

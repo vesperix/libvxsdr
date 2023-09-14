@@ -68,7 +68,6 @@ class vxsdr::imp {
     uint32_t get_library_version();
     uint32_t get_library_packet_version();
     std::vector<std::string> get_library_details();
-    void log_transport_stats(const bool send_get_status = false);
     template <typename T> size_t get_rx_data(std::vector<std::complex<T>>& data,
                        size_t n_requested,
                        const uint8_t subdev,
@@ -181,10 +180,6 @@ class vxsdr::imp {
     std::string stream_state_to_string(const vxsdr::stream_state state) const;
     std::string error_to_string(const uint32_t reason) const;
     std::string version_number_to_string(const uint32_t version) const;
-    std::string format_time_digits(const vxsdr::time_point t,
-                        const int digits       = 6,
-                        const bool use_utc     = true,
-                        const std::string& fmt = "%Y-%m-%d %H:%M:%S") const;
     std::string packet_type_to_name(const uint8_t number) const;
     std::string device_cmd_to_name(const uint8_t cmd) const;
     std::string cmd_error_to_name(const uint32_t reason) const;

@@ -705,8 +705,16 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
     auto res            = vxsdr::imp::send_packet_and_return_response(p, "get_tx_port_name()");
     if (res) {
         auto q  = res.value();
+<<<<<<< HEAD
         auto* r = std::bit_cast<name_packet*>(&q);
         return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+=======
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        auto* r = reinterpret_cast<name_packet*>(&q);
+        // ensure zero termination
+        r->name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+        return std::string(r->name);
+>>>>>>> develop
     }
     return std::nullopt;
 }
@@ -718,8 +726,16 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
     auto res            = vxsdr::imp::send_packet_and_return_response(p, "get_rx_port_name()");
     if (res) {
         auto q  = res.value();
+<<<<<<< HEAD
         auto* r = std::bit_cast<name_packet*>(&q);
         return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+=======
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        auto* r = reinterpret_cast<name_packet*>(&q);
+        // ensure zero termination
+        r->name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+        return std::string(r->name);
+>>>>>>> develop
     }
     return std::nullopt;
 }

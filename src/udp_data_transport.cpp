@@ -140,7 +140,7 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
     LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
 
     rx_state        = TRANSPORT_STARTING;
-    receiver_thread = std::thread([&] { data_receive(); });
+    receiver_thread = std::thread([this] { data_receive(); });
 
     if (config["udp_data_transport:thread_affinity_offset"] >= 0 and config["udp_data_transport:receiver_thread_affinity"] >= 0) {
         auto desired_affinity =
@@ -160,7 +160,7 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
     }
 
     tx_state      = TRANSPORT_STARTING;
-    sender_thread = std::thread([&] { data_send(); });
+    sender_thread = std::thread([this] { data_send(); });
 
     if (config["udp_data_transport:thread_affinity_offset"] >= 0 and config["udp_data_transport:sender_thread_affinity"] >= 0) {
         auto desired_affinity =
@@ -246,7 +246,7 @@ void udp_data_transport::data_receive() {
     }
 
     rx_state = TRANSPORT_READY;
-    LOG_INFO("udp data rx in READY state");
+    LOG_DEBUG("udp data rx in READY state");
 
     while (rx_state == TRANSPORT_READY and not receiver_thread_stop_flag) {
         static data_queue_element recv_buffer;
@@ -260,13 +260,11 @@ void udp_data_transport::data_receive() {
         if (not receiver_thread_stop_flag) {
             if (err) {
                 LOG_ERROR("udp data rx packet error: {:s}", err.message());
-                rx_state = TRANSPORT_ERROR;
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     LOG_ERROR("udp data rx discarded packet with incorrect size in header (header {:d}, packet {:d})",
                             (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
-                    rx_state = TRANSPORT_ERROR;
                 } else {
                     // update stats
                     packets_received++;
@@ -279,7 +277,6 @@ void udp_data_transport::data_receive() {
                         LOG_ERROR("udp data rx sequence error (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
                         sequence_errors++;
                         sequence_errors_current_stream++;
-                        rx_state = TRANSPORT_ERROR;
                     }
                     last_seq = recv_buffer.hdr.sequence_counter;
 
@@ -350,7 +347,7 @@ void udp_data_transport::data_send() {
 
 
     tx_state = TRANSPORT_READY;
-    LOG_INFO("udp data tx in READY state");
+    LOG_DEBUG("udp data tx in READY state");
 
     while (not sender_thread_stop_flag) {
         // There are 3 throttling states: no throttling, normal throttling, and hard throttling;
