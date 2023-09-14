@@ -357,17 +357,9 @@ std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
         auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor_names()");
         if (res) {
             auto q  = res.value();
-<<<<<<< HEAD
             auto* r = std::bit_cast<name_packet*>(&q);
             if (strlen(&r->name[0]) > 0) {
                 names.emplace_back(&r->name[0]);
-=======
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            auto* r = reinterpret_cast<name_packet*>(&q);
-            auto s = std::string(&r->name[0], std::min(strlen(&r->name[0]), size_t(MAX_PAYLOAD_LENGTH_BYTES - 1)));
-            if (s.size() > 0) {
-                names.emplace_back(s);
->>>>>>> develop
             }
         } else {
             break;
