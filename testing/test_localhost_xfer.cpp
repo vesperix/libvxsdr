@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <iostream>
 #include <mutex>
-#include <thread>
 #include <vector>
 #include <atomic>
 #include <chrono>
@@ -16,6 +15,7 @@ using namespace std::chrono_literals;
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "thread_utils.hpp"
+#include "vxsdr_threads.hpp"
 
 static constexpr size_t tx_queue_length =     512;
 static constexpr size_t rx_queue_length = 262'144;
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
     net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
 
-    auto context_thread = std::thread([&ctx]() { ctx.run(); });
+    auto context_thread = vxsdr_thread([&ctx]() { ctx.run(); });
     if (thread_affinity[0] >= 0) {
         if (set_thread_affinity(context_thread, thread_affinity[0]) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
@@ -256,8 +256,8 @@ int main(int argc, char* argv[]) {
     sender_socket.connect(local_receive_endpoint);
     receiver_socket.connect(local_send_endpoint);
 
-    auto tx_thread = std::thread(&tx_net_sender, std::ref(sender_socket));
-    auto rx_thread = std::thread(&rx_net_receiver, std::ref(receiver_socket));
+    auto tx_thread = vxsdr_thread(&tx_net_sender, std::ref(sender_socket));
+    auto rx_thread = vxsdr_thread(&rx_net_receiver, std::ref(receiver_socket));
 
     if (thread_affinity[1] >= 0) {
         if (set_thread_affinity(tx_thread, thread_affinity[1]) != 0) {
@@ -293,10 +293,10 @@ int main(int argc, char* argv[]) {
     double push_rate = 0;
     unsigned seq_errors = 0;
 
-    auto consumer_thread = std::thread(&rx_consumer, n_items, std::ref(pop_rate), std::ref(seq_errors));
+    auto consumer_thread = vxsdr_thread(&rx_consumer, n_items, std::ref(pop_rate), std::ref(seq_errors));
     // brief wait to ensure consumer thread is ready before starting producer
     std::this_thread::sleep_for(10ms);
-    auto producer_thread = std::thread(&tx_producer, n_items, std::ref(push_rate));
+    auto producer_thread = vxsdr_thread(&tx_producer, n_items, std::ref(push_rate));
 
     producer_thread.join();
     consumer_thread.join();

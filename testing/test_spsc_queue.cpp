@@ -7,12 +7,12 @@
 #include <cstdint>
 #include <iostream>
 #include <mutex>
-#include <thread>
 #include <vector>
 #include <array>
 
 #include "vxsdr_queues.hpp"
 #include "vxsdr_packets.hpp"
+#include "vxsdr_threads.hpp"
 
 static constexpr size_t queue_length = 262'144;
 
@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
     double pop_rate = 0;
     double push_rate = 0;
 
-    auto consumer_thread = std::thread(&consumer, n_items, std::ref(pop_rate));
-    auto producer_thread = std::thread(&producer, n_items, std::ref(push_rate));
+    auto consumer_thread = vxsdr_thread(&consumer, n_items, std::ref(pop_rate));
+    auto producer_thread = vxsdr_thread(&producer, n_items, std::ref(push_rate));
 
     producer_thread.join();
     consumer_thread.join();

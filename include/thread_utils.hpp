@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <thread>
+#include "vxsdr_threads.hpp"
 
-int set_thread_affinity(std::thread& thread, const unsigned cpunum);
-int set_thread_priority_realtime(std::thread& thread, int priority);
+int set_thread_affinity(vxsdr_thread& thread, const unsigned cpunum);
+int set_thread_priority_realtime(vxsdr_thread& thread, int priority);

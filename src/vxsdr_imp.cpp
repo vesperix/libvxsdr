@@ -13,6 +13,7 @@
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
+#include "vxsdr_threads.hpp"
 #include "vxsdr_imp.hpp"
 
 
@@ -52,7 +53,7 @@ vxsdr::imp::imp(const std::string& local_address,
         }
     }
 
-    async_handler_thread        = std::thread([this] { vxsdr::imp::async_handler(); });
+    async_handler_thread        = vxsdr_thread([this] { vxsdr::imp::async_handler(); });
 
     auto res = vxsdr::imp::hello();
     if (not res) {

@@ -8,13 +8,13 @@
 #include <complex>
 #include <cstddef>
 #include <cstdint>
-#include <thread>
 
 #include "logging.hpp"
 #include "thread_utils.hpp"
 #include "vxsdr_imp.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
+#include "vxsdr_threads.hpp"
 
 /*! @file udp_data_transport.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_udp data transport classes.
@@ -140,7 +140,7 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
     LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
 
     rx_state        = TRANSPORT_STARTING;
-    receiver_thread = std::thread([this] { data_receive(); });
+    receiver_thread = vxsdr_thread([this] { data_receive(); });
 
     if (config["udp_data_transport:thread_affinity_offset"] >= 0 and config["udp_data_transport:receiver_thread_affinity"] >= 0) {
         auto desired_affinity =
@@ -160,7 +160,7 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
     }
 
     tx_state      = TRANSPORT_STARTING;
-    sender_thread = std::thread([this] { data_send(); });
+    sender_thread = vxsdr_thread([this] { data_send(); });
 
     if (config["udp_data_transport:thread_affinity_offset"] >= 0 and config["udp_data_transport:sender_thread_affinity"] >= 0) {
         auto desired_affinity =

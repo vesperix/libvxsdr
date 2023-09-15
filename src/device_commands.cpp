@@ -8,13 +8,13 @@
 #include <future>
 #include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 #include <algorithm>
 
 #include "logging.hpp"
 #include "vxsdr.hpp"
 #include "vxsdr_imp.hpp"
+#include "vxsdr_threads.hpp"
 
 /*! @file device_commands.cpp
     @brief Device command functions for the @p vxsdr class.
@@ -221,7 +221,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     net::io_context discover_context;
 
     auto work           = net::make_work_guard(discover_context);
-    auto context_thread = std::thread([&discover_context] { discover_context.run(); });
+    auto context_thread = vxsdr_thread([&discover_context] { discover_context.run(); });
 
     net::ip::udp::endpoint local_endpoint(local_addr, destination_port);
     net::ip::udp::endpoint device_endpoint(broadcast_addr, destination_port);

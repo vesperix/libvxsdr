@@ -9,7 +9,6 @@
 #include <cstring>
 #include <fstream>
 #include <optional>
-#include <thread>
 #include <vector>
 #include <span>
 #include <ratio>
@@ -22,6 +21,7 @@ using namespace std::chrono_literals;
 #include "vxsdr_net.hpp"
 #include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
+#include "vxsdr_threads.hpp"
 
 #include "vxsdr.hpp"
 
@@ -47,7 +47,7 @@ class vxsdr::imp {
     // how often to check the async queue
     static constexpr vxsdr::duration async_queue_wait        = 1ms;
     // thread to check the queue
-    std::thread async_handler_thread;
+    vxsdr_thread async_handler_thread;
     // flag for shutdown of async handler
     std::atomic<bool> async_handler_stop_flag = false;
 

@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <thread>
 #include <exception>
 #include <future>
 
@@ -13,6 +12,7 @@
 
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
+#include "vxsdr_threads.hpp"
 
 void add_setup_options(boost::program_options::options_description& desc) {
     // clang-format off
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 
         net::io_context ctx;
         auto work = net::make_work_guard(ctx);
-        std::thread context_thread([&ctx]() { ctx.run(); });
+        vxsdr_thread context_thread([&ctx]() { ctx.run(); });
 
         net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
         net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);

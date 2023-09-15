@@ -15,6 +15,7 @@
 #include "vxsdr_imp.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
+#include "vxsdr_threads.hpp"
 
 /*! @file udp_command_transport.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_udp command transport classes.
@@ -83,10 +84,10 @@ udp_command_transport::udp_command_transport(const std::string& local_address,
     }
 
     rx_state        = TRANSPORT_STARTING;
-    receiver_thread = std::thread([this] { command_receive(); });
+    receiver_thread = vxsdr_thread([this] { command_receive(); });
 
     tx_state      = TRANSPORT_STARTING;
-    sender_thread = std::thread([this] { command_send(); });
+    sender_thread = vxsdr_thread([this] { command_send(); });
 
     auto start_time = std::chrono::steady_clock::now();
     while (tx_state != TRANSPORT_READY or rx_state != TRANSPORT_READY) {

@@ -21,6 +21,7 @@ using namespace std::chrono_literals;
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_queues.hpp"
+#include "vxsdr_threads.hpp"
 
 #include "vxsdr.hpp"
 
@@ -376,9 +377,9 @@ class udp_command_transport : public command_transport {
     net::ip::udp::socket receiver_socket;
 
     // threads used for sending and receiving
-    std::thread sender_thread;
-    std::thread receiver_thread;
-    std::thread async_handler_thread;
+    vxsdr_thread sender_thread;
+    vxsdr_thread receiver_thread;
+    vxsdr_thread async_handler_thread;
 
   public:
     explicit udp_command_transport(const std::string& local_address,
@@ -428,8 +429,8 @@ class udp_data_transport : public data_transport {
     net::ip::udp::socket receiver_socket;
 
     // threads used for sending and receiving
-    std::thread sender_thread;
-    std::thread receiver_thread;
+    vxsdr_thread sender_thread;
+    vxsdr_thread receiver_thread;
 
     // parameters used to monitor status of the radio's internal buffers
     // (on the other end of the network connection) for throttling
