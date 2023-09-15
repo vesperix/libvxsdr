@@ -89,7 +89,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Request basic information from the device.
-      @returns a std::optional with a std::array containing the
+      @returns a std::optional with a std::array containing:
           - device identifier
           - FPGA code version
           - MCU code version,
@@ -112,6 +112,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     */
     bool clear_status(const uint8_t subdev = 0);
 
+    // FIXME: document status outputs
     /*!
       @brief Get the device status.
       @returns a std::optional with a std::array containing device-dependent status information
@@ -148,7 +149,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Set the maximum payload size in bytes for transport to and from the device.
       The payload size must be a multiple of 8 bytes (2 samples) and 1024 <= max_payload_bytes <= 16384.
       We strongly recommend using the default of 8192, which is compatible with a typical jumbo packet
-      MTU of 9000, or a larger value if you are certain your network cards support it.
+      MTU of 9000, or a larger value if you are certain your network supports it.
       @returns @p true if the size is set, @p false otherwise
       @param max_payload_bytes the maximum payload size in bytes
     */
@@ -193,7 +194,8 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Set the device time at the next PPS received by the device.
       @returns @b true if the command succeeds, @b false otherwise; note that the
-      device waits for the next PPS to respond
+      device waits for the next PPS to respond, so this command may not return for nearly
+      1 second
       @param t the time to set
     */
     bool set_time_next_pps(const vxsdr::time_point& t);

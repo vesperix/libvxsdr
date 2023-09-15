@@ -82,14 +82,13 @@ Query the card to see the current settings and the maximums, for example:
    TX:		1024
 
 Your current and maximum settings may differ from those shown above, depending
-on the card. If the card offers settings for TX and RX Jumbo frames, set them
-to the maximum, and set the buffers for regular frames to the maximum, for example:
+on the card. Set the buffers for normal and jumbo frames to the maximum; for example,
+if you have the card shown above, set TX and RX to 8192:
 
 .. highlight:: text
 .. code-block::
 
-   sudo ethtool -G <device> tx 8192
-   sudo ethtool -G <device> tx 8192
+   sudo ethtool -G <device> tx 8192 rx 8192
 
 Interrupt Colaescing
 ^^^^^^^^^^^^^^^^^^^^
@@ -110,8 +109,7 @@ If adaptive TX and RX are off, they can be turned on with:
 .. highlight:: text
 .. code-block::
 
-   sudo ethtool -C <device> adaptive-tx on
-   sudo ethtool -C <device> adaptive-rx on
+   sudo ethtool -C <device> adaptive-tx on adaptive-rx on
 
 
 Increase network buffer size
