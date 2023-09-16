@@ -359,31 +359,31 @@ void udp_data_transport::data_send() {
         if (throttling_state == NO_THROTTLING) {
             if (tx_buffer_fill_percent >= throttle_hard_percent) {
                 throttling_state = HARD_THROTTLING;
-                LOG_DEBUG("udp data tx entering HARD_THROTTLING   from NO_THROTTLING     (fill percent = {:2d})",
+                LOG_DEBUG("udp data tx entering throttling state HARD from NOTH ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             } else if (tx_buffer_fill_percent >= throttle_on_percent) {
                 throttling_state = NORMAL_THROTTLING;
-                LOG_DEBUG("udp data tx entering NORMAL_THROTTLING from NO_THROTTLING     (fill percent = {:2d})",
+                LOG_DEBUG("udp data tx entering throttling state NORM from NOTH ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             }
         } else if (throttling_state == NORMAL_THROTTLING) {
             if (tx_buffer_fill_percent >= throttle_hard_percent) {
                 throttling_state = HARD_THROTTLING;
-                LOG_DEBUG("udp data tx entering HARD_THROTTLING   from NORMAL_THROTTLING (fill percent = {:2d})",
+                LOG_DEBUG("udp data tx entering throttling state HARD from NORM ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             } else if (tx_buffer_fill_percent < throttle_off_percent) {
                 throttling_state = NO_THROTTLING;
-                LOG_DEBUG("udp data tx entering NO_THROTTLING     from NORMAL_THROTTLING (fill percent = {:2d})",
+                LOG_DEBUG("udp data tx entering throttling state NOTH from NORM ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             }
         } else {  // current_state == HARD_THROTTLING
             if (tx_buffer_fill_percent < throttle_off_percent) {
                 throttling_state = NO_THROTTLING;
-                LOG_DEBUG("udp data tx entering NO_THROTTLING     from HARD_THROTTLING   (fill percent = {:2d})",
+                LOG_DEBUG("udp data tx entering throttling state NOTH from HARD ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             } else if (tx_buffer_fill_percent < throttle_hard_percent) {
                 throttling_state = NORMAL_THROTTLING;
-                LOG_DEBUG("udp data tx entering NORMAL_THROTTLING from HARD_THROTTLING   (fill percent = {:2d})",
+                LOG_DEBUG("udp data tx entering throttling state NORM from HARD ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             }
         }
