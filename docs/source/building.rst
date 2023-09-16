@@ -17,7 +17,7 @@ new host OS, we will update the build settings below and remove the "experimenta
 
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
 system version 3.16 or higher are required to build the VXSDR host library. (The C++20
-requirement can currently be satisfied by gcc 10 or later, or by clang 10 or later;
+requirement can currently be satisfied by gcc 11 or later, or by clang 14 or later;
 we do not now require all of the features introduced in C++20.)
 
 The library itself depends on Boost 1.67 or higher; this is because it uses boost::lockfree queues
