@@ -147,7 +147,7 @@ void udp_command_transport::command_receive() {
     rx_state = TRANSPORT_READY;
     LOG_DEBUG("udp command rx in READY state");
 
-    while (rx_state == TRANSPORT_READY and not receiver_thread_stop_flag) {
+    while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
         static command_queue_element recv_buffer;
         net::socket_base::message_flags flags = 0;
         net_error_code err;
