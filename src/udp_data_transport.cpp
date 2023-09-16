@@ -248,7 +248,7 @@ void udp_data_transport::data_receive() {
     rx_state = TRANSPORT_READY;
     LOG_DEBUG("udp data rx in READY state");
 
-    while (rx_state == TRANSPORT_READY and not receiver_thread_stop_flag) {
+    while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
         static data_queue_element recv_buffer;
         net::socket_base::message_flags flags = 0;
         net_error_code err;
@@ -260,11 +260,13 @@ void udp_data_transport::data_receive() {
         if (not receiver_thread_stop_flag) {
             if (err) {
                 LOG_ERROR("udp data rx packet error: {:s}", err.message());
+                rx_state = TRANSPORT_ERROR;
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     LOG_ERROR("udp data rx discarded packet with incorrect size in header (header {:d}, packet {:d})",
                             (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
+                    rx_state = TRANSPORT_ERROR;
                 } else {
                     // update stats
                     packets_received++;
@@ -275,6 +277,7 @@ void udp_data_transport::data_receive() {
                     if (packets_received > 1 and recv_buffer.hdr.sequence_counter != (uint16_t)(last_seq + 1)) {
                         uint16_t received = recv_buffer.hdr.sequence_counter;
                         LOG_ERROR("udp data rx sequence error (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
+                        rx_state = TRANSPORT_ERROR;
                         sequence_errors++;
                         sequence_errors_current_stream++;
                     }
@@ -291,8 +294,7 @@ void udp_data_transport::data_receive() {
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
                                 LOG_ERROR("udp data rx error pushing to rx data queue for subdevice {:d} sample {:d}; stopping",
                                             recv_buffer.hdr.subdevice, samples_received);
-                                // end the while loop and shut down data rx transport
-                                break;
+                                rx_state = TRANSPORT_ERROR;
                             }
                         } else {
                             LOG_ERROR("udp data rx discarded rx data packet from unknown subdevice {:d}", recv_buffer.hdr.subdevice);
@@ -426,7 +428,7 @@ void udp_data_transport::data_send() {
         }
     }
 
-    if (rx_state == TRANSPORT_READY) {
+    if (rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) {
         // send a last empty packet with an ack request so that the stats are updated
         data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
         send_packet(data_buffer[0]);
