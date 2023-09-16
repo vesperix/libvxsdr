@@ -15,22 +15,22 @@ Introduction
 ============
 
 This is the host library for the VXSDR software defined radio API;
-it lets you control the radio and send and receive data. 
+it lets you control the radio and send and receive data.
 
 Licensing
 ---------
 
-The library source code is licensed under the GNU GPL version 3 or (at your option) any later version. 
-See the LICENSE file for the complete terms of the source code license. 
+The library source code is licensed under the GNU GPL version 3 or (at your option) any later version.
+See the LICENSE file for the complete terms of the source code license.
 
 Documentation
 =============
 
 Documentation for the host library is available at https://libvxsdr.readthedocs.io.
 
-The documentation is licensed under the Creative Commons Attribution-ShareAlike 4.0 
+The documentation is licensed under the Creative Commons Attribution-ShareAlike 4.0
 International Public License; see
-https://creativecommons.org/licenses/by-sa/4.0/legalcode 
+https://creativecommons.org/licenses/by-sa/4.0/legalcode
 for the complete terms of the documentation license.
 
 Building the Library
@@ -44,7 +44,7 @@ on GitHub's CI system:
 
 |linux_build_status|
 
-This is updated each time the main branch is changed. Ports for macOS and Windows 
+This is updated each time the main branch is changed. Ports for macOS and Windows
 are under development, and their build status will be added when they are released.
 
 Prerequisites
@@ -95,7 +95,7 @@ Downloading, building, and installing the library
 .. highlight:: shell
 .. code-block::
 
-   git clone git@github.com:vesperix/libvxsdr.git
+   git clone https://github.com/vesperix/libvxsdr.git
    cd libvxsdr
    cmake -B build
    cmake --build build

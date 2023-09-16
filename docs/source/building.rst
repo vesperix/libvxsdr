@@ -10,9 +10,9 @@ Prerequisites
 
 The library currently supports Linux hosts only; macOS and Windows
 support is still under development. The "experimental" sections below
-for macOS and Windows document our development build settings, but they are 
-**not yet supported, and neither macOS nor Windows hosts are currently usable**. 
-When the library builds correctly and passes testing with VXSDR devices on a 
+for macOS and Windows document our development build settings, but they are
+**not yet supported, and neither macOS nor Windows hosts are currently usable**.
+When the library builds correctly and passes testing with VXSDR devices on a
 new host OS, we will update the build settings below and remove the "experimental" notation.
 
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
@@ -98,7 +98,7 @@ Downloading, building, and installing the library
 .. highlight:: text
 .. code-block::
 
-   git clone git@github.com:vesperix/libvxsdr.git
+   git clone https://github.com/vesperix/libvxsdr.git
    cd libvxsdr
    cmake -B build
    cmake --build build
