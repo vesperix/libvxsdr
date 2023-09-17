@@ -120,16 +120,17 @@ typedef struct {
 #define DEVICE_CMD_SET_TRANSPORT_ADDR          (0x0F)
 #define DEVICE_CMD_SET_MAX_PAYLOAD             (0x10)
 #define DEVICE_CMD_SAVE_TRANSPORT_ADDR         (0x11)
-// (unimplemented DEVICE_CMD_GET_CHANNEL_INFO removed)
-#define DEVICE_CMD_GET_TIMING_INFO             (0x13)  // UNIMPLEMENTED // what timing inputs are available
-#define DEVICE_CMD_GET_TIMING_STATUS           (0x14)  // PPS present/absent; 10 MHz locked/unlocked
-#define DEVICE_CMD_GET_TIMING_REF              (0x15)  // UNIMPLEMENTED // current sources of 10 MHz and PPS
-#define DEVICE_CMD_SET_TIMING_REF              (0x16)  // UNIMPLEMENTED // set sources of 10 MHz and PPS
-#define DEVICE_CMD_GET_TIMING_RESOLUTION       (0x17)
 
-#define DEVICE_CMD_GET_NUM_SENSORS             (0x18)
-#define DEVICE_CMD_GET_SENSOR                  (0x19) // UNIMPLEMENTED
-#define DEVICE_CMD_GET_SENSOR_NAME             (0x1A) // UNIMPLEMENTED
+#define DEVICE_CMD_GET_TIMING_INFO             (0x12)  // UNIMPLEMENTED // what timing inputs are available
+#define DEVICE_CMD_GET_TIMING_STATUS           (0x13)  // PPS present/absent; 10 MHz locked/unlocked
+#define DEVICE_CMD_GET_TIMING_REF              (0x14)  // UNIMPLEMENTED // current sources of 10 MHz and PPS
+#define DEVICE_CMD_SET_TIMING_REF              (0x15)  // UNIMPLEMENTED // set sources of 10 MHz and PPS
+#define DEVICE_CMD_GET_TIMING_RESOLUTION       (0x16)
+
+#define DEVICE_CMD_GET_NUM_SENSORS             (0x17)
+#define DEVICE_CMD_GET_SENSOR                  (0x18) // UNIMPLEMENTED
+#define DEVICE_CMD_GET_SENSOR_NAME             (0x19) // UNIMPLEMENTED
+#define DEVICE_CMD_GET_CAPABILITIES            (0x1A)
 
 // these may be removed before release
 #define DEVICE_CMD_READ_DAC_REG                (0x30)
@@ -172,42 +173,44 @@ typedef struct {
 #define RADIO_CMD_GET_LO_INPUT                 (0x0C)
 #define RADIO_CMD_GET_LOCK_STATUS              (0x0D)
 #define RADIO_CMD_GET_MASTER_CLK               (0x0E)
-#define RADIO_CMD_GET_FILTER_COEFFS            (0x10)
+#define RADIO_CMD_GET_FILTER_COEFFS            (0x0F)
 
-#define RADIO_CMD_SET_RF_FREQ                  (0x11)
-#define RADIO_CMD_SET_RF_GAIN                  (0x12)
-#define RADIO_CMD_SET_SAMPLE_RATE              (0x13)
-#define RADIO_CMD_SET_RF_BW                    (0x14)  // UNIMPLEMENTED
-#define RADIO_CMD_SET_RF_ENABLED               (0x15)
-#define RADIO_CMD_SET_RF_PORT                  (0x16)
-#define RADIO_CMD_SET_RF_PORT_BY_NAME          (0x17)
-#define RADIO_CMD_SET_LO_INPUT                 (0x18)
-#define RADIO_CMD_SET_MASTER_CLK               (0x19)  // UNIMPLEMENTED
+#define RADIO_CMD_SET_RF_FREQ                  (0x10)
+#define RADIO_CMD_SET_RF_GAIN                  (0x11)
+#define RADIO_CMD_SET_SAMPLE_RATE              (0x12)
+#define RADIO_CMD_SET_RF_BW                    (0x13)  // UNIMPLEMENTED
+#define RADIO_CMD_SET_RF_ENABLED               (0x14)
+#define RADIO_CMD_SET_RF_PORT                  (0x15)
+#define RADIO_CMD_SET_RF_PORT_BY_NAME          (0x16)
+#define RADIO_CMD_SET_LO_INPUT                 (0x17)
+#define RADIO_CMD_SET_MASTER_CLK               (0x18)  // UNIMPLEMENTED
 
-#define RADIO_CMD_GET_NUM_SUBDEVS              (0x20)
-#define RADIO_CMD_GET_RF_FREQ_RANGE            (0x21)
-#define RADIO_CMD_GET_RF_GAIN_RANGE            (0x22)
-#define RADIO_CMD_GET_SAMPLE_RATE_RANGE        (0x23)
-#define RADIO_CMD_GET_NUM_CHANNELS             (0x24)
-#define RADIO_CMD_SET_ADC_TEST_PATTERN         (0x25)
-#define RADIO_CMD_GET_FILTER_LENGTH            (0x26)
+#define RADIO_CMD_GET_NUM_SUBDEVS              (0x19)
+#define RADIO_CMD_GET_RF_FREQ_RANGE            (0x1A)
+#define RADIO_CMD_GET_RF_GAIN_RANGE            (0x1B)
+#define RADIO_CMD_GET_SAMPLE_RATE_RANGE        (0x1C)
+#define RADIO_CMD_GET_NUM_CHANNELS             (0x1D)
+#define RADIO_CMD_SET_ADC_TEST_PATTERN         (0x1E)
+#define RADIO_CMD_GET_FILTER_LENGTH            (0x1F)
 
-#define RADIO_CMD_GET_IQ_BIAS                  (0x27)
-#define RADIO_CMD_GET_IQ_CORR                  (0x28)
-#define RADIO_CMD_SET_IQ_BIAS                  (0x29)
-#define RADIO_CMD_SET_IQ_CORR                  (0x2A)
-#define RADIO_CMD_SET_FILTER_ENABLED           (0x2B)
-#define RADIO_CMD_SET_FILTER_COEFFS            (0x2C)
+#define RADIO_CMD_GET_IQ_BIAS                  (0x20)
+#define RADIO_CMD_GET_IQ_CORR                  (0x21)
+#define RADIO_CMD_SET_IQ_BIAS                  (0x22)
+#define RADIO_CMD_SET_IQ_CORR                  (0x23)
+#define RADIO_CMD_SET_FILTER_ENABLED           (0x24)
+#define RADIO_CMD_SET_FILTER_COEFFS            (0x25)
 
-#define RADIO_CMD_GET_RF_GAIN_STAGE_NAME       (0x1A)
-#define RADIO_CMD_GET_RF_GAIN_RANGE_STAGE      (0x1B)
-#define RADIO_CMD_GET_RF_GAIN_STAGE            (0x1C)
-#define RADIO_CMD_SET_RF_GAIN_STAGE            (0x1D)
+#define RADIO_CMD_GET_RF_GAIN_STAGE_NAME       (0x26)
+#define RADIO_CMD_GET_RF_GAIN_RANGE_STAGE      (0x27)
+#define RADIO_CMD_GET_RF_GAIN_STAGE            (0x28)
+#define RADIO_CMD_SET_RF_GAIN_STAGE            (0x29)
 
-#define RADIO_CMD_GET_RF_FREQ_STAGE_NAME       (0x1E)
-#define RADIO_CMD_GET_RF_FREQ_RANGE_STAGE      (0x1F)
-#define RADIO_CMD_GET_RF_FREQ_STAGE            (0x0F)
-#define RADIO_CMD_SET_RF_FREQ_STAGE            (0x2E)
+#define RADIO_CMD_GET_RF_FREQ_STAGE_NAME       (0x2A)
+#define RADIO_CMD_GET_RF_FREQ_RANGE_STAGE      (0x2B)
+#define RADIO_CMD_GET_RF_FREQ_STAGE            (0x2C)
+#define RADIO_CMD_SET_RF_FREQ_STAGE            (0x2D)
+
+#define RADIO_CMD_GET_CAPABILITIES             (0x2E)
 
 // Flags : 4 bits
 #define FLAGS_REQUEST_ACK                      (0x01U)
