@@ -35,9 +35,6 @@ Each device contains up to 254 subdevices, each of which has the following setti
     * Sample Rate
         - TX sample rate
         - RX sample rate
-    * Gain
-        - TX gain
-        - RX gain
     * LO Selection
         - internal
         - external (optional)
@@ -54,11 +51,12 @@ on current devices.
 Channels
 --------
 Each subdevice has 0-254 TX channels, and 0-254 RX channels, so transmit-only or receive-only
-systems are possible. Each channel has the following settings:
+systems are possible. Each TX or RX channel has the following settings:
 
+    * Gain
     * Bias correction (TX channels only)
     * IQ correction
-    * FIR Filtering
+    * FIR Filtering (optional, depending on FPGA size)
 
 Bias and IQ correction reduce spurious signals outside of the desired band, and FIR filtering
 can be used for multiple purposes, including fractional delay and equalization.
