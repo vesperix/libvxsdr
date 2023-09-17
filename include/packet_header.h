@@ -5,13 +5,13 @@
 #define PACKET_HEADER_H
 /*
   VXSDR packet definitions
-  Version 1.0.5 31 May 2023
+  Version 1.0.6 18 Sep 2023
 */
 
-#define PACKET_VERSION_STRING          "1.0.5"
+#define PACKET_VERSION_STRING          "1.0.6"
 #define PACKET_VERSION_MAJOR               (1)
 #define PACKET_VERSION_MINOR               (0)
-#define PACKET_VERSION_PATCH               (5)
+#define PACKET_VERSION_PATCH               (6)
 
 /*
    The packet header and the elements used to fill it are defined below.
