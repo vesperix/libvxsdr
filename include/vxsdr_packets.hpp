@@ -114,7 +114,12 @@ class filter_coeff_packet : public packet {
 
 class name_packet : public packet {
   public:
-    char name[MAX_PAYLOAD_LENGTH_BYTES] = {0};
+    char name1[MAX_NAME_LENGTH_BYTES] = {0};
+};
+
+class name_double_packet : public name_packet {
+  public:
+    double value1 = 0.0;
 };
 
 class data_packet : public packet {
@@ -197,7 +202,7 @@ VXSDR_CHECK_SIZE_EQUALS(one_double_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(two_double_packet, 24);
 VXSDR_CHECK_SIZE_EQUALS(four_double_packet, 40);
 VXSDR_CHECK_SIZE_EQUALS(one_uint64_packet, 16);
-VXSDR_CHECK_SIZE_EQUALS(name_packet, (MAX_PAYLOAD_LENGTH_BYTES + 8));
+VXSDR_CHECK_SIZE_EQUALS(name_packet, (MAX_NAME_LENGTH_BYTES + 8));
 VXSDR_CHECK_SIZE_LESS_EQUAL(name_packet, sizeof(largest_cmd_or_rsp_packet));
 VXSDR_CHECK_SIZE_EQUALS(filter_coeff_packet, (4 * MAX_FRONTEND_FILTER_LENGTH + 12));
 VXSDR_CHECK_SIZE_LESS_EQUAL(filter_coeff_packet, sizeof(largest_cmd_or_rsp_packet));

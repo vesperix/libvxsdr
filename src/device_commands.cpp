@@ -348,7 +348,7 @@ std::optional<unsigned> vxsdr::imp::get_num_sensors(const uint8_t subdev) {
 }
 
 std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
-    constexpr int MAX_NAMES = 256;
+    constexpr int MAX_NAMES = 64;
     std::vector<std::string> names;
     for (int i = 0; i < MAX_NAMES; i++) {
         one_uint32_packet p = {};
@@ -358,8 +358,8 @@ std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
         if (res) {
             auto q  = res.value();
             auto* r = std::bit_cast<name_packet*>(&q);
-            if (strlen(&r->name[0]) > 0) {
-                names.emplace_back(&r->name[0]);
+            if (strlen(&r->name1[0]) > 0) {
+                names.emplace_back(&r->name1[0]);
             }
         } else {
             break;
@@ -371,8 +371,8 @@ std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
 std::optional<double> vxsdr::imp::get_sensor_reading(const std::string& sensor_name, const uint8_t subdev) {
     name_packet p = {};
     p.hdr         = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR, 0, subdev, 0, sizeof(p), 0};
-    strncpy((char*)p.name, sensor_name.c_str(), MAX_PAYLOAD_LENGTH_BYTES - 1);
-    p.name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+    strncpy((char *)p.name1, sensor_name.c_str(), MAX_NAME_LENGTH_BYTES - 1);
+    p.name1[MAX_NAME_LENGTH_BYTES - 1] = 0;
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor()");
     if (res) {
         auto q  = res.value();

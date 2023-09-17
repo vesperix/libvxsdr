@@ -325,6 +325,70 @@ class VXSDR_LIB_EXPORT vxsdr {
     bool set_rx_freq(const double freq_hz, const uint8_t subdev = 0);
 
     /*!
+      @brief Get the names of stages available for transmit tuning.
+      @returns a std::vector of std::strings containing the names; a zero-length vector is returned on failure
+      @param subdev the subdevice number
+    */
+    std::vector<std::string> get_tx_freq_stage_names(const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the names of stages available for receive tuning.
+      @returns a std::vector of std::strings containing the names; a zero-length vector is returned on failure
+      @param subdev the subdevice number
+    */
+    std::vector<std::string> get_rx_freq_stage_names(const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the transmit center frequency range for a tuning stage.
+      @returns a std::optional with a  std::array containing the minimum and maximum frequencies in Hz
+      @param stage the name of the stage
+      @param subdev the subdevice number
+    */
+    std::optional<std::array<double, 2>> get_tx_freq_range_stage(const std::string& stage, const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the receive center frequency range for a tuning stage.
+      @returns a std::optional with a  std::array containing the minimum and maximum frequencies in Hz
+      @param stage the name of the stage
+      @param subdev the subdevice number
+    */
+    std::optional<std::array<double, 2>> get_rx_freq_range_stage(const std::string& stage, const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the current transmit center frequency of a tuning stage.
+      @param stage the name of the stage
+      @returns a std::optional with the center frequency in Hz
+      @param subdev the subdevice number
+    */
+    std::optional<double> get_tx_freq_stage(const std::string& stage, const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the current receive center frequency of a tuning stage.
+      @returns a std::optional with the center frequency in Hz
+      @param stage the name of the stage
+      @param subdev the subdevice number
+    */
+    std::optional<double> get_rx_freq_stage(const std::string& stage, const uint8_t subdev = 0);
+
+    /*!
+      @brief Set the transmit center frequency of a tuning stage.
+      @returns @b true if the command succeeds, @b false otherwise
+      @param freq_hz the desired frequency in Hz
+      @param stage the name of the stage
+      @param subdev the subdevice number
+    */
+    bool set_tx_freq_stage(const double freq_hz, const std::string& stage, const uint8_t subdev = 0);
+
+    /*!
+      @brief Set the receive center frequency of a tuning stage.
+      @returns @b true if the command succeeds, @b false otherwise
+      @param freq_hz the desired frequency in Hz
+      @param stage the name of the stage
+      @param subdev the subdevice number
+    */
+    bool set_rx_freq_stage(const double freq_hz, const std::string& stage, const uint8_t subdev = 0);
+
+    /*!
       @brief Get the gain range for a transmit channel.
       @returns a std::optional with a std::array containing the minimum and maximum gains in dB
       @param subdev the subdevice number
@@ -373,6 +437,78 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param channel the channel number within the subdevice
     */
     bool set_rx_gain(const double gain_db, const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Get the names of stages available for transmit gain control.
+      @returns a std::vector of std::strings containing the names; a zero-length vector is returned on failure
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    std::vector<std::string> get_tx_gain_stage_names(const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Get the names of stages available for receive gain control.
+      @returns a std::vector of std::strings containing the names; a zero-length vector is returned on failure
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    std::vector<std::string> get_rx_gain_stage_names(const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Get the gain range for a transmit gain control stage.
+      @returns a std::optional with a std::array containing the minimum and maximum gains in dB
+      @param stage the name of the stage
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    std::optional<std::array<double, 2>> get_tx_gain_range_stage(const std::string& stage, const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Get the gain range for a receive gain control stage.
+      @returns a std::optional with a std::array containing the minimum and maximum gains in dB
+      @param stage the name of the stage
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    std::optional<std::array<double, 2>> get_rx_gain_range_stage(const std::string& stage, const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Get the current gain for a transmit gain control stage.
+      @returns a std::optional with the gain in dB
+      @param stage the name of the stage
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    std::optional<double> get_tx_gain_stage(const std::string& stage, const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Get the current gain for a receive gain control stage.
+      @returns a std::optional with the gain in dB
+      @param stage the name of the stage
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    std::optional<double> get_rx_gain_stage(const std::string& stage, const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Set the gain for a transmit gain control stage.
+      @returns @b true if the command succeeds, @b false otherwise
+      @param gain_db the desired gain in dB
+      @param stage the name of the stage
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    bool set_tx_gain_stage(const double gain_db, const std::string& stage, const uint8_t subdev = 0, const uint8_t channel = 0);
+
+    /*!
+      @brief Set the gain for a receive gain control stage.
+      @returns @b true if the command succeeds, @b false otherwise
+      @param gain_db the desired gain in dB
+      @param stage the name of the stage
+      @param subdev the subdevice number
+      @param channel the channel number within the subdevice
+    */
+    bool set_rx_gain_stage(const double gain_db, const std::string& stage, const uint8_t subdev = 0, const uint8_t channel = 0);
 
     /*!
       @brief Get the transmit sample rate range.

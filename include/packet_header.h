@@ -199,6 +199,16 @@ typedef struct {
 #define RADIO_CMD_SET_FILTER_ENABLED           (0x2B)
 #define RADIO_CMD_SET_FILTER_COEFFS            (0x2C)
 
+#define RADIO_CMD_GET_RF_GAIN_STAGE_NAME       (0x1A)
+#define RADIO_CMD_GET_RF_GAIN_RANGE_STAGE      (0x1B)
+#define RADIO_CMD_GET_RF_GAIN_STAGE            (0x1C)
+#define RADIO_CMD_SET_RF_GAIN_STAGE            (0x1D)
+
+#define RADIO_CMD_GET_RF_FREQ_STAGE_NAME       (0x1E)
+#define RADIO_CMD_GET_RF_FREQ_RANGE_STAGE      (0x1F)
+#define RADIO_CMD_GET_RF_FREQ_STAGE            (0x0F)
+#define RADIO_CMD_SET_RF_FREQ_STAGE            (0x2E)
+
 // Flags : 4 bits
 #define FLAGS_REQUEST_ACK                      (0x01U)
 #define FLAGS_TIME_PRESENT                     (0x02U)
@@ -258,6 +268,7 @@ typedef struct {
 #define MAX_DATA_LENGTH_SAMPLES                (2048UL)
 #define MAX_FRONTEND_FILTER_LENGTH             (16U)
 #define MAX_PAYLOAD_LENGTH_BYTES               (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
+#define MAX_NAME_LENGTH_BYTES                  (8) // maximum length of a name (sensors, gains stages) including terminating null
 
 #define VXSDR_ALL_SUBDEVICES                   (0xFF)
 #define VXSDR_ALL_CHANNELS                     (0xFF)

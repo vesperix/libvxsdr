@@ -236,6 +236,70 @@ std::optional<double> vxsdr::get_rx_gain(const uint8_t subdev, const uint8_t cha
     return p_imp->get_rx_gain(subdev, channel);
 }
 
+std::vector<std::string> vxsdr::get_tx_freq_stage_names(const uint8_t subdev) {
+    return p_imp->get_tx_freq_stage_names(subdev);
+}
+
+std::vector<std::string> vxsdr::get_rx_freq_stage_names(const uint8_t subdev) {
+    return p_imp->get_rx_freq_stage_names(subdev);
+}
+
+std::optional<std::array<double, 2>> vxsdr::get_tx_freq_range_stage(const std::string& stage, const uint8_t subdev) {
+    return p_imp->get_tx_freq_range_stage(stage, subdev);
+}
+
+std::optional<std::array<double, 2>> vxsdr::get_rx_freq_range_stage(const std::string& stage, const uint8_t subdev) {
+    return p_imp->get_rx_freq_range_stage(stage, subdev);
+}
+
+bool vxsdr::set_tx_freq_stage(const double freq_hz, const std::string& stage, const uint8_t subdev) {
+    return p_imp->set_tx_freq_stage(freq_hz, stage, subdev);
+}
+
+bool vxsdr::set_rx_freq_stage(const double freq_hz, const std::string& stage, const uint8_t subdev) {
+    return p_imp->set_rx_freq_stage(freq_hz, stage, subdev);
+}
+
+std::optional<double> vxsdr::get_tx_freq_stage(const std::string& stage, const uint8_t subdev) {
+    return p_imp->get_tx_freq_stage(stage, subdev);
+}
+
+std::optional<double> vxsdr::get_rx_freq_stage(const std::string& stage, const uint8_t subdev) {
+    return p_imp->get_rx_freq_stage(stage, subdev);
+}
+
+std::vector<std::string> vxsdr::get_tx_gain_stage_names(const uint8_t subdev, const uint8_t channel) {
+    return p_imp->get_tx_gain_stage_names(subdev, channel);
+}
+
+std::vector<std::string> vxsdr::get_rx_gain_stage_names(const uint8_t subdev, const uint8_t channel) {
+    return p_imp->get_rx_gain_stage_names(subdev, channel);
+}
+
+std::optional<std::array<double, 2>> vxsdr::get_tx_gain_range_stage(const std::string& stage, const uint8_t subdev, const uint8_t channel) {
+    return p_imp->get_tx_gain_range_stage(stage, subdev, channel);
+}
+
+std::optional<std::array<double, 2>> vxsdr::get_rx_gain_range_stage(const std::string& stage, const uint8_t subdev, const uint8_t channel) {
+    return p_imp->get_rx_gain_range_stage(stage, subdev, channel);
+}
+
+bool vxsdr::set_tx_gain_stage(const double gain_db, const std::string& stage, const uint8_t subdev, const uint8_t channel) {
+    return p_imp->set_tx_gain_stage(gain_db, stage, subdev, channel);
+}
+
+bool vxsdr::set_rx_gain_stage(const double gain_db, const std::string& stage, const uint8_t subdev, const uint8_t channel) {
+    return p_imp->set_rx_gain_stage(gain_db, stage, subdev, channel);
+}
+
+std::optional<double> vxsdr::get_tx_gain_stage(const std::string& stage, const uint8_t subdev, const uint8_t channel) {
+    return p_imp->get_tx_gain_stage(stage, subdev, channel);
+}
+
+std::optional<double> vxsdr::get_rx_gain_stage(const std::string& stage, const uint8_t subdev, const uint8_t channel) {
+    return p_imp->get_rx_gain_stage(stage, subdev, channel);
+}
+
 std::optional<std::array<double, 2>> vxsdr::get_tx_rate_range(const uint8_t subdev) {
     return p_imp->get_tx_rate_range(subdev);
 }
