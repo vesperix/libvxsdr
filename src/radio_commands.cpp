@@ -391,20 +391,22 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_freq_range_stage(const s
 }
 
 bool vxsdr::imp::set_tx_freq_stage(const double freq_hz, const std::string& stage, const uint8_t subdev) {
-    name_double_packet p;
+    name_two_double_packet p;
     p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_SET_RF_FREQ_STAGE, 0, subdev, 0, sizeof(p), 0};
     strncpy(p.name1, stage.c_str(), MAX_NAME_LENGTH_BYTES - 1);
     p.name1[MAX_NAME_LENGTH_BYTES - 1] = 0;
     p.value1 = freq_hz;
+    p.value2 = 1e-9;
     return vxsdr::imp::send_packet_and_check_response(p, "set_tx_freq_stage()");
 }
 
 bool vxsdr::imp::set_rx_freq_stage(const double freq_hz, const std::string& stage, const uint8_t subdev) {
-    name_double_packet p;
+    name_two_double_packet p;
     p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_SET_RF_FREQ_STAGE, 0, subdev, 0, sizeof(p), 0};
     strncpy(p.name1, stage.c_str(), MAX_NAME_LENGTH_BYTES - 1);
     p.name1[MAX_NAME_LENGTH_BYTES - 1] = 0;
     p.value1 = freq_hz;
+    p.value2 = 1e-9;
     return vxsdr::imp::send_packet_and_check_response(p, "set_rx_freq_stage()");
 }
 

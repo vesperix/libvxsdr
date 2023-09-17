@@ -122,6 +122,12 @@ class name_double_packet : public name_packet {
     double value1 = 0.0;
 };
 
+class name_two_double_packet : public name_packet {
+  public:
+    double value1 = 0.0;
+    double value2 = 0.0;
+};
+
 class data_packet : public packet {
   public:
     std::complex<int16_t> data[MAX_DATA_LENGTH_SAMPLES] = {0};
