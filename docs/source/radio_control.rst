@@ -26,9 +26,25 @@ control provided by the functions below.
 .. doxygenfunction:: set_tx_freq
 .. doxygenfunction:: set_rx_freq
 
+Tuning by Stage
+^^^^^^^^^^^^^^^
+When multiple tuning stages are available, the functions below may be used
+to determine their ranges and control settings for each stage. Note that stage-level
+settings override the subdevice-level settings shown above; the user must ensure that
+the stage settings produce the desired frequency.
+
+.. doxygenfunction:: get_tx_freq_stage_names
+.. doxygenfunction:: get_rx_freq_stage_names
+.. doxygenfunction:: get_tx_freq_range_stage
+.. doxygenfunction:: get_rx_freq_range_stage
+.. doxygenfunction:: get_tx_freq_stage
+.. doxygenfunction:: get_rx_freq_stage
+.. doxygenfunction:: set_tx_freq_stage
+.. doxygenfunction:: set_rx_freq_stage
+
 Gain Control
 ~~~~~~~~~~~~
-Each subdevice may have an adjustable gain, with information and
+Each channel may have an adjustable gain, with information and
 control provided by the functions below.
 
 .. doxygenfunction:: get_tx_gain_range
@@ -38,6 +54,21 @@ control provided by the functions below.
 .. doxygenfunction:: set_tx_gain
 .. doxygenfunction:: set_rx_gain
 
+Gain Control by Stage
+^^^^^^^^^^^^^^^^^^^^^
+When multiple gain control stages are available, the functions below may be used
+to determine their ranges and control settings for each stage. Note that stage-level
+settings override the channel-level settings shown above; the user must ensure that
+the stage settings produce the desired gain.
+
+.. doxygenfunction:: get_tx_gain_stage_names
+.. doxygenfunction:: get_rx_gain_stage_names
+.. doxygenfunction:: get_tx_gain_range_stage
+.. doxygenfunction:: get_rx_gain_range_stage
+.. doxygenfunction:: get_tx_gain_stage
+.. doxygenfunction:: get_rx_gain_stage
+.. doxygenfunction:: set_tx_gain_stage
+.. doxygenfunction:: set_rx_gain_stage
 
 Sampling Rate
 ~~~~~~~~~~~~~
