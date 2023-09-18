@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <thread>
+#include <chrono>
+
 // Confines the boost specifics to this file and adds utility functions for timeouts
 
 #include <boost/lockfree/queue.hpp>
