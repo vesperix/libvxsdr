@@ -379,7 +379,6 @@ class udp_command_transport : public command_transport {
     // threads used for sending and receiving
     vxsdr_thread sender_thread;
     vxsdr_thread receiver_thread;
-    vxsdr_thread async_handler_thread;
 
   public:
     explicit udp_command_transport(const std::string& local_address,
