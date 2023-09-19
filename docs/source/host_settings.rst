@@ -13,7 +13,7 @@ Increase Network Adapter MTU
 
 The maximum packet size allowed by an IP network adapter defaults to 1500 bytes
 in most cases. This severely limits the data rate achievable. By default,
-a VXSDR assumes the network interface is able to send and recieve "jumbo"
+a VXSDR assumes the network interface is able to send and receive "jumbo"
 packets of up to 9000 bytes, and this is necessary to achieve the specified
 sample rates.
 
@@ -25,32 +25,35 @@ the MTU for the interface used for the VXSDR to 9000 or more.
 Processor Affinity
 ------------------
 
-The library can set the processes which interact with the network stack for data
-transport to run on specific processors. Because many current CPU architectures
-have a mix of high-performance and high-efficiency processors, it is important
-to identify which processors are the fastest, so that these can be used for the
-network processing for data transport.
+The VXSDR host software can set the processes which interact with the network
+stack for data transport to run on specific processors. Because many current
+CPU architectures have a mix of high-performance and high-efficiency processors,
+it is important to identify which processors are the fastest, so that these can
+be used for network processing for data transport.
 
 Processor affinity for these threads is controlled by the following entries in
 the settings map passed to the constructor for the ``vxsdr`` class:
 
 .. highlight:: c++
 .. code-block::
+
     {"udp_data_transport:thread_affinity_offset",   0}
     {"udp_data_transport:sender_thread_affinity",   0}
     {"udp_data_transport:receiver_thread_affinity", 1}
 
-The ``thread_affinity_offset`` entry is added to the
-``sender_thread_affinity`` and ``receiver_thread_affinity`` entries to determine
-the processor number for these threads. In the example above, the sender and
-receiver threads would be assigned to processors 0 and 1, respectively.
+The ``thread_affinity_offset`` entry is added to the ``sender_thread_affinity``
+and ``receiver_thread_affinity`` entries to determine the processor number for
+these threads. In the example above, which shows the default settings, the
+sender and receiver threads would be assigned to processors 0 and 1, respectively.
 
 The Portable Hardware Locality package, developed by the Open MPI project, can be
 helpful in identifying and mapping processor types and cache hierarchies. On
-Ubuntu 22.04 or later, this package can be installed from the standard repositiories:
+Ubuntu 22.04 or later, this package can be installed from the standard
+repositories:
 
 .. highlight:: shell
 .. code-block::
+
     sudo apt install hwloc
 
 Information on obtaining ``hwloc`` for many operating systems and architectures is
