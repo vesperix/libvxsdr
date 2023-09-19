@@ -13,7 +13,7 @@ Increase Network Adapter MTU
 
 The maximum packet size allowed by an IP network adapter defaults to 1500 bytes
 in most cases. This severely limits the data rate achievable. By default,
-a VXSDR assumes the network interface is able to send and receive "jumbo"
+the host library assumes the network interface is able to send and receive "jumbo"
 packets of up to 9000 bytes, and this is necessary to achieve the specified
 sample rates.
 

@@ -7,8 +7,8 @@ C++ Usage
 
 The C++ API is the native API for VXSDR radios; it is documented in detail in the API Reference section below.
 The API is intended to use modern C++ features (C++11 and later) where the are useful, and currently
-requires a compiler supporting the C++20 standard. However, only a few C++20 features are currently used,
-and the partial support offered by gcc since at least version 9.4 is sufficient.
+requires a compiler supporting the C++20 standard. However, not all C++20 features are currently used,
+and the partial support offered by gcc since at least version 11 is sufficient.
 
 The ``std::optional`` template class from C++17 is heavily used in the API to carry results from functions that usually
 return a value, but may rarely fail. For example, the ``get_rx_freq`` function returns a ``std::optional<double>``.
