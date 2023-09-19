@@ -39,12 +39,16 @@ class packet_transport {
     std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_sent     = {0};
     std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_received = {0};
 
-    bool log_stats_on_exit = true;
+    // control of behavior
+    std::atomic<bool> stop_on_tx_error  {true};
+    std::atomic<bool> stop_on_rx_error  {true};
+    std::atomic<bool> log_stats_on_exit {true};
+
   public:
     packet_transport() = default;
     packet_transport(const std::string& local_address,
               const std::string& device_address,
-              const std::map<std::string, int64_t>& settings) {};
+              const std::map<std::string, int64_t>& settings);
 
     virtual ~packet_transport()                          = default;
     packet_transport(const packet_transport&)            = delete;
@@ -53,11 +57,13 @@ class packet_transport {
     packet_transport& operator=(packet_transport&&)      = delete;
 
     // flags used for orderly shutdown
-    std::atomic<bool> sender_thread_stop_flag   = false;
-    std::atomic<bool> receiver_thread_stop_flag = false;
+    std::atomic<bool> sender_thread_stop_flag   {false};
+    std::atomic<bool> receiver_thread_stop_flag {false};
+
     using transport_state = enum { TRANSPORT_UNINITIALIZED, TRANSPORT_STARTING, TRANSPORT_READY, TRANSPORT_SHUTDOWN, TRANSPORT_ERROR };
-    std::atomic<transport_state> tx_state = TRANSPORT_UNINITIALIZED;
-    std::atomic<transport_state> rx_state = TRANSPORT_UNINITIALIZED;
+    // state of transport in each direction
+    std::atomic<transport_state> tx_state {TRANSPORT_UNINITIALIZED};
+    std::atomic<transport_state> rx_state {TRANSPORT_UNINITIALIZED};
 
     std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
@@ -75,6 +81,30 @@ class packet_transport {
         }
         return config;
     };
+    void log_stats(const bool value) {
+        log_stats_on_exit = value;
+    }
+    void stop_on_error(const bool value) {
+        stop_on_tx_error = value;
+        stop_on_rx_error = value;
+    }
+    bool rx_usable() {
+        if (rx_state != TRANSPORT_READY and
+            rx_state != TRANSPORT_ERROR) {
+            return false;
+        }
+        return true;
+    }
+    bool tx_usable() {
+        if (tx_state != TRANSPORT_READY and
+            tx_state != TRANSPORT_ERROR) {
+            return false;
+        }
+        return true;
+    }
+    bool tx_rx_usable() {
+        return tx_usable() and rx_usable();
+    }
     bool reset_rx() {
         if (rx_state == TRANSPORT_UNINITIALIZED or
             rx_state == TRANSPORT_SHUTDOWN) {
@@ -198,6 +228,7 @@ class command_transport : public packet_transport {
 
     void log_stats() {
         LOG_INFO("command transport:");
+        LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
         LOG_INFO("   {:15d} packets received", packets_received);
         for (unsigned i = 0; i < packet_types_received.size(); i++) {
             if (packet_types_received.at(i) > 0) {
@@ -210,6 +241,7 @@ class command_transport : public packet_transport {
         } else {
             LOG_WARN("   {:15d} sequence errors", sequence_errors);
         }
+        LOG_INFO("       tx state is {:s}", transport_state_to_string(tx_state));
         LOG_INFO("   {:15d} packets sent", packets_sent);
         for (unsigned i = 0; i < packet_types_sent.size(); i++) {
             if (packet_types_sent.at(i) > 0) {
@@ -256,7 +288,7 @@ class data_transport : public packet_transport {
     uint64_t sequence_errors_current_stream  = 0;
     uint64_t samples_received_current_stream = 0;
 
-    std::atomic<unsigned> tx_packet_oos_count    = 0;
+    std::atomic<unsigned> tx_packet_oos_count {0};
   public:
 
     data_transport(const std::string& local_address,
@@ -274,6 +306,7 @@ class data_transport : public packet_transport {
 
     void log_stats() {
         LOG_INFO("data transport:");
+        LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
         LOG_INFO("   {:15d} packets received", packets_received);
         for (unsigned i = 0; i < packet_types_received.size(); i++) {
             if (packet_types_received.at(i) > 0) {
@@ -287,6 +320,7 @@ class data_transport : public packet_transport {
         } else {
             LOG_WARN("   {:15d} sequence errors", sequence_errors);
         }
+        LOG_INFO("       tx state is {:s}", transport_state_to_string(tx_state));
         LOG_INFO("   {:15d} packets sent", packets_sent);
         for (unsigned i = 0; i < packet_types_sent.size(); i++) {
             if (packet_types_sent.at(i) > 0) {
@@ -433,9 +467,9 @@ class udp_data_transport : public data_transport {
 
     // parameters used to monitor status of the radio's internal buffers
     // (on the other end of the network connection) for throttling
-    std::atomic<unsigned> tx_buffer_size_bytes   = 0;
-    std::atomic<unsigned> tx_buffer_used_bytes   = 0;
-    std::atomic<unsigned> tx_buffer_fill_percent = 0;
+    std::atomic<unsigned> tx_buffer_size_bytes   {0};
+    std::atomic<unsigned> tx_buffer_used_bytes   {0};
+    std::atomic<unsigned> tx_buffer_fill_percent {0};
 
   public:
     explicit udp_data_transport(const std::string& local_address,

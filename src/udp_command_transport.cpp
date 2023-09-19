@@ -159,12 +159,18 @@ void udp_command_transport::command_receive() {
             if (err) {
                 LOG_ERROR("udp command rx error: {:s}", err.message());
                 rx_state = TRANSPORT_ERROR;
+                if (stop_on_rx_error) {
+                    break;
+                }
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     LOG_ERROR("udp command rx discarded packet with incorrect size in header (header {:d}, packet {:d})",
                             (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
                     rx_state = TRANSPORT_ERROR;
+                    if (stop_on_rx_error) {
+                        break;
+                    }
                 } else {
                     // update stats
                     packets_received++;
@@ -177,6 +183,9 @@ void udp_command_transport::command_receive() {
                         LOG_ERROR("udp command rx sequence error (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
                         sequence_errors++;
                         rx_state = TRANSPORT_ERROR;
+                        if (stop_on_rx_error) {
+                            break;
+                        }
                     }
                     last_seq = recv_buffer.hdr.sequence_counter;
 
@@ -184,7 +193,13 @@ void udp_command_transport::command_receive() {
                         case PACKET_TYPE_ASYNC_MSG:
                             if (not async_msg_queue.push_or_timeout(recv_buffer, queue_push_timeout_us, queue_push_wait_us)) {
                                 LOG_ERROR("timeout pushing to async message queue in udp command rx");
-                                rx_state = TRANSPORT_ERROR;
+                                if (stop_on_rx_error) {
+                                    rx_state = TRANSPORT_SHUTDOWN;
+                                    LOG_DEBUG("udp command rx exiting");
+                                    return;
+                                } else {
+                                    rx_state = TRANSPORT_ERROR;
+                                }
                             }
                             break;
 
@@ -195,10 +210,17 @@ void udp_command_transport::command_receive() {
                         case PACKET_TYPE_TX_RADIO_CMD_ERR:
                         case PACKET_TYPE_RX_RADIO_CMD_ERR:
                             if (not response_queue.push_or_timeout(recv_buffer, queue_push_timeout_us, queue_push_wait_us)) {
-                                LOG_ERROR("timeout pushing to command response queue in udp command rx; stopping");
-                                rx_state = TRANSPORT_ERROR;
+                                LOG_ERROR("timeout pushing to command response queue in udp command rx");
+                                if (stop_on_rx_error) {
+                                    rx_state = TRANSPORT_SHUTDOWN;
+                                    LOG_DEBUG("udp command rx exiting");
+                                    return;
+                                } else {
+                                    rx_state = TRANSPORT_ERROR;
+                                }
                             }
                             break;
+
                         case PACKET_TYPE_DEVICE_CMD_ACK:
                         case PACKET_TYPE_TX_RADIO_CMD_ACK:
                         case PACKET_TYPE_RX_RADIO_CMD_ACK:
@@ -229,7 +251,13 @@ void udp_command_transport::command_send() {
 
     while (not sender_thread_stop_flag) {
         if (command_queue.pop_or_timeout(packet_buffer, send_thread_wait_us, send_thread_sleep_us)) {
-            send_packet(packet_buffer);
+            if (not send_packet(packet_buffer)) {
+                if (stop_on_tx_error) {
+                    break;
+                } else {
+                    tx_state = TRANSPORT_ERROR;
+                }
+            }
         }
     }
 

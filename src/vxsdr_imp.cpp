@@ -112,7 +112,7 @@ vxsdr::imp::~imp() noexcept {
     vxsdr::imp::set_tx_enabled(false);
     vxsdr::imp::set_rx_enabled(false);
     async_handler_stop_flag = true;
-    LOG_DEBUG("joining error_handler thread");
+    LOG_DEBUG("joining async message handler thread");
     if (async_handler_thread.joinable()) {
         async_handler_thread.join();
     }
@@ -165,6 +165,11 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
     }
     const unsigned timeout_duration_us = std::llround(timeout_s * 1e6);
 
+    if (not data_tport->rx_usable()) {
+        LOG_ERROR("data transport rx is not usable in get_rx_data()");
+        return 0;
+    }
+
     if (n_requested == 0) {
         if (data.size() != 0) {
             n_requested = data.size();
@@ -179,8 +184,8 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         }
     }
 
-    if (data_tport->rx_state != packet_transport::TRANSPORT_READY) {
-        LOG_ERROR("transport is not ready in get_rx_data()");
+    if (not data_tport->rx_usable()) {
+        LOG_ERROR("data transport rx is not usable in get_rx_data()");
         return 0;
     }
 
@@ -234,8 +239,9 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
     }
     const unsigned timeout_duration_us = std::llround(timeout_s * 1e6);
 
-    if (data_tport->tx_state != packet_transport::TRANSPORT_READY) {
-        LOG_ERROR("transport is not ready in put_tx_data()");
+    if (not data_tport->tx_rx_usable()) {
+        // need both available since acks must be received
+        LOG_ERROR("data transport tx and rx are not both usable in put_tx_data()");
         return 0;
     }
 
@@ -317,7 +323,12 @@ double vxsdr::imp::get_host_command_timeout() const {
 // private functions
 
 [[nodiscard]] bool vxsdr::imp::send_packet_and_check_response(packet& p, const std::string& cmd_name) {
+    if (not command_tport->tx_rx_usable()) {
+        LOG_ERROR("send_packet_and_check_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
+        return false;
+    }
     if (not vxsdr::imp::cmd_queue_push_check(p)) {
+        LOG_ERROR("send_packet_and_check_response failed sending {:s}: cmd queue push failed", cmd_name);
         return false;
     }
     command_queue_element q;
@@ -343,7 +354,12 @@ double vxsdr::imp::get_host_command_timeout() const {
 }
 
 [[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_packet_and_return_response(packet& p, const std::string& cmd_name) {
+    if (not command_tport->tx_rx_usable()) {
+        LOG_ERROR("send_packet_and_return_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
+        return std::nullopt;
+    }
     if (not vxsdr::imp::cmd_queue_push_check(p)) {
+        LOG_ERROR("send_packet_and_return_response failed sending {:s}: cmd queue push failed", cmd_name);
         return std::nullopt;
     }
     command_queue_element q;
