@@ -13,7 +13,7 @@ Increase Network Adapter MTU
 
 The maximum packet size allowed by an IP network adapter defaults to 1500 bytes
 in most cases. This severely limits the data rate achievable. By default,
-a VXSDR assumes the network interface is able to send and recieve "jumbo"
+a VXSDR assumes the network interface is able to send and receive "jumbo"
 packets of up to 9000 bytes, and this is necessary to achieve the specified
 sample rates.
 
@@ -21,6 +21,46 @@ Most operating systems provide both a graphical and a command-line method for
 increasing the MTU. On Linux, for example, you can use either the
 network settings menu or ``ifconfig``. Check your OS documentation, and set
 the MTU for the interface used for the VXSDR to 9000 or more.
+
+Processor Affinity
+------------------
+
+The VXSDR host software can set the processes which interact with the network
+stack for data transport to run on specific processors. Because many current
+CPU architectures have a mix of high-performance and high-efficiency processors,
+it is important to identify which processors are the fastest, so that these can
+be used for network processing for data transport.
+
+Processor affinity for these threads is controlled by the following entries in
+the settings map passed to the constructor for the ``vxsdr`` class:
+
+.. highlight:: c++
+.. code-block::
+
+    {"udp_data_transport:thread_affinity_offset",   0}
+    {"udp_data_transport:sender_thread_affinity",   0}
+    {"udp_data_transport:receiver_thread_affinity", 1}
+
+The ``thread_affinity_offset`` entry is added to the ``sender_thread_affinity``
+and ``receiver_thread_affinity`` entries to determine the processor number for
+these threads. In the example above, which shows the default settings, the
+sender and receiver threads would be assigned to processors 0 and 1, respectively.
+
+The Portable Hardware Locality package, developed by the Open MPI project, can be
+helpful in identifying and mapping processor types and cache hierarchies. On
+Ubuntu 22.04 or later, this package can be installed from the standard
+repositories:
+
+.. highlight:: shell
+.. code-block::
+
+    sudo apt install hwloc
+
+Information on obtaining ``hwloc`` for many operating systems and architectures is
+available at https://www.open-mpi.org/projects/hwloc.
+
+Once the package is installed, the ``lstopo`` command will run tests to determine the
+processor and cache hierarchy and show the results is graphical form.
 
 Linux Host Settings
 -------------------
@@ -90,7 +130,7 @@ if you have the card shown above, set TX and RX to 8192:
 
    sudo ethtool -G <device> tx 8192 rx 8192
 
-Interrupt Colaescing
+Interrupt Coalescing
 ^^^^^^^^^^^^^^^^^^^^
 
 Network cards can batch packets so that the rate of kernel interrupts to handle them

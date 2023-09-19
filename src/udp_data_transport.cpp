@@ -261,12 +261,18 @@ void udp_data_transport::data_receive() {
             if (err) {
                 LOG_ERROR("udp data rx packet error: {:s}", err.message());
                 rx_state = TRANSPORT_ERROR;
+                if (stop_on_rx_error) {
+                    break;
+                }
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     LOG_ERROR("udp data rx discarded packet with incorrect size in header (header {:d}, packet {:d})",
                             (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
                     rx_state = TRANSPORT_ERROR;
+                    if (stop_on_rx_error) {
+                        break;
+                    }
                 } else {
                     // update stats
                     packets_received++;
@@ -280,6 +286,9 @@ void udp_data_transport::data_receive() {
                         rx_state = TRANSPORT_ERROR;
                         sequence_errors++;
                         sequence_errors_current_stream++;
+                        if (stop_on_rx_error) {
+                            break;
+                        }
                     }
                     last_seq = recv_buffer.hdr.sequence_counter;
 
@@ -292,12 +301,15 @@ void udp_data_transport::data_receive() {
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
-                                LOG_ERROR("udp data rx error pushing to rx data queue for subdevice {:d} sample {:d}; stopping",
+                                LOG_ERROR("udp data rx error pushing to rx data queue for subdevice {:d} sample {:d}",
                                             recv_buffer.hdr.subdevice, samples_received);
                                 rx_state = TRANSPORT_ERROR;
+                                if (stop_on_rx_error) {
+                                    break;
+                                }
                             }
                         } else {
-                            LOG_ERROR("udp data rx discarded rx data packet from unknown subdevice {:d}", recv_buffer.hdr.subdevice);
+                            LOG_WARN("udp data rx discarded rx data packet from unknown subdevice {:d}", recv_buffer.hdr.subdevice);
                         }
                     } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
                         auto* r = std::bit_cast<six_uint32_packet*>(&recv_buffer);
@@ -359,31 +371,31 @@ void udp_data_transport::data_send() {
         if (throttling_state == NO_THROTTLING) {
             if (tx_buffer_fill_percent >= throttle_hard_percent) {
                 throttling_state = HARD_THROTTLING;
-                LOG_DEBUG("udp data tx entering throttling state HARD from NOTH ({:2d}% full)",
+                LOG_TRACE("udp data tx entering throttling state HARD from NONE ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             } else if (tx_buffer_fill_percent >= throttle_on_percent) {
                 throttling_state = NORMAL_THROTTLING;
-                LOG_DEBUG("udp data tx entering throttling state NORM from NOTH ({:2d}% full)",
+                LOG_TRACE("udp data tx entering throttling state NRML from NONE ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             }
         } else if (throttling_state == NORMAL_THROTTLING) {
             if (tx_buffer_fill_percent >= throttle_hard_percent) {
                 throttling_state = HARD_THROTTLING;
-                LOG_DEBUG("udp data tx entering throttling state HARD from NORM ({:2d}% full)",
+                LOG_TRACE("udp data tx entering throttling state HARD from NRML ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             } else if (tx_buffer_fill_percent < throttle_off_percent) {
                 throttling_state = NO_THROTTLING;
-                LOG_DEBUG("udp data tx entering throttling state NOTH from NORM ({:2d}% full)",
+                LOG_TRACE("udp data tx entering throttling state NONE from NRML ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             }
         } else {  // current_state == HARD_THROTTLING
             if (tx_buffer_fill_percent < throttle_off_percent) {
                 throttling_state = NO_THROTTLING;
-                LOG_DEBUG("udp data tx entering throttling state NOTH from HARD ({:2d}% full)",
+                LOG_TRACE("udp data tx entering throttling state NONE from HARD ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             } else if (tx_buffer_fill_percent < throttle_hard_percent) {
                 throttling_state = NORMAL_THROTTLING;
-                LOG_DEBUG("udp data tx entering throttling state NORM from HARD ({:2d}% full)",
+                LOG_TRACE("udp data tx entering throttling state NRML from HARD ({:2d}% full)",
                             (int)tx_buffer_fill_percent);
             }
         }
@@ -402,7 +414,14 @@ void udp_data_transport::data_send() {
         if (throttling_state == HARD_THROTTLING) {
             // when hard throttling, send one empty data packet and request ack to update buffer use
             data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
-            send_packet(data_buffer[0]);
+            if (not send_packet(data_buffer[0])) {
+                if (stop_on_tx_error) {
+                    break;
+                } else {
+                    tx_state = TRANSPORT_ERROR;
+                }
+            }
+
             last_check = data_packets_processed;
             std::this_thread::sleep_for(std::chrono::microseconds(send_thread_sleep_us));
         } else {
@@ -417,6 +436,12 @@ void udp_data_transport::data_send() {
                 }
                 if (send_packet(data_buffer[i])) {
                     data_packets_processed++;
+                } else {
+                    if (stop_on_tx_error) {
+                        break;
+                    } else {
+                        tx_state = TRANSPORT_ERROR;
+                    }
                 }
                 if (throttling_state != NO_THROTTLING) {
                     // if we are throttling, pause between each packet
