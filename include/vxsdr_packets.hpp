@@ -13,14 +13,14 @@
    elements are unsigned.
 */
 
-typedef struct {
+struct time_spec_t {
   uint32_t              seconds;
   uint32_t              nanoseconds;
-} time_spec_t;
+};
 
-typedef uint64_t           stream_spec_t;
+using stream_spec_t = uint64_t;
 
-typedef enum  { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR } stream_state_t;
+using stream_state_t = enum { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
 // FIXME: these are for timing status; need to be defined as part of a generic API when stable
 constexpr uint32_t TIMING_STATUS_EXT_PPS_LOCK   = 0x00000001;
@@ -44,7 +44,7 @@ class one_uint32_packet : public packet {
     uint32_t reserved = 0;
 };
 
-typedef one_uint32_packet error_packet;
+using error_packet = one_uint32_packet;
 
 class two_uint32_packet : public packet {
   public:
