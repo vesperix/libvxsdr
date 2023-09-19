@@ -51,15 +51,16 @@ void tx_producer(const size_t n_items, double& push_rate) {
     auto t0 = std::chrono::steady_clock::now();
 
     static data_queue_element p;
+    size_t i = 0;
 
-    for (size_t i = 0; i < n_items; i++) {
+    for (i = 0; i < n_items; i++) {
         p.hdr.sequence_counter = i % (UINT16_MAX + 1UL);
         p.hdr.packet_size = sizeof(largest_data_packet);
 
         if (not tx_queue.push_or_timeout(p, push_queue_timeout_us, push_queue_sleep_us)) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "producer: timeout waiting for push" << std::endl;
-            return;
+            break;
         }
         if constexpr (push_queue_interval_us > 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(push_queue_interval_us));
@@ -68,9 +69,9 @@ void tx_producer(const size_t n_items, double& push_rate) {
 
     auto t1                         = std::chrono::steady_clock::now();
     std::chrono::duration<double> d = t1 - t0;
-    push_rate                       = (MAX_DATA_LENGTH_SAMPLES * (double)n_items / d.count());
+    push_rate                       = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
     std::lock_guard<std::mutex> guard(console_mutex);
-    std::cout << "producer: " << n_items << " packets pushed in " << d.count() << " sec: " << push_rate << " samples/s"
+    std::cout << "producer: " << i << " packets pushed in " << d.count() << " sec: " << push_rate << " samples/s"
               << std::endl;
 }
 
@@ -97,7 +98,7 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
         return;
     }
 
-    static constexpr unsigned data_buffer_size = 256;
+    static constexpr unsigned data_buffer_size = 64;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
     net::socket_base::message_flags flags = 0;
     while (not sender_thread_stop_flag) {
@@ -189,16 +190,16 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
 
         if (n_popped == 0) {
             std::cout << "consumer: timeout waiting for pop" << std::endl;
-            return;
+            break;
         }
 
         for (size_t j = 0; j < n_popped; j++) {
-            i++;
-            expected_seq++;
             if (p[j].hdr.sequence_counter != expected_seq) {
                 std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
                 expected_seq = p[j].hdr.sequence_counter;
             }
+            i++;
+            expected_seq++;
         }
 
         if constexpr (pop_queue_interval_us > 0) {
@@ -208,9 +209,9 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
 
     auto t1                         = std::chrono::steady_clock::now();
     std::chrono::duration<double> d = t1 - t0;
-    pop_rate = (MAX_DATA_LENGTH_SAMPLES * (double)n_items / d.count());
+    pop_rate = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
     std::lock_guard<std::mutex> guard(console_mutex);
-    std::cout << "consumer: " << n_items << " packets popped in " << d.count() << " sec: " << pop_rate << " samples/s" << std::endl;
+    std::cout << "consumer: " << i << " packets popped in " << d.count() << " sec: " << pop_rate << " samples/s" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
