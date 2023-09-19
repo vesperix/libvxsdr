@@ -180,6 +180,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
     auto t0 = std::chrono::steady_clock::now();
 
     size_t i = 0;
+    uint16_t expected_seq = 0;
 
     while (i < n_items) {
         static std::array<data_queue_element, buffer_size> p;
@@ -192,9 +193,11 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
         }
 
         for (size_t j = 0; j < n_popped; j++) {
-            if (p[j].hdr.sequence_counter != i++ % (UINT16_MAX + 1)) {
-                std::cout << "consumer: sequence error" << std::endl;
-                return;
+            i++;
+            expected_seq++;
+            if (p[j].hdr.sequence_counter != expected_seq) {
+                std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
+                expected_seq = p[j].hdr.sequence_counter;
             }
         }
 
@@ -228,7 +231,7 @@ int main(int argc, char* argv[]) {
 
     size_t n_items = std::ceil(n_seconds * minimum_rate / MAX_DATA_LENGTH_SAMPLES);
 
-    auto localhost_addr = net::ip::address_v4::from_string("127.101.102.103");
+    auto localhost_addr = net::ip::address_v4::from_string("127.0.0.1");
 
     net::ip::udp::endpoint local_send_endpoint(localhost_addr, udp_host_send_port);
     net::ip::udp::endpoint local_receive_endpoint(localhost_addr, udp_host_receive_port);
