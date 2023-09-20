@@ -30,22 +30,22 @@ std::vector<std::string> vxsdr::get_library_details() {
     return p_imp->get_library_details();
 }
 
-size_t vxsdr::get_rx_data(std::vector<std::complex<int16_t>>& data, size_t n_requested, const uint8_t subdev,
+size_t vxsdr::get_rx_data(std::vector<std::complex<int16_t>>& data, const size_t n_requested, const uint8_t subdev,
     const double timeout_s) {
     return p_imp->get_rx_data<int16_t>(data, n_requested, subdev, timeout_s);
 }
 
-size_t vxsdr::get_rx_data(std::vector<std::complex<float>>& data, size_t n_requested, const uint8_t subdev,
+size_t vxsdr::get_rx_data(std::vector<std::complex<float>>& data, const size_t n_requested, const uint8_t subdev,
     const double timeout_s) {
     return p_imp->get_rx_data<float>(data, n_requested, subdev, timeout_s);
 }
 
-size_t vxsdr::put_tx_data(const std::vector<std::complex<int16_t>> &data, const uint8_t subdev, const double timeout_s) {
-    return p_imp->put_tx_data<int16_t>(data, subdev, timeout_s);
+size_t vxsdr::put_tx_data(const std::vector<std::complex<int16_t>> &data, const size_t n_requested, const uint8_t subdev, const double timeout_s) {
+    return p_imp->put_tx_data<int16_t>(data, n_requested, subdev, timeout_s);
 }
 
-size_t vxsdr::put_tx_data(const std::vector<std::complex<float>> &data, const uint8_t subdev, const double timeout_s) {
-    return p_imp->put_tx_data<float>(data, subdev, timeout_s);
+size_t vxsdr::put_tx_data(const std::vector<std::complex<float>> &data, const size_t n_requested, const uint8_t subdev, const double timeout_s) {
+    return p_imp->put_tx_data<float>(data, n_requested, subdev, timeout_s);
 }
 
 bool vxsdr::set_host_command_timeout(const double timeout_s) {
