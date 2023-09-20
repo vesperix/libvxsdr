@@ -246,9 +246,7 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
     }
 
     if (n_requested == 0) {
-        if (data.size() != 0) {
-            n_requested = data.size();
-        } else {
+        if (data.size() == 0) {
             LOG_WARN("put_tx_data() called with zero samples requested");
             return 0;
         }
@@ -259,13 +257,14 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         }
     }
 
+    LOG_DEBUG("sending {:d} samples to subdevice {:d}", n_requested, subdev);
 
     // puts plain data_packets (no time, no stream)
     size_t n_put = 0;
     for (size_t i = 0; i < n_requested; i += MAX_DATA_LENGTH_SAMPLES) {
         data_queue_element q;
         auto* p               = std::bit_cast<data_packet*>(&q);
-        auto n_samples        = (unsigned)std::min((size_t)MAX_DATA_LENGTH_SAMPLES, data.size() - i);
+        auto n_samples        = (unsigned)std::min((size_t)MAX_DATA_LENGTH_SAMPLES, n_requested - i);
         unsigned n_data_bytes = n_samples * sizeof(std::complex<int16_t>);
         auto packet_size      = (uint16_t)(sizeof(packet_header) + n_data_bytes);
         p->hdr                = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, subdev, 0, packet_size, 0};
