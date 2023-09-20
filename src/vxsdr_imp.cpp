@@ -226,7 +226,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<int16_t>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
 template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<float>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
 
-template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data, const uint8_t subdev, const double timeout_s) {
+template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
     LOG_DEBUG("put_tx_data started");
 
     if (timeout_s <= 0.0) {
@@ -245,9 +245,24 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         return 0;
     }
 
+    if (n_requested == 0) {
+        if (data.size() != 0) {
+            n_requested = data.size();
+        } else {
+            LOG_WARN("put_tx_data() called with zero samples requested");
+            return 0;
+        }
+    } else {
+        if (data.size() < n_requested) {
+            LOG_WARN("data.size() = {:d} but n_requested = {:d}; reducing n_requested in in put_tx_data()", data.size(), n_requested);
+            n_requested = data.size();
+        }
+    }
+
+
     // puts plain data_packets (no time, no stream)
     size_t n_put = 0;
-    for (size_t i = 0; i < data.size(); i += MAX_DATA_LENGTH_SAMPLES) {
+    for (size_t i = 0; i < n_requested; i += MAX_DATA_LENGTH_SAMPLES) {
         data_queue_element q;
         auto* p               = std::bit_cast<data_packet*>(&q);
         auto n_samples        = (unsigned)std::min((size_t)MAX_DATA_LENGTH_SAMPLES, data.size() - i);
@@ -305,8 +320,8 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
 }
 
 // Need to explicitly instantiate template classes for all allowed types so compiler will include code in library!
-template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<int16_t>>& data, const uint8_t subdev, const double timeout_s);
-template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<float>>& data, const uint8_t subdev, const double timeout_s);
+template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<int16_t>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
+template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<float>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
 
 bool vxsdr::imp::set_host_command_timeout(const double timeout_s) {
     if (timeout_s > 3600 or timeout_s < 1e-3) {

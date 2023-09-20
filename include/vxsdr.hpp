@@ -813,10 +813,12 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Send transmit data to the device.
       @returns the number of samples placed in the queue for transmission
       @param data the @p complex<int16_t> vector of data to be sent
+      @param n_requested the number of samples to be sent (0 means use data.size(); if data.size() < n_requested, only data.size() will be sent)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
     size_t put_tx_data(const std::vector<std::complex<int16_t>>& data,
+                       size_t n_requested = 0,
                        const uint8_t subdev   = 0,
                        const double timeout_s = 10);
 
@@ -824,10 +826,12 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Send transmit data to the device.
       @returns the number of samples placed in the queue for transmission
       @param data the @p complex<float> vector of data to be sent
+      @param n_requested the number of samples to be sent (0 means use data.size(); if data.size() < n_requested, only data.size() will be sent)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
     size_t put_tx_data(const std::vector<std::complex<float>>& data,
+                       size_t n_requested = 0,
                        const uint8_t subdev   = 0,
                        const double timeout_s = 10);
 
@@ -835,7 +839,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Receive data from the device and return it in a vector.
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
       @param data the @p complex<int16_t> vector for the received data
-      @param n_requested the number of samples to be received (0 means use data.size(); if data.size() < n_desired, only data.size() will be acquired)
+      @param n_requested the number of samples to be received (0 means use data.size(); if data.size() < n_requested, only data.size() will be received)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */

@@ -73,6 +73,7 @@ class vxsdr::imp {
                        const uint8_t subdev,
                        const double timeout_s);
     template <typename T> size_t put_tx_data(const std::vector<std::complex<T>>& data,
+                       size_t n_requested,
                        const uint8_t subdev,
                        const double timeout_s);
     std::optional<std::array<uint32_t, 6>> hello();
