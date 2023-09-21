@@ -15,8 +15,8 @@ Device
 The top level of the device model is the VXSDR device, which has the following components:
 
     * Data and Command Transport
-    * Time reference
-    * Frequency reference
+    * Time Reference
+    * Frequency Reference
 
 A device is linked to an instance of the VXSDR class on the host by a transport layer;
 currently Ethernet UDP is the only supported transport. Each device also has a
@@ -54,8 +54,8 @@ Each subdevice has 0-254 TX channels, and 0-254 RX channels, so transmit-only or
 systems are possible. Each TX or RX channel has the following settings:
 
     * Gain
-    * Bias correction (TX channels only)
-    * IQ correction
+    * Bias Correction (TX channels only)
+    * IQ Correction
     * FIR Filtering (optional, depending on FPGA size)
 
 Bias and IQ correction reduce spurious signals outside of the desired band, and FIR filtering
