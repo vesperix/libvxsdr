@@ -18,17 +18,20 @@ using namespace std::chrono_literals;
 
 #include "vxsdr_lib_export.h"
 
-/*! @class vxsdr vxsdr.hpp
+/*! @file vxsdr.hpp
+    @class vxsdr
     @brief The vxsdr class contains the host interface for the VXSDR
 */
 
 class VXSDR_LIB_EXPORT vxsdr {
   public:
   /*!
+    @enum transport_type
     @brief The @p transport_type describes how data and commands are sent and received. (UDP is currently the only transport supported.)
   */
     enum transport_type { TRANSPORT_TYPE_UDP = 1, TRANSPORT_TYPE_PCIE };
   /*!
+    @enum stream_state
     @brief The @p stream_state type reports the status of TX or RX data streaming.
   */
     enum stream_state { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
@@ -949,7 +952,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Send transmit data to the device.
       @returns the number of samples placed in the queue for transmission
       @param data the @p complex<int16_t> vector of data to be sent
-      @param n_requested the number of samples to be sent (0 means use data.size(); if data.size() < n_requested, only data.size() will be sent)
+      @param n_requested the number of samples to be sent (0 means use data.size();
+          if data.size() \< n_requested, only data.size() will be sent)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -962,7 +966,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Send transmit data to the device.
       @returns the number of samples placed in the queue for transmission
       @param data the @p complex<float> vector of data to be sent
-      @param n_requested the number of samples to be sent (0 means use data.size(); if data.size() < n_requested, only data.size() will be sent)
+      @param n_requested the number of samples to be sent (0 means use data.size();
+          if data.size() \< n_requested, only data.size() will be sent)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -975,7 +980,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Receive data from the device and return it in a vector.
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
       @param data the @p complex<int16_t> vector for the received data
-      @param n_requested the number of samples to be received (0 means use data.size(); if data.size() < n_requested, only data.size() will be received)
+      @param n_requested the number of samples to be received (0 means use data.size();
+          if data.size() \< n_requested, only data.size() will be received)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -988,7 +994,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Receive data from the device and return it in a vector.
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
       @param data the @p complex<float> vector for the received data
-      @param n_requested the number of samples to be received (0 means use data.size(); if data.size() < n_desired, only data.size() will be acquired)
+      @param n_requested the number of samples to be received (0 means use data.size();
+          if data.size() \< n_requested, only data.size() will be acquired)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */

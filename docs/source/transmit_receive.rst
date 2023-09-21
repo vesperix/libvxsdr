@@ -26,7 +26,7 @@ Interrupting transmit and receive
 Sending and receiving samples
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. doxygenfunction:: put_tx_data(const std::vector<std::complex<int16_t>> &data, const uint8_t subdev = 0, const double timeout_s = 10)
-.. doxygenfunction:: put_tx_data(const std::vector<std::complex<float>> &data, const uint8_t subdev = 0, const double timeout_s = 10)
-.. doxygenfunction:: get_rx_data(std::vector<std::complex<int16_t>> &data, const size_t n_desired = 0, const uint8_t subdev = 0, const double timeout_s = 10)
-.. doxygenfunction:: get_rx_data(std::vector<std::complex<float>> &data, const size_t n_desired = 0, const uint8_t subdev = 0, const double timeout_s = 10)
+.. doxygenfunction:: put_tx_data(const std::vector<std::complex<int16_t>> &data, size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10)
+.. doxygenfunction:: put_tx_data(const std::vector<std::complex<float>> &data, size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10)
+.. doxygenfunction:: get_rx_data(std::vector<std::complex<int16_t>> &data, const size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10)
+.. doxygenfunction:: get_rx_data(std::vector<std::complex<float>> &data, const size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10)
