@@ -8,7 +8,9 @@ set(vxsdr_lib_version ${vxsdr_lib_version_major}.${vxsdr_lib_version_minor}.${vx
 
 project(vxsdr_lib VERSION ${vxsdr_lib_version} DESCRIPTION "VXSDR host library" LANGUAGES CXX)
 
-set(vxsdr_cxx_std cxx_std_20)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # default options for all builds
 option(VXSDR_ENABLE_LOGGING "Enable logging from within libvxsdr" ON)
@@ -51,18 +53,62 @@ set(vxsdr_test_source testing/test_sleep_resolution.cpp
                       testing/test_spsc_queue.cpp
                       testing/test_localhost_xfer.cpp)
 
-find_package(Boost 1.67 REQUIRED)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+if(VXSDR_FETCH_DEPENDENCIES)
+    find_package(Git REQUIRED)
+    include(FetchContent)
+endif()
+
+if(VXSDR_FETCH_DEPENDENCIES)
+    message(STATUS "Downloading and building Boost components; this will take some time...")
+    set(BOOST_ENABLE_CMAKE ON)
+    if(VXSDR_STANDALONE_ASIO)
+        set(BOOST_INCLUDE_LIBRARIES "lockfree")
+        FetchContent_Declare(
+            Boost
+            GIT_REPOSITORY https://github.com/boostorg/boost.git
+            GIT_TAG        boost-1.83.0
+        )
+        FetchContent_MakeAvailable(Boost)
+        FetchContent_Declare(
+            asio
+            GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
+            GIT_TAG        asio-1-28-1
+        )
+        FetchContent_MakeAvailable(asio)
+    else()
+        set(BOOST_INCLUDE_LIBRARIES "lockfree;asio")
+        FetchContent_Declare(
+            Boost
+            GIT_REPOSITORY https://github.com/boostorg/boost.git
+            GIT_TAG        boost-1.83.0
+        )
+        FetchContent_MakeAvailable(Boost)
+    endif()
+else()
+    find_package(Boost 1.67 REQUIRED)
+endif()
 
 if(NOT VXSDR_ENABLE_LOGGING)
     message(STATUS "Building library without logging")
     set(vxsdr_log_defs -DVXSDR_LIB_DISABLE_LOGGING)
 else()
     message(STATUS "Building library with logging")
-    find_package(spdlog 1.5.0 REQUIRED) # FIXME: check minimum version
+    if(VXSDR_FETCH_DEPENDENCIES)
+        set(SPDLOG_HEADER_ONLY ON)
+        set(FMT_HEADER_ONLY ON)
+        FetchContent_Declare(
+            spdlog
+            GIT_REPOSITORY https://github.com/gabime/spdlog.git
+            GIT_TAG        v1.12.0
+        )
+        FetchContent_MakeAvailable(spdlog)
+    else()
+        find_package(spdlog 1.5.0 REQUIRED)
+    endif()
 endif()
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 set(vxsdr_build_defs -DVERSION_STRING="${vxsdr_lib_version}"
                      -DVERSION_MAJOR=${vxsdr_lib_version_major}
@@ -146,7 +192,17 @@ if(VXSDR_PYTHON_BINDINGS)
     else()
         find_package(Python3 COMPONENTS Interpreter Development)
     endif()
-    find_package(pybind11)
+
+    if(VXSDR_FETCH_DEPENDENCIES)
+        FetchContent_Declare(
+            pybind11
+            GIT_REPOSITORY https://github.com/pybind/pybind11.git
+            GIT_TAG        v2.11.1
+        )
+        FetchContent_MakeAvailable(pybind11)
+    else()
+        find_package(pybind11)
+    endif()
     if(pybind11_FOUND AND Python3_FOUND)
         set(vxsdr_build_python -DBUILD_PYTHON_BINDINGS)
         set(Make_Python_Bindings YES)
@@ -170,9 +226,7 @@ target_sources(vxsdr_lib INTERFACE ${vxsdr_lib_header} ${CMAKE_CURRENT_BINARY_DI
 get_target_property(vxsdr_lib_public_headers vxsdr_lib INTERFACE_SOURCES)
 set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER "${vxsdr_lib_public_headers}")
 target_include_directories(vxsdr_lib INTERFACE ${CMAKE_CURRENT_BUILD_DIR})
-target_compile_features(vxsdr_lib PUBLIC ${vxsdr_cxx_std})
-set_target_properties(vxsdr_lib PROPERTIES CXX_STANDARD_REQUIRED ON
-                                           CXX_EXTENSIONS OFF)
+
 if(VXSDR_STATIC_ANALYSIS)
     set_target_properties(vxsdr_lib PROPERTIES CMAKE_CXX_CLANG_TIDY "clang-tidy")
 endif()
@@ -188,7 +242,7 @@ target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR}
 if(VXSDR_STANDALONE_ASIO)
     target_include_directories(vxsdr_lib PRIVATE ${asio_SOURCE_DIR}/asio/include)
     # FIXME: does asio have a better definition?
-    #target_link_libraries(vxsdr_lib INTERFACE asio::asio_header_only)
+    # target_link_libraries(vxsdr_lib INTERFACE asio::asio_header_only)
 endif()
 if(Make_Python_Bindings)
     target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_build_python})
@@ -216,10 +270,7 @@ if(Make_Python_Bindings)
         target_include_directories(vxsdr_py PRIVATE ${spdlog_INCLUDE_DIRS})
         target_link_libraries(vxsdr_py PRIVATE spdlog::spdlog_header_only)
     endif()
-    target_compile_features(vxsdr_py PUBLIC ${vxsdr_cxx_std})
-    set_target_properties(vxsdr_py PROPERTIES CXX_STANDARD_REQUIRED ON
-                                           CXX_EXTENSIONS OFF
-                                           POSITION_INDEPENDENT_CODE ON)
+    set_target_properties(vxsdr_py PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(VXSDR_BUILD_UTILITIES)
@@ -229,9 +280,6 @@ if(VXSDR_BUILD_UTILITIES)
         get_filename_component(target_name ${source_file} NAME_WE)
         #cmake_path(GET source_file STEM target_name)
         add_executable(${target_name} ${source_file})
-        target_compile_features(${target_name} PUBLIC ${vxsdr_cxx_std})
-        set_target_properties(${target_name} PROPERTIES CXX_STANDARD_REQUIRED ON
-                                                    CXX_EXTENSIONS OFF)
         target_compile_options(${target_name} PRIVATE ${vxsdr_optimization_options}
                                                       ${vxsdr_warning_options}
                                                       ${vxsdr_misc_options})
@@ -250,9 +298,6 @@ if(VXSDR_BUILD_TESTS)
         get_filename_component(target_name ${source_file} NAME_WE)
         #cmake_path(GET source_file STEM target_name)
         add_executable(${target_name} ${source_file} src/thread_utils.cpp)
-        target_compile_features(${target_name} PUBLIC ${vxsdr_cxx_std})
-        set_target_properties(${target_name} PROPERTIES CXX_STANDARD_REQUIRED ON
-                                                   CXX_EXTENSIONS OFF)
         target_compile_options(${target_name} PRIVATE ${vxsdr_optimization_options}
                                                       ${vxsdr_warning_options}
                                                       ${vxsdr_misc_options})
