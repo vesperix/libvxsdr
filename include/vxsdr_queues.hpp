@@ -8,6 +8,11 @@
 
 // Confines the boost specifics to this file and adds utility functions for timeouts
 
+// use std::atomic so queues are header-only
+#ifndef BOOST_LOCKFREE_FORCE_STD_ATOMIC
+#define BOOST_LOCKFREE_FORCE_STD_ATOMIC  (1)
+#endif
+
 #include <boost/lockfree/queue.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 
