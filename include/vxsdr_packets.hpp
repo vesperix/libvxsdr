@@ -8,6 +8,8 @@
 
 #include "packet_header.h"
 
+#pragma pack(push, 1)
+
 /* Times are specified using the following type.
    NOTE that unlike common Unix/Linux practice, the
    elements are unsigned.
@@ -194,6 +196,8 @@ constexpr unsigned VXSDR_DATA_BUFFER_ALIGNMENT = 64;
 
 class alignas(VXSDR_DATA_BUFFER_ALIGNMENT) data_queue_element : public largest_data_packet {
 };
+
+#pragma pack(pop)
 
 // checks to ensure that sizes of these objects are as expected
 VXSDR_CHECK_SIZE_EQUALS(time_spec_t, 8);

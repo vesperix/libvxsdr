@@ -358,8 +358,8 @@ std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
         if (res) {
             auto q  = res.value();
             auto* r = std::bit_cast<name_packet*>(&q);
-            if (strlen(&r->name1[0]) > 0) {
-                names.emplace_back(&r->name1[0]);
+            if (strlen(r->name1) > 0) {
+                names.emplace_back(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
             }
         } else {
             break;

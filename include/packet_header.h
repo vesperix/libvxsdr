@@ -41,7 +41,7 @@ typedef struct {
     uint8_t  subdevice;
     uint8_t  channel;
     uint16_t packet_size;            // length of packet including header in bytes
-    uint16_t sequence_counter;       // single sequence for all packets
+    uint16_t sequence_counter;
 } packet_header;
 
 #pragma pack(pop)
