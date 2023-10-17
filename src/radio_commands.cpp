@@ -952,7 +952,7 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string((char*)r->name1, std::min(strlen((char*)r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
     }
     return std::nullopt;
 }
@@ -965,7 +965,7 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string((char*)r->name1, std::min(strlen((char*)r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
     }
     return std::nullopt;
 }
