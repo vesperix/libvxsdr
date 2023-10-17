@@ -152,33 +152,35 @@ PYBIND11_MODULE(vxsdr_py, m) {
         // tuning
         PYBIND_DEF_SUBDEV(get_tx_freq_range, "Get the transmit center frequency range.")
         PYBIND_DEF_SUBDEV(get_rx_freq_range, "Get the receive center frequency range.")
-        PYBIND_DEF_SUBDEV(get_tx_freq, "Get the current transmit center frequency.")
-        PYBIND_DEF_SUBDEV(get_rx_freq, "Get the current receive center frequency.")
+        PYBIND_DEF_SUBDEV(get_tx_freq, "Get the transmit center frequency.")
+        PYBIND_DEF_SUBDEV(get_rx_freq, "Get the receive center frequency.")
         PYBIND_DEF_ARGS(set_tx_freq, "Set the transmit center frequency.",
                 py::arg("freq"),
                 py::arg("subdev") = 0)
         PYBIND_DEF_ARGS(set_rx_freq, "Set the receive center frequency.",
                 py::arg("freq"),
                 py::arg("subdev") = 0)
-        PYBIND_DEF_SUBDEV(get_tx_freq_stage_names, "Get the names of stages available for transmit tuning.")
-        PYBIND_DEF_SUBDEV(get_rx_freq_stage_names, "Get the names of stages available for receive tuning.")
-        PYBIND_DEF_STAGE_SUBDEV(get_tx_freq_range_stage, "Get the transmit center frequency range for a tuning stage.")
-        PYBIND_DEF_STAGE_SUBDEV(get_rx_freq_range_stage, "Get the receive center frequency range for a tuning stage.")
-        PYBIND_DEF_STAGE_SUBDEV(get_tx_freq_stage, "Get the current transmit center frequency for a tuning stage.")
-        PYBIND_DEF_STAGE_SUBDEV(get_rx_freq_stage, "Get the current receive center frequency for a tuning stage.")
-        PYBIND_DEF_ARGS(set_tx_freq_stage, "Set the transmit center frequency for a tuning stage.",
+        PYBIND_DEF_SUBDEV(get_tx_num_freq_stages, "Get the number of transmit tuning stages.")
+        PYBIND_DEF_SUBDEV(get_rx_num_freq_stages, "Get the number of receive tuning stages.")
+        PYBIND_DEF_STAGE_SUBDEV(get_tx_freq_stage_name, "Get the name of a transmit tuning stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_rx_freq_stage_name, "Get the name of a receive tuning stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_tx_freq_range_stage, "Get the center frequency range for a transmit tuning stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_rx_freq_range_stage, "Get the center frequency range for a receive tuning stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_tx_freq_stage, "Get the center frequency for a transmit tuning stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_rx_freq_stage, "Get the center frequency for a receive tuning stage.")
+        PYBIND_DEF_ARGS(set_tx_freq_stage, "Set the center frequency for a transmit tuning stage.",
                 py::arg("freq"),
-                py::arg("stage"),
+                py::arg("stage_num"),
                 py::arg("subdev") = 0)
-        PYBIND_DEF_ARGS(set_rx_freq_stage, "Set the receive center frequency for a tuning stage.",
+        PYBIND_DEF_ARGS(set_rx_freq_stage, "Set the center frequency for a receive tuning stage.",
                 py::arg("freq"),
-                py::arg("stage"),
+                py::arg("stage_num"),
                 py::arg("subdev") = 0)
         // gain control
-        PYBIND_DEF_SUBDEV_CHAN(get_tx_gain_range, "Get the gain range for a transmit channel.")
-        PYBIND_DEF_SUBDEV_CHAN(get_rx_gain_range, "Get the gain range for a receive channel.")
-        PYBIND_DEF_SUBDEV_CHAN(get_tx_gain, "Get the current gain for a transmit channel.")
-        PYBIND_DEF_SUBDEV_CHAN(get_rx_gain, "Get the current gain for a receive channel.")
+        PYBIND_DEF_SUBDEV(get_tx_gain_range, "Get the gain range for a transmit subdevice.")
+        PYBIND_DEF_SUBDEV(get_rx_gain_range, "Get the gain range for a receive subdevice.")
+        PYBIND_DEF_SUBDEV_CHAN(get_tx_gain, "Get the gain for a transmit channel.")
+        PYBIND_DEF_SUBDEV_CHAN(get_rx_gain, "Get the gain for a receive channel.")
         PYBIND_DEF_ARGS(set_tx_gain, "Set the gain for a transmit channel.",
                 py::arg("gain"),
                 py::arg("subdev") = 0,
@@ -187,27 +189,29 @@ PYBIND11_MODULE(vxsdr_py, m) {
                 py::arg("gain"),
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
-        PYBIND_DEF_SUBDEV_CHAN(get_tx_gain_stage_names, "Get the names of stages available for transmit gain control.")
-        PYBIND_DEF_SUBDEV_CHAN(get_rx_gain_stage_names, "Get the names of stages available for receive gain control.")
-        PYBIND_DEF_STAGE_SUBDEV_CHAN(get_tx_gain_range_stage, "Get the gain range for a transmit gain control stage.")
-        PYBIND_DEF_STAGE_SUBDEV_CHAN(get_rx_gain_range_stage, "Get the gain range for a receive gain control stage.")
-        PYBIND_DEF_STAGE_SUBDEV_CHAN(get_tx_gain_stage, "Get the current gain for a transmit gain control stage.")
-        PYBIND_DEF_STAGE_SUBDEV_CHAN(get_rx_gain_stage, "Get the current gain for a receive gain control stage.")
-        PYBIND_DEF_ARGS(set_tx_gain_stage, "Set the gain for a transmit gain control stage.",
+        PYBIND_DEF_SUBDEV(get_tx_num_gain_stages, "Get the number of transmit gain stages.")
+        PYBIND_DEF_SUBDEV(get_rx_num_gain_stages, "Get the number of receive gain stages.")
+        PYBIND_DEF_STAGE_SUBDEV(get_tx_gain_stage_name, "Get the name of a transmit gain stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_rx_gain_stage_name, "Get the name of a receive gain stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_tx_gain_range_stage, "Get the gain range for a transmit gain stage.")
+        PYBIND_DEF_STAGE_SUBDEV(get_rx_gain_range_stage, "Get the gain range for a receive gain stage.")
+        PYBIND_DEF_STAGE_SUBDEV_CHAN(get_tx_gain_stage, "Get the gain for a transmit gain stage.")
+        PYBIND_DEF_STAGE_SUBDEV_CHAN(get_rx_gain_stage, "Get the gain for a receive gain stage.")
+        PYBIND_DEF_ARGS(set_tx_gain_stage, "Set the gain for a transmit gain stage.",
                 py::arg("gain"),
-                py::arg("stage"),
+                py::arg("stage_num"),
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
-        PYBIND_DEF_ARGS(set_rx_gain_stage, "Set the gain for a receive gain control stage.",
+        PYBIND_DEF_ARGS(set_rx_gain_stage, "Set the gain for a receive gain stage.",
                 py::arg("gain"),
-                py::arg("stage"),
+                py::arg("stage_num"),
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
         // sampling rate
         PYBIND_DEF_SUBDEV(get_tx_rate_range, "Get the transmit sample rate range.")
         PYBIND_DEF_SUBDEV(get_rx_rate_range, "Get the receive sample rate range.")
-        PYBIND_DEF_SUBDEV(get_tx_rate, "Get the current transmit sample rate.")
-        PYBIND_DEF_SUBDEV(get_rx_rate, "Get the current receive sample rate.")
+        PYBIND_DEF_SUBDEV(get_tx_rate, "Get the transmit sample rate.")
+        PYBIND_DEF_SUBDEV(get_rx_rate, "Get the receive sample rate.")
         PYBIND_DEF_ARGS(set_tx_rate, "Set the transmit sample rate.",
                 py::arg("rate"),
                 py::arg("subdev") = 0)
@@ -225,22 +229,14 @@ PYBIND11_MODULE(vxsdr_py, m) {
                 py::arg("port_num"),
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
-        PYBIND_DEF_SUBDEV_CHAN(get_tx_port, "Get the current transmit output port.")
-        PYBIND_DEF_SUBDEV_CHAN(get_rx_port, "Get the current receive input port.")
-        PYBIND_DEF_ARGS(set_tx_port, "Set the transmit output port by number.",
+        PYBIND_DEF_SUBDEV_CHAN(get_tx_port, "Get the transmit output port.")
+        PYBIND_DEF_SUBDEV_CHAN(get_rx_port, "Get the receive input port.")
+        PYBIND_DEF_ARGS(set_tx_port, "Set the transmit output port.",
                 py::arg("port_num"),
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
-        PYBIND_DEF_ARGS(set_rx_port, "Set the receive input port by number.",
+        PYBIND_DEF_ARGS(set_rx_port, "Set the receive input port.",
                 py::arg("port_num"),
-                py::arg("subdev") = 0,
-                py::arg("channel") = 0)
-        PYBIND_DEF_ARGS(set_tx_port_by_name, "Set the transmit output port by name.",
-                py::arg("port_name"),
-                py::arg("subdev") = 0,
-                py::arg("channel") = 0)
-        PYBIND_DEF_ARGS(set_rx_port_by_name, "Set the receive input port by name.",
-                py::arg("port_name"),
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
         // radio information
@@ -348,7 +344,7 @@ PYBIND11_MODULE(vxsdr_py, m) {
                 "Set the timeout used by the host for commands sent to the device.",
                 py::arg("timeout"))
         PYBIND_DEF_SIMPLE(get_host_command_timeout,
-                "Get the current timeout used by the host for commands sent to the device.")
+                "Get the timeout used by the host for commands sent to the device.")
         ;
 
 }

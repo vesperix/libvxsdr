@@ -176,12 +176,6 @@ class packet_transport {
                 return "TX_SIGNAL_DATA_ACK";
             case PACKET_TYPE_RX_SIGNAL_DATA_ACK:
                 return "RX_SIGNAL_DATA_ACK";
-            case PACKET_TYPE_DEVICE_CMD_ACK:
-                return "DEVICE_CMD_ACK";
-            case PACKET_TYPE_TX_RADIO_CMD_ACK:
-                return "TX_RADIO_CMD_ACK";
-            case PACKET_TYPE_RX_RADIO_CMD_ACK:
-                return "RX_RADIO_CMD_ACK";
             default:
                 return "UNKNOWN_PACKET_TYPE";
         }

@@ -33,6 +33,8 @@ to determine their ranges and control settings for each stage. Note that stage-l
 settings override the subdevice-level settings shown above; the user must ensure that
 the stage settings produce the desired frequency.
 
+.. doxygenfunction:: get_tx_num_freq_stages
+.. doxygenfunction:: get_rx_num_freq_stages
 .. doxygenfunction:: get_tx_freq_stage_names
 .. doxygenfunction:: get_rx_freq_stage_names
 .. doxygenfunction:: get_tx_freq_range_stage
@@ -61,6 +63,8 @@ to determine their ranges and control settings for each stage. Note that stage-l
 settings override the channel-level settings shown above; the user must ensure that
 the stage settings produce the desired gain.
 
+.. doxygenfunction:: get_tx_num_gain_stages
+.. doxygenfunction:: get_rx_num_gain_stages
 .. doxygenfunction:: get_tx_gain_stage_names
 .. doxygenfunction:: get_rx_gain_stage_names
 .. doxygenfunction:: get_tx_gain_range_stage
@@ -95,9 +99,6 @@ control provided by the functions below.
 .. doxygenfunction:: get_rx_port
 .. doxygenfunction:: set_tx_port
 .. doxygenfunction:: set_rx_port
-.. doxygenfunction:: set_tx_port_by_name
-.. doxygenfunction:: set_rx_port_by_name
-
 
 Radio Information
 ~~~~~~~~~~~~~~~~~

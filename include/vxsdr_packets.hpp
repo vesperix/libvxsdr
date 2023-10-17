@@ -117,15 +117,20 @@ class name_packet : public packet {
     char name1[MAX_NAME_LENGTH_BYTES] = {0};
 };
 
-class name_double_packet : public name_packet {
+class uint32_double_packet : public packet {
   public:
-    double value1 = 0.0;
+    uint32_t value1   = 0;
+    uint32_t reserved = 0;
+    double value2     = 0.0;
+
 };
 
-class name_two_double_packet : public name_packet {
+class uint32_two_double_packet : public packet {
   public:
-    double value1 = 0.0;
-    double value2 = 0.0;
+    uint32_t value1   = 0;
+    uint32_t reserved = 0;
+    double value2     = 0.0;
+    double value3     = 0.0;
 };
 
 class data_packet : public packet {
@@ -207,6 +212,8 @@ VXSDR_CHECK_SIZE_EQUALS(six_uint32_packet, 32);
 VXSDR_CHECK_SIZE_EQUALS(one_double_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(two_double_packet, 24);
 VXSDR_CHECK_SIZE_EQUALS(four_double_packet, 40);
+VXSDR_CHECK_SIZE_EQUALS(uint32_double_packet, 24);
+VXSDR_CHECK_SIZE_EQUALS(uint32_two_double_packet, 32);
 VXSDR_CHECK_SIZE_EQUALS(one_uint64_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(name_packet, (MAX_NAME_LENGTH_BYTES + 8));
 VXSDR_CHECK_SIZE_LESS_EQUAL(name_packet, sizeof(largest_cmd_or_rsp_packet));

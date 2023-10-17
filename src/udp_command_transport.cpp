@@ -221,13 +221,6 @@ void udp_command_transport::command_receive() {
                             }
                             break;
 
-                        case PACKET_TYPE_DEVICE_CMD_ACK:
-                        case PACKET_TYPE_TX_RADIO_CMD_ACK:
-                        case PACKET_TYPE_RX_RADIO_CMD_ACK:
-                            // command acks are obsolete since all commands
-                            // return responses or errors; any acks received
-                            // are silently ignored
-                            break;
                         default:
                             LOG_WARN("udp command rx discarded incorrect packet (type {:d})", (int)recv_buffer.hdr.packet_type);
                             break;

@@ -534,12 +534,6 @@ std::string vxsdr::imp::packet_type_to_name(const uint8_t number) const {
             return "TX_SIGNAL_DATA_ACK";
         case PACKET_TYPE_RX_SIGNAL_DATA_ACK:
             return "RX_SIGNAL_DATA_ACK";
-        case PACKET_TYPE_DEVICE_CMD_ACK:
-            return "DEVICE_CMD_ACK";
-        case PACKET_TYPE_TX_RADIO_CMD_ACK:
-            return "TX_RADIO_CMD_ACK";
-        case PACKET_TYPE_RX_RADIO_CMD_ACK:
-            return "RX_RADIO_CMD_ACK";
         default:
             return "UNKNOWN_PACKET_TYPE";
     }
@@ -589,16 +583,6 @@ std::string vxsdr::imp::device_cmd_to_name(const uint8_t cmd) const {
             return "GET_TIMING_REF";
         case DEVICE_CMD_SET_TIMING_REF:
             return "SET_TIMING_REF";
-        // FIXME: these may be removed in the future
-        case DEVICE_CMD_READ_DAC_REG:
-            return "READ_DAC_REG";
-        case DEVICE_CMD_WRITE_DAC_REG:
-            return "WRITE_DAC_REG";
-        case DEVICE_CMD_READ_ADC_REG:
-            return "READ_ADC_REG";
-        case DEVICE_CMD_WRITE_ADC_REG:
-            return "WRITE_ADC_REG";
-        // end deprecated commands
         case DEVICE_CMD_APP_UPDATE_MODE_SET:
             return "APP_UPDATE_MODE_SET";
         case DEVICE_CMD_APP_UPDATE_DATA:
@@ -685,8 +669,6 @@ std::string vxsdr::imp::radio_cmd_to_name(const uint8_t cmd) const {
             return "SET_RF_ENABLED";
         case RADIO_CMD_SET_RF_PORT:
             return "SET_RF_PORT";
-        case RADIO_CMD_SET_RF_PORT_BY_NAME:
-            return "SET_RF_PORT_BY_NAME";
         case RADIO_CMD_SET_LO_INPUT:
             return "SET_LO_INPUT";
         case RADIO_CMD_SET_MASTER_CLK:
@@ -754,9 +736,6 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
             break;
         case ASYNC_OUT_OF_SEQUENCE:
             typstr = "OUT_OF_SEQUENCE";
-            break;
-        case ASYNC_CTRL_OVERFLOW:
-            typstr = "CTRL_OVERFLOW";
             break;
         case ASYNC_PPS_TIMEOUT:
             typstr = "PPS_TIMEOUT";
