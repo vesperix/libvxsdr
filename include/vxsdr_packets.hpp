@@ -21,13 +21,9 @@ struct time_spec_t {
 };
 
 using stream_spec_t = uint64_t;
+using capabilities_t = uint64_t;
 
 using stream_state_t = enum { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
-
-// FIXME: these are for timing status; need to be defined as part of a generic API when stable
-constexpr uint32_t TIMING_STATUS_EXT_PPS_LOCK   = 0x00000001;
-constexpr uint32_t TIMING_STATUS_EXT_10MHZ_LOCK = 0x00000002;
-constexpr uint32_t TIMING_STATUS_REF_OSC_LOCK   = 0x00000004;
 
 // The remainder is entirely C++ class definitions
 
@@ -37,7 +33,6 @@ class packet {
 };
 
 class header_only_packet : public packet {};
-
 class async_msg_packet : public packet {};
 
 class one_uint32_packet : public packet {
@@ -135,6 +130,42 @@ class uint32_two_double_packet : public packet {
     double value3     = 0.0;
 };
 
+class time_packet : public packet {
+  public:
+    time_spec_t time = {0, 0};
+};
+
+class time_stream_packet : public packet {
+  public:
+    time_spec_t time = {0, 0};
+    stream_spec_t stream_id = 0;
+};
+
+class samples_packet : public packet {
+  public:
+    uint64_t n_samples = 0;
+};
+
+class time_samples_packet : public packet {
+  public:
+    time_spec_t time = {0, 0};
+    uint64_t n_samples = 0;
+};
+
+class loop_packet : public time_samples_packet {
+  public:
+    time_spec_t t_delay = {0, 0};
+    uint32_t n_repeat = 0;
+};
+
+class largest_cmd_or_rsp_packet : public time_stream_packet {
+  public:
+    uint8_t payload[MAX_PAYLOAD_LENGTH_BYTES] = {0};
+};
+
+using command_queue_element = largest_cmd_or_rsp_packet;
+
+// data packets
 class data_packet : public packet {
   public:
     std::complex<int16_t> data[MAX_DATA_LENGTH_SAMPLES] = {0};
@@ -161,40 +192,6 @@ class data_packet_time_stream : public packet {
 
 class largest_data_packet : public data_packet_time_stream {};
 
-class cmd_or_rsp_packet_time : public packet {
-  public:
-    time_spec_t time = {0, 0};
-};
-
-class cmd_or_rsp_packet_time_stream : public packet {
-  public:
-    time_spec_t time = {0, 0};
-    stream_spec_t stream_id = 0;
-};
-
-class cmd_or_rsp_packet_samples : public packet {
-  public:
-    uint64_t n_samples = 0;
-};
-
-class cmd_or_rsp_packet_time_samples : public packet {
-  public:
-    time_spec_t time = {0, 0};
-    uint64_t n_samples = 0;
-};
-
-class loop_packet : public cmd_or_rsp_packet_time_samples {
-  public:
-    time_spec_t t_delay = {0, 0};
-    uint32_t n_repeat = 0;
-};
-
-class largest_cmd_or_rsp_packet : public cmd_or_rsp_packet_time_samples {
-  public:
-    uint8_t payload[MAX_PAYLOAD_LENGTH_BYTES] = {0};
-};
-
-using command_queue_element = largest_cmd_or_rsp_packet;
 
 // alignment of the buffers used to queue data packets
 constexpr unsigned VXSDR_DATA_BUFFER_ALIGNMENT = 64;

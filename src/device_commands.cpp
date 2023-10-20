@@ -61,14 +61,14 @@ std::optional<std::array<uint32_t, 8>> vxsdr::imp::get_status(const uint8_t subd
 }
 
 bool vxsdr::imp::set_time_now(const vxsdr::time_point& t) {
-    cmd_or_rsp_packet_time p = {};
+    time_packet p = {};
     p.hdr = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SET_TIME_NOW, FLAGS_TIME_PRESENT, 0, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
     return vxsdr::imp::send_packet_and_check_response(p, "set_time_now()");
 }
 
 bool vxsdr::imp::set_time_next_pps(const vxsdr::time_point& t) {
-    cmd_or_rsp_packet_time p = {};
+    time_packet p = {};
     p.hdr = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SET_TIME_NEXT_PPS, FLAGS_TIME_PRESENT, 0, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
     return vxsdr::imp::send_packet_and_check_response(p, "set_time_next_pps()");
@@ -82,7 +82,7 @@ std::optional<vxsdr::time_point> vxsdr::imp::get_time_now() {
         auto q = res.value();
         if ((q.hdr.flags & FLAGS_TIME_PRESENT) != 0) {
 
-            auto* r = std::bit_cast<cmd_or_rsp_packet_time*>(&q);
+            auto* r = std::bit_cast<time_packet*>(&q);
             return vxsdr::time_point(
                 std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::seconds(r->time.seconds) +
                                                                       std::chrono::nanoseconds(r->time.nanoseconds)));
@@ -175,10 +175,6 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_rx_stream_state(const uint8_t
 }
 
 std::optional<std::array<bool, 3>> vxsdr::imp::get_timing_status() {
-    // FIXME: these need to be defined as part of a generic API when stable
-    constexpr uint32_t TIMING_STATUS_EXT_PPS_LOCK   = 0x00000001;
-    constexpr uint32_t TIMING_STATUS_EXT_10MHZ_LOCK = 0x00000002;
-    constexpr uint32_t TIMING_STATUS_REF_OSC_LOCK   = 0x00000004;
     header_only_packet p                            = {};
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_TIMING_STATUS, 0, 0, 0, sizeof(p), 0};
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_timing_status()");

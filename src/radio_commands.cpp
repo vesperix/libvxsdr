@@ -36,7 +36,7 @@ bool vxsdr::imp::tx_start(const vxsdr::time_point& t,
         return false;
     }
     vxsdr::imp::data_tport->reset_tx_stream(n);
-    cmd_or_rsp_packet_time_samples p{};
+    time_samples_packet p{};
     p.hdr = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_START, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
     p.n_samples  = n;
@@ -65,7 +65,7 @@ bool vxsdr::imp::rx_start(const vxsdr::time_point& t,
         return false;
     }
     vxsdr::imp::data_tport->reset_rx_stream(n);
-    cmd_or_rsp_packet_time_samples p{};
+    time_samples_packet p{};
     p.hdr = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_START, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
     p.n_samples  = n;

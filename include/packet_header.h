@@ -269,6 +269,11 @@ typedef struct {
 #define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000U)
 #define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000U)
 
+// Timing status return values
+#define TIMING_STATUS_EXT_PPS_LOCK       (0x00000001U)
+#define TIMING_STATUS_EXT_10MHZ_LOCK     (0x00000002U)
+#define TIMING_STATUS_REF_OSC_LOCK       (0x00000004U)
+
 #define MAX_DATA_LENGTH_SAMPLES              (2048UL)
 #define MAX_FRONTEND_FILTER_LENGTH           (16U)
 #define MAX_PAYLOAD_LENGTH_BYTES             (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
