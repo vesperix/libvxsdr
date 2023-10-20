@@ -51,6 +51,7 @@ set(vxsdr_utility_source utilities/vxsdr_find.cpp
 set(vxsdr_test_source testing/test_sleep_resolution.cpp
                       testing/test_float_convert.cpp
                       testing/test_spsc_queue.cpp
+                      testing/test_net_settings.cpp
                       testing/test_localhost_xfer.cpp)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
