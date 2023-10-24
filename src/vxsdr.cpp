@@ -148,12 +148,12 @@ bool vxsdr::rx_loop(const vxsdr::time_point& t, const uint64_t n, const vxsdr::d
     return p_imp->rx_loop(t, n, t_delay, n_repeat, subdev);
 }
 
-bool vxsdr::tx_stop_now(const uint8_t subdev) {
-    return p_imp->tx_stop_now(subdev);
+bool vxsdr::tx_stop(const vxsdr::time_point& t, const uint8_t subdev) {
+    return p_imp->tx_stop(t, subdev);
 }
 
-bool vxsdr::rx_stop_now(const uint8_t subdev) {
-    return p_imp->rx_stop_now(subdev);
+bool vxsdr::rx_stop(const vxsdr::time_point& t, const uint8_t subdev) {
+    return p_imp->rx_stop(t, subdev);
 }
 
 bool vxsdr::set_tx_iq_bias(const std::array<double, 2> bias, const uint8_t subdev, const uint8_t channel) {

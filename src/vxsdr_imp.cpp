@@ -72,7 +72,7 @@ vxsdr::imp::imp(const std::string& local_address,
     }
     LOG_INFO("   device status: {:d}", res->at(5));
 
-    if (not vxsdr::imp::tx_stop_now() or not vxsdr::imp::rx_stop_now()) {
+    if (not vxsdr::imp::tx_stop() or not vxsdr::imp::rx_stop()) {
         LOG_ERROR("error stopping tx and rx");
         throw std::runtime_error("error stopping tx and rx in vxsdr constructor");
     }
@@ -107,8 +107,8 @@ vxsdr::imp::imp(const std::string& local_address,
 
 vxsdr::imp::~imp() noexcept {
     LOG_DEBUG("vxsdr destructor entered");
-    vxsdr::imp::tx_stop_now();
-    vxsdr::imp::rx_stop_now();
+    vxsdr::imp::tx_stop();
+    vxsdr::imp::rx_stop();
     vxsdr::imp::set_tx_enabled(false);
     vxsdr::imp::set_rx_enabled(false);
     async_handler_stop_flag = true;
@@ -631,8 +631,8 @@ std::string vxsdr::imp::cmd_error_to_name(const uint32_t reason) const {
 
 std::string vxsdr::imp::radio_cmd_to_name(const uint8_t cmd) const {
     switch (cmd) {
-        case RADIO_CMD_STOP_NOW:
-            return "STOP_NOW";
+        case RADIO_CMD_STOP:
+            return "STOP";
         case RADIO_CMD_START:
             return "START";
         case RADIO_CMD_LOOP:

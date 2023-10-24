@@ -152,7 +152,7 @@ typedef struct {
 #define ERR_FAILED                           (0x0C)  // should have worked, but didn't
 
 // Radio Commands
-#define RADIO_CMD_STOP_NOW                   (0x01)
+#define RADIO_CMD_STOP                       (0x01)  // error if TIME_PRESENT is 0
 #define RADIO_CMD_START                      (0x02)  // error if TIME_PRESENT is 0
 #define RADIO_CMD_LOOP                       (0x03)  // error if TIME_PRESENT is 0
 

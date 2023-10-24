@@ -123,7 +123,7 @@ local async_sys_id = {
  }
 
 local radio_cmds = {
-    [0x01] = "STOP_NOW",
+    [0x01] = "STOP",
     [0x02] = "START",
     [0x03] = "LOOP",
     [0x04] = "GET_RF_FREQ",
@@ -379,11 +379,12 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_double_a12, tvbuf(16, 8))
                 tree:add_le(pf_double_a21, tvbuf(24, 8))
                 tree:add_le(pf_double_a22, tvbuf(32, 8))
-            -- start at time for n samples
+            -- start
             elseif pkt_cmd == radio_cmds_index["START"]  then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
                 tree:add_le(pf_uint64_data, tvbuf(16, 8))
+            -- loop
             elseif pkt_cmd == radio_cmds_index["LOOP"]  then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
@@ -391,6 +392,9 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_uint32_sec, tvbuf(24, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(28, 4))
                 tree:add_le(pf_uint32_data, tvbuf(32, 4))
+            elseif pkt_cmd == radio_cmds_index["STOP"]  then
+                tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
+                tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
             -- set rf port
             elseif pkt_cmd == radio_cmds_index["SET_RF_PORT"] or
                    pkt_cmd == radio_cmds_index["SET_LO_INPUT"] then

@@ -906,7 +906,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Start transmitting at time @p t until @p n samples are sent,
       repeating with a delay after each transmission of @p t_delay, for @p n_repeat iterations.
-      If @p t is less than the current time, start immediately;
+      If @p t is less than or equal to the current time, start immediately;
       if @p n_repeat is 0, continue until a stop command is sent.
       Note that if you wish to send the samples to be looped only once, @p n_samples must be
       small enough that the entire looped waveform fits in the device's transmit buffer.
@@ -926,8 +926,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Start receiving at time @p t until @p n samples are received,
       repeating with a delay after each reception of @p t_delay, for @p n_repeat iterations.
-      for @p n_repeat iterations.
-      If @p t is less than the current time, start immediately;
+      If @p t is less than or equal to the current time, start immediately;
       if @p n_repeat is 0, continue until a stop command is sent.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
@@ -943,18 +942,22 @@ class VXSDR_LIB_EXPORT vxsdr {
                                         const uint8_t subdev = 0);
 
     /*!
-      @brief Stop transmitting immediately.
+      @brief Stop transmitting at time @p t.
+      If @p t is less than or equal to the current time, stop immediately;
+      note that the default constructor sets @p t to zero, which will cause an immediate stop.
       @returns @b true if the command succeeds, @b false otherwise
       @param subdev the subdevice number
     */
-    bool tx_stop_now(const uint8_t subdev = 0);
+    bool tx_stop(const vxsdr::time_point& t = {}, const uint8_t subdev = 0);
 
     /*!
-      @brief Stop receiving immediately.
+      @brief Stop receiving at time @p t.
+      If @p t is less than the current time, stop immediately;
+      note that the default constructor sets @p t to zero, which will cause an immediate stop.
       @returns @b true if the command succeeds, @b false otherwise
       @param subdev the subdevice number
     */
-    bool rx_stop_now(const uint8_t subdev = 0);
+    bool rx_stop(const vxsdr::time_point& t = {}, const uint8_t subdev = 0);
 
     /*!
       @brief Send transmit data to the device.
