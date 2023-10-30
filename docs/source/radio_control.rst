@@ -35,8 +35,8 @@ the stage settings produce the desired frequency.
 
 .. doxygenfunction:: get_tx_num_freq_stages
 .. doxygenfunction:: get_rx_num_freq_stages
-.. doxygenfunction:: get_tx_freq_stage_names
-.. doxygenfunction:: get_rx_freq_stage_names
+.. doxygenfunction:: get_tx_freq_stage_name
+.. doxygenfunction:: get_rx_freq_stage_name
 .. doxygenfunction:: get_tx_freq_range_stage
 .. doxygenfunction:: get_rx_freq_range_stage
 .. doxygenfunction:: get_tx_freq_stage
