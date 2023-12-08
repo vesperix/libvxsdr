@@ -41,7 +41,7 @@ class vxsdr_py : public vxsdr {
                 throw py::type_error("Numpy array for VXSDR data must be 1-D");
                 return 0;
             }
-            return vxsdr::put_tx_data(numpy_to_vector<std::complex<float>>(data_np), subdev, timeout_s);
+            return vxsdr::put_tx_data(numpy_to_vector<std::complex<float>>(data_np), n_requested, subdev, timeout_s);
         }
         size_t get_rx_data(py::array_t<std::complex<float>, py::array::c_style> data_np,
                                 const size_t n_desired = 0, const uint8_t subdev = 0, const double timeout_s = 10) {
