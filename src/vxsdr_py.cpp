@@ -36,7 +36,7 @@ class vxsdr_py : public vxsdr {
                             settings) {}
 
         size_t put_tx_data(const py::array_t<std::complex<float>, py::array::c_style | py::array::forcecast>& data_np,
-                                const uint8_t subdev = 0, const double timeout_s = 10) {
+                                const size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10) {
             if (data_np.ndim() != 1) {
                 throw py::type_error("Numpy array for VXSDR data must be 1-D");
                 return 0;
@@ -301,6 +301,7 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_ARGS(put_tx_data,
                 "Send transmit data to the device.",
                 py::arg("data"),
+                py::arg("n_requested") = 0,
                 py::arg("subdev") = 0,
                 py::arg("timeout") = 10)
         PYBIND_DEF_ARGS(get_rx_data,
