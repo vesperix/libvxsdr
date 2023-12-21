@@ -174,7 +174,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         if (data.size() != 0) {
             n_requested = data.size();
         } else {
-            LOG_WARN("get_rx_data() called with zero samples requested");
+            LOG_WARN("get_rx_data() called with n_requested = 0 and data.size() = 0");
             return 0;
         }
     } else {
@@ -247,12 +247,12 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
 
     if (n_requested == 0) {
         if (data.size() == 0) {
-            LOG_WARN("put_tx_data() called with zero samples requested");
+            LOG_WARN("put_tx_data() called with n_requested = 0 and data.size() = 0");
             return 0;
         }
     } else {
         if (data.size() < n_requested) {
-            LOG_WARN("data.size() = {:d} but n_requested = {:d}; reducing n_requested in in put_tx_data()", data.size(), n_requested);
+            LOG_WARN("data.size() = {:d} but n_requested = {:d}; reducing n_requested in put_tx_data()", data.size(), n_requested);
             n_requested = data.size();
         }
     }
