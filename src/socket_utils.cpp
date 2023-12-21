@@ -49,14 +49,16 @@ int set_socket_dontfrag(net::ip::udp::socket& sock) {
 #endif  // VXSDR_TARGET_WINDOWS
 
 #ifdef VXSDR_TARGET_MACOS
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
 
 int get_socket_mtu(net::ip::udp::socket& sock) {
     int mtu = 0;
-    // FIXME: test this
+    // FIXME: is this call available on Mac OS?
     socklen_t size = sizeof(mtu);
-    int retval = getsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU, (void *)&mtu, &size);
+    //int retval = getsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU, (void *)&mtu, &size);
+    int retval = -1;
     if (retval == 0) {
         return mtu;
     }
