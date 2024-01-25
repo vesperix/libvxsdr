@@ -216,10 +216,6 @@ class command_transport : public packet_transport {
 
   public:
     command_transport() = default;
-    command_transport(const std::string& local_address,
-                      const std::string& device_address,
-                      const std::map<std::string, int64_t>& settings){};
-
     virtual ~command_transport() = default;
 
     mpmc_queue<command_queue_element> command_queue{command_queue_length};
@@ -289,12 +285,16 @@ class data_transport : public packet_transport {
     uint64_t samples_received_current_stream = 0;
 
     std::atomic<unsigned> tx_packet_oos_count {0};
+
+    // transmit throttling settings
+    static constexpr unsigned throttle_hard_percent = 90;
+    static constexpr unsigned throttle_on_percent   = 80;
+    static constexpr unsigned throttle_off_percent  = 60;
+    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
+
   public:
 
-    data_transport(const std::string& local_address,
-                   const std::string& device_address,
-                   const std::map<std::string, int64_t>& settings,
-                   const unsigned n_rx_subdevs = 0) : num_rx_subdevs(n_rx_subdevs) {};
+    data_transport(const unsigned n_rx_subdevs = 0) : num_rx_subdevs(n_rx_subdevs) {};
 
     virtual ~data_transport() = default;
 
@@ -437,12 +437,6 @@ class udp_data_transport : public data_transport {
                                                        {"udp_data_transport:thread_affinity_offset",               0},
                                                        {"udp_data_transport:sender_thread_affinity",               0},
                                                        {"udp_data_transport:receiver_thread_affinity",             1}};
-
-    // transmit throttling settings
-    static constexpr unsigned throttle_hard_percent = 90;
-    static constexpr unsigned throttle_on_percent   = 80;
-    static constexpr unsigned throttle_off_percent  = 60;
-    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
 
     static constexpr unsigned send_thread_wait_us   = 10'000;
     static constexpr unsigned send_thread_sleep_us  =    100;
