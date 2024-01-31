@@ -46,6 +46,18 @@ typedef struct {
     uint16_t sequence_counter;
 } packet_header;
 
+/* Times are specified using the following type.
+   NOTE that unlike common Unix/Linux practice, the
+   elements are unsigned.
+*/
+
+struct time_spec_t {
+  uint32_t              seconds;
+  uint32_t              nanoseconds;
+};
+
+typedef uint64_t stream_spec_t;
+
 #pragma pack(pop)
 
 #ifdef __cplusplus
@@ -268,6 +280,14 @@ typedef struct {
 #define RADIO_CAP_HAS_TEMP_MEASURE           (0x2000U)
 #define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000U)
 #define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000U)
+
+#define MAX_DATA_LENGTH_SAMPLES              (2048UL)
+#define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
+#define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
+
+#define MAX_FRONTEND_FILTER_LENGTH           (16U)
+#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
+#define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Timing status return values
 #define TIMING_STATUS_EXT_PPS_LOCK       (0x00000001U)

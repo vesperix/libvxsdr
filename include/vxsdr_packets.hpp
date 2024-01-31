@@ -8,24 +8,11 @@
 
 #include "packet_header.h"
 
-#pragma pack(push, 1)
-
-/* Times are specified using the following type.
-   NOTE that unlike common Unix/Linux practice, the
-   elements are unsigned.
-*/
-
-struct time_spec_t {
-  uint32_t              seconds;
-  uint32_t              nanoseconds;
-};
-
-using stream_spec_t = uint64_t;
-using capabilities_t = uint64_t;
-
 using stream_state_t = enum { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
 // The remainder is entirely C++ class definitions
+
+#pragma pack(push, 1)
 
 class packet {
   public:
@@ -220,6 +207,7 @@ VXSDR_CHECK_SIZE_EQUALS(name_packet, (MAX_NAME_LENGTH_BYTES + 8));
 VXSDR_CHECK_SIZE_LESS_EQUAL(name_packet, sizeof(largest_cmd_or_rsp_packet));
 VXSDR_CHECK_SIZE_EQUALS(filter_coeff_packet, (4 * MAX_FRONTEND_FILTER_LENGTH + 12));
 VXSDR_CHECK_SIZE_LESS_EQUAL(filter_coeff_packet, sizeof(largest_cmd_or_rsp_packet));
+VXSDR_CHECK_SIZE_EQUALS(largest_cmd_or_rsp_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(async_msg_packet, 8);
-VXSDR_CHECK_SIZE_EQUALS(largest_data_packet, (4 * MAX_DATA_LENGTH_SAMPLES + sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t)));
+VXSDR_CHECK_SIZE_EQUALS(largest_data_packet, MAX_DATA_PACKET_BYTES);
 VXSDR_CHECK_SIZE_LESS_EQUAL(largest_data_packet, sizeof(data_queue_element));

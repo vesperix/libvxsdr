@@ -151,12 +151,12 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
         }
         LOG_DEBUG("udp data receiver thread affinity set to cpu {:d}", desired_affinity);
     }
-    if (config["udp_data_transport:net_thread_priority"] >= 0) {
-        if (set_thread_priority_realtime(receiver_thread, (int)config["udp_data_transport:net_thread_priority"]) != 0) {
+    if (config["udp_data_transport:thread_priority"] >= 0) {
+        if (set_thread_priority_realtime(receiver_thread, (int)config["udp_data_transport:thread_priority"]) != 0) {
             LOG_ERROR("unable to set udp data receiver thread realtime priority in udp data transport constructor");
             throw std::runtime_error("unable to set udp data receiver thread realtime priority in udp data transport constructor");
         }
-        LOG_DEBUG("udp data receiver thread priority set to {:d}", config["udp_data_transport:net_thread_priority"]);
+        LOG_DEBUG("udp data receiver thread priority set to {:d}", config["udp_data_transport:thread_priority"]);
     }
 
     tx_state      = TRANSPORT_STARTING;
@@ -171,12 +171,12 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
         }
         LOG_DEBUG("udp data sender thread affinity set to cpu {:d}", desired_affinity);
     }
-    if (config["udp_data_transport:net_thread_priority"] >= 0) {
-        if (set_thread_priority_realtime(sender_thread, (int)config["udp_data_transport:net_thread_priority"]) != 0) {
+    if (config["udp_data_transport:thread_priority"] >= 0) {
+        if (set_thread_priority_realtime(sender_thread, (int)config["udp_data_transport:thread_priority"]) != 0) {
             LOG_ERROR("unable to set udp data sender thread realtime priority in udp data transport constructor");
             throw std::runtime_error("unable to set udp data sender thread realtime priority in udp data transport constructor");
         }
-        LOG_DEBUG("udp data sender thread priority set to {:d}", config["udp_data_transport:net_thread_priority"]);
+        LOG_DEBUG("udp data sender thread priority set to {:d}", config["udp_data_transport:thread_priority"]);
     }
 
     auto start_time = std::chrono::steady_clock::now();

@@ -81,13 +81,13 @@ vxsdr::imp::imp(const std::string& local_address,
         throw std::runtime_error("error clearing status in vxsdr constructor");
     }
     // data transport constructor needs to know the number of subdevices
-    auto sd = vxsdr::imp::get_rx_num_subdevs();
-    if (not sd) {
+    auto rx_num_subdevs = vxsdr::imp::get_rx_num_subdevs();
+    if (not rx_num_subdevs) {
         LOG_ERROR("device did not respond to get_num_rx_subdevs command");
         throw std::runtime_error("device did not respond to get_num_rx_subdevs command in vxsdr constructor");
     }
 
-    data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)sd.value());
+    data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)rx_num_subdevs.value());
 
     start_time = std::chrono::steady_clock::now();
     while (data_tport->tx_state != packet_transport::TRANSPORT_READY and
