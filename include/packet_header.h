@@ -44,6 +44,18 @@ typedef struct {
     uint16_t sequence_counter;       // single sequence for all packets
 } packet_header;
 
+/* Times are specified using the following type.
+   NOTE that unlike common Unix/Linux practice, the
+   elements are unsigned.
+*/
+
+struct time_spec_t {
+  uint32_t              seconds;
+  uint32_t              nanoseconds;
+};
+
+typedef uint64_t stream_spec_t;
+
 #pragma pack(pop)
 
 #ifdef __cplusplus

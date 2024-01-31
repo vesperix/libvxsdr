@@ -8,18 +8,6 @@
 
 #include "packet_header.h"
 
-/* Times are specified using the following type.
-   NOTE that unlike common Unix/Linux practice, the
-   elements are unsigned.
-*/
-
-struct time_spec_t {
-  uint32_t              seconds;
-  uint32_t              nanoseconds;
-};
-
-using stream_spec_t = uint64_t;
-
 using stream_state_t = enum { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
 // FIXME: these are for timing status; need to be defined as part of a generic API when stable
