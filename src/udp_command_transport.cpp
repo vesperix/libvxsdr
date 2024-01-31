@@ -153,7 +153,8 @@ void udp_command_transport::command_receive() {
         net_error_code err;
         size_t bytes_in_packet = 0;
 
-        // sync receive
+        // clear buffer header and sync receive
+        recv_buffer.hdr = { 0, 0, 0, 0, 0, 0, 0 };
         bytes_in_packet = receiver_socket.receive(net::buffer(&recv_buffer, sizeof(recv_buffer)), flags, err);
         if (not receiver_thread_stop_flag) {
             if (err) {

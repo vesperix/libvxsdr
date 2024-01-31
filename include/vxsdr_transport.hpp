@@ -40,8 +40,8 @@ class packet_transport {
     std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_received = {0};
 
     // control of behavior
-    std::atomic<bool> stop_on_tx_error  {true};
-    std::atomic<bool> stop_on_rx_error  {true};
+    std::atomic<bool> stop_on_tx_error  {false};
+    std::atomic<bool> stop_on_rx_error  {false};
     std::atomic<bool> log_stats_on_exit {true};
 
   public:

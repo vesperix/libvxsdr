@@ -44,6 +44,10 @@ class vxsdr::imp {
     static constexpr vxsdr::duration transport_ready_timeout = 1s;
     static constexpr vxsdr::duration transport_ready_wait    = 1ms;
 
+    // timeout and wait between checks for rf (tx and rx) to become ready
+    static constexpr vxsdr::duration rf_ready_timeout = 5s;
+    static constexpr vxsdr::duration rf_ready_wait    = 5ms;
+
     // how often to check the async queue
     static constexpr vxsdr::duration async_queue_wait        = 1ms;
     // thread to check the queue
