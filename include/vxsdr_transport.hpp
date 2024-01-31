@@ -270,7 +270,7 @@ class command_transport : public packet_transport {
 
 class data_transport : public packet_transport {
   protected:
-    unsigned num_rx_subdevs = 0;
+    unsigned num_rx_subdevs;
     // number of samples in current stream (0 if continuous)
     uint64_t desired_tx_stream_samples = 0;
     uint64_t desired_rx_stream_samples = 0;
@@ -294,7 +294,7 @@ class data_transport : public packet_transport {
 
   public:
 
-    data_transport(const unsigned n_rx_subdevs = 0) : num_rx_subdevs(n_rx_subdevs) {};
+    data_transport(const unsigned n_rx_subdevs) : num_rx_subdevs(n_rx_subdevs) {};
 
     virtual ~data_transport() = default;
 
@@ -433,7 +433,7 @@ class udp_data_transport : public data_transport {
                                                        {"udp_data_transport:rx_data_queue_packets",          262'143},
                                                        {"udp_data_transport:network_send_buffer_bytes",      262'144},
                                                        {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
-                                                       {"udp_data_transport:net_thread_priority",                  1},
+                                                       {"udp_data_transport:thread_priority",                      1},
                                                        {"udp_data_transport:thread_affinity_offset",               0},
                                                        {"udp_data_transport:sender_thread_affinity",               0},
                                                        {"udp_data_transport:receiver_thread_affinity",             1}};
@@ -469,7 +469,7 @@ class udp_data_transport : public data_transport {
     explicit udp_data_transport(const std::string& local_address,
                                 const std::string& device_address,
                                 const std::map<std::string, int64_t>& settings,
-                                const unsigned n_rx_subdevs = 0);
+                                const unsigned n_rx_subdevs);
     ~udp_data_transport() noexcept;
 
   protected:

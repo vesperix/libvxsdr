@@ -268,8 +268,12 @@ typedef uint64_t stream_spec_t;
 #define CAPABILITY_HAS_RF_POWER_MEASURE        (0x13U)
 
 #define MAX_DATA_LENGTH_SAMPLES                (2048UL)
+#define MAX_DATA_PAYLOAD_BYTES                 (4 * MAX_DATA_LENGTH_SAMPLES)
+#define MAX_DATA_PACKET_BYTES                  (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
+
 #define MAX_FRONTEND_FILTER_LENGTH             (16U)
 #define MAX_CMD_RSP_PAYLOAD_BYTES              (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
+#define MAX_CMD_RSP_PACKET_BYTES               (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 #define VXSDR_ALL_SUBDEVICES                   (0xFF)
 #define VXSDR_ALL_CHANNELS                     (0xFF)
