@@ -706,7 +706,7 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+        return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_CMD_RSP_PAYLOAD_BYTES - 1)));
     }
     return std::nullopt;
 }
@@ -719,7 +719,7 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_PAYLOAD_LENGTH_BYTES - 1)));
+        return std::string((char*)r->name, std::min(strlen((char*)r->name), (size_t)(MAX_CMD_RSP_PAYLOAD_BYTES - 1)));
     }
     return std::nullopt;
 }
@@ -734,8 +734,8 @@ bool vxsdr::imp::set_tx_port(const unsigned port_num, const uint8_t subdev, cons
 bool vxsdr::imp::set_tx_port_by_name(const std::string& port_name, const uint8_t subdev, const uint8_t channel) {
     name_packet p = {};
     p.hdr         = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_SET_RF_PORT_BY_NAME, 0, subdev, channel, sizeof(p), 0};
-    strncpy((char*)p.name, port_name.c_str(), MAX_PAYLOAD_LENGTH_BYTES - 1);
-    p.name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+    strncpy((char*)p.name, port_name.c_str(), MAX_CMD_RSP_PAYLOAD_BYTES - 1);
+    p.name[MAX_CMD_RSP_PAYLOAD_BYTES - 1] = 0;
     return vxsdr::imp::send_packet_and_check_response(p, "set_tx_port_by_name()");
 }
 
@@ -749,8 +749,8 @@ bool vxsdr::imp::set_rx_port(const unsigned port_num, const uint8_t subdev, cons
 bool vxsdr::imp::set_rx_port_by_name(const std::string& port_name, const uint8_t subdev, const uint8_t channel) {
     name_packet p = {};
     p.hdr         = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_SET_RF_PORT_BY_NAME, 0, subdev, channel, sizeof(p), 0};
-    strncpy((char*)p.name, port_name.c_str(), MAX_PAYLOAD_LENGTH_BYTES - 1);
-    p.name[MAX_PAYLOAD_LENGTH_BYTES - 1] = 0;
+    strncpy((char*)p.name, port_name.c_str(), MAX_CMD_RSP_PAYLOAD_BYTES - 1);
+    p.name[MAX_CMD_RSP_PAYLOAD_BYTES - 1] = 0;
     return vxsdr::imp::send_packet_and_check_response(p, "set_rx_port_by_name()");
 }
 

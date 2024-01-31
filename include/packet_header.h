@@ -257,7 +257,7 @@ typedef struct {
 
 #define MAX_DATA_LENGTH_SAMPLES                (2048UL)
 #define MAX_FRONTEND_FILTER_LENGTH             (16U)
-#define MAX_PAYLOAD_LENGTH_BYTES               (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
+#define MAX_CMD_RSP_PAYLOAD_BYTES              (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
 
 #define VXSDR_ALL_SUBDEVICES                   (0xFF)
 #define VXSDR_ALL_CHANNELS                     (0xFF)
