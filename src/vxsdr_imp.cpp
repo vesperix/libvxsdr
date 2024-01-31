@@ -98,9 +98,33 @@ vxsdr::imp::imp(const std::string& local_address,
             throw std::runtime_error("timeout waiting for data transport in vxsdr constructor");
         }
     }
-    if (not vxsdr::imp::set_tx_enabled(true) or not vxsdr::imp::set_rx_enabled(true)) {
-        LOG_ERROR("error enabling tx and rx");
-        throw std::runtime_error("error enabling tx and rx in vxsdr constructor");
+
+    // enable the TX
+    if (not vxsdr::imp::set_tx_enabled(true)) {
+        LOG_ERROR("error enabling tx");
+        throw std::runtime_error("error enabling tx in vxsdr constructor");
+    }
+    start_time = std::chrono::steady_clock::now();
+    while (not vxsdr::imp::get_tx_enabled()) {
+        std::this_thread::sleep_for(rf_ready_wait);
+        if ((std::chrono::steady_clock::now() - start_time) > rf_ready_timeout) {
+            LOG_ERROR("timeout waiting for tx enabled in vxsdr constructor");
+            throw std::runtime_error("timeout waiting for tx enabled in vxsdr constructor");
+        }
+    }
+
+    // enable the RX
+    if (not vxsdr::imp::set_rx_enabled(true)) {
+        LOG_ERROR("error enabling rx");
+        throw std::runtime_error("error enabling tx in vxsdr constructor");
+    }
+    start_time = std::chrono::steady_clock::now();
+    while (not vxsdr::imp::get_rx_enabled()) {
+        std::this_thread::sleep_for(rf_ready_wait);
+        if ((std::chrono::steady_clock::now() - start_time) > rf_ready_timeout) {
+            LOG_ERROR("timeout waiting for rx enabled in vxsdr constructor");
+            throw std::runtime_error("timeout waiting for rx enabled in vxsdr constructor");
+        }
     }
     LOG_DEBUG("vxsdr constructor complete");
 }
