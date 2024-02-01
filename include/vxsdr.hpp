@@ -946,6 +946,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       If @p t is less than or equal to the current time, stop immediately;
       note that the default constructor sets @p t to zero, which will cause an immediate stop.
       @returns @b true if the command succeeds, @b false otherwise
+      @param t the stop time
       @param subdev the subdevice number
     */
     bool tx_stop(const vxsdr::time_point& t = {}, const uint8_t subdev = 0);
@@ -955,6 +956,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       If @p t is less than the current time, stop immediately;
       note that the default constructor sets @p t to zero, which will cause an immediate stop.
       @returns @b true if the command succeeds, @b false otherwise
+      @param t the stop time
       @param subdev the subdevice number
     */
     bool rx_stop(const vxsdr::time_point& t = {}, const uint8_t subdev = 0);
