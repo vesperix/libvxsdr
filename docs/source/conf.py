@@ -14,7 +14,7 @@ subprocess.call('doxygen', shell=True)
 # -- Project information -----------------------------------------------------
 
 project = 'libvxsdr'
-copyright = '2023, Vesperix Corporation'
+copyright = '2024, Vesperix Corporation'
 author = 'Vesperix Corporation'
 
 # The full version, including alpha/beta/rc tags
@@ -49,6 +49,8 @@ html_theme = 'furo'
 html_theme_options = {
 
 }
+
+latex_engine = 'pdflatex'
 
 #custom file to allow tweaking
 html_css_files = [

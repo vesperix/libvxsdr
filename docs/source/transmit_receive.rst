@@ -20,8 +20,8 @@ Setting up repeating transmit and receive
 Interrupting transmit and receive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. doxygenfunction:: tx_stop_now
-.. doxygenfunction:: rx_stop_now
+.. doxygenfunction:: tx_stop
+.. doxygenfunction:: rx_stop
 
 Sending and receiving samples
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
