@@ -116,7 +116,7 @@ vxsdr::imp::imp(const std::string& local_address,
     // enable the RX
     if (not vxsdr::imp::set_rx_enabled(true)) {
         LOG_ERROR("error enabling rx");
-        throw std::runtime_error("error enabling tx in vxsdr constructor");
+        throw std::runtime_error("error enabling rx in vxsdr constructor");
     }
     start_time = std::chrono::steady_clock::now();
     while (not vxsdr::imp::get_rx_enabled()) {
