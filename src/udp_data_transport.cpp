@@ -240,8 +240,9 @@ void udp_data_transport::data_receive() {
     sequence_errors   = 0;
 
     if (rx_data_queue.empty()) {
-        LOG_ERROR("rx queues not initialized in udp data rx");
-        rx_state = TRANSPORT_ERROR;
+        rx_state = TRANSPORT_SHUTDOWN;
+        LOG_FATAL("queues not initialized in udp data rx");
+        throw(std::runtime_error("queues not initialized in udp data rx"));
         return;
     }
 
@@ -259,19 +260,19 @@ void udp_data_transport::data_receive() {
 
         if (not receiver_thread_stop_flag) {
             if (err) {
-                LOG_ERROR("udp data rx packet error: {:s}", err.message());
                 rx_state = TRANSPORT_ERROR;
-                if (stop_on_rx_error) {
-                    break;
+                LOG_ERROR("udp data rx packet error: {:s}", err.message());
+                if (throw_on_rx_error) {
+                    throw(std::runtime_error("udp data receive error"));
                 }
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
-                    LOG_ERROR("udp data rx discarded packet with incorrect size in header (header {:d}, packet {:d})",
-                            (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
                     rx_state = TRANSPORT_ERROR;
-                    if (stop_on_rx_error) {
-                        break;
+                    LOG_ERROR("packet size error in udp data rx (header {:d}, packet {:d})",
+                            (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
+                    if (throw_on_rx_error) {
+                        throw(std::runtime_error("packet size error in udp data rx"));
                     }
                 } else {
                     // update stats
@@ -281,13 +282,13 @@ void udp_data_transport::data_receive() {
 
                     // check sequence and update sequence counter
                     if (packets_received > 1 and recv_buffer.hdr.sequence_counter != (uint16_t)(last_seq + 1)) {
-                        uint16_t received = recv_buffer.hdr.sequence_counter;
-                        LOG_ERROR("udp data rx sequence error (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
                         rx_state = TRANSPORT_ERROR;
+                        uint16_t received = recv_buffer.hdr.sequence_counter;
+                        LOG_ERROR("sequence error in udp data rx (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
                         sequence_errors++;
                         sequence_errors_current_stream++;
-                        if (stop_on_rx_error) {
-                            break;
+                        if (throw_on_rx_error) {
+                            throw(std::runtime_error("sequence error in udp data rx"));
                         }
                     }
                     last_seq = recv_buffer.hdr.sequence_counter;
@@ -301,11 +302,11 @@ void udp_data_transport::data_receive() {
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
-                                LOG_ERROR("udp data rx error pushing to rx data queue for subdevice {:d} sample {:d}",
-                                            recv_buffer.hdr.subdevice, samples_received);
                                 rx_state = TRANSPORT_ERROR;
-                                if (stop_on_rx_error) {
-                                    break;
+                                LOG_ERROR("error pushing to data queue in udp data rx (subdevice {:d} sample {:d})",
+                                            recv_buffer.hdr.subdevice, samples_received);
+                                if (throw_on_rx_error) {
+                                    throw(std::runtime_error("error pushing to data queue in udp data rx"));
                                 }
                             }
                         } else {
@@ -354,8 +355,9 @@ void udp_data_transport::data_send() {
     unsigned max_packets_to_send   = buffer_normal_packets_to_send;
 
     if (tx_data_queue == nullptr) {
-        LOG_ERROR("tx queue not initialized in udp data tx");
-        tx_state = TRANSPORT_ERROR;
+        tx_state = TRANSPORT_SHUTDOWN;
+        LOG_FATAL("queue not initialized in udp data tx");
+        throw(std::runtime_error("queue not initialized in udp data tx"));
         return;
     }
 
@@ -414,14 +416,7 @@ void udp_data_transport::data_send() {
         if (throttling_state == HARD_THROTTLING) {
             // when hard throttling, send one empty data packet and request ack to update buffer use
             data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
-            if (not send_packet(data_buffer[0])) {
-                if (stop_on_tx_error) {
-                    break;
-                } else {
-                    tx_state = TRANSPORT_ERROR;
-                }
-            }
-
+            send_packet(data_buffer[0]);
             last_check = data_packets_processed;
             std::this_thread::sleep_for(std::chrono::microseconds(send_thread_sleep_us));
         } else {
@@ -436,12 +431,6 @@ void udp_data_transport::data_send() {
                 }
                 if (send_packet(data_buffer[i])) {
                     data_packets_processed++;
-                } else {
-                    if (stop_on_tx_error) {
-                        break;
-                    } else {
-                        tx_state = TRANSPORT_ERROR;
-                    }
                 }
                 if (throttling_state != NO_THROTTLING) {
                     // if we are throttling, pause between each packet
@@ -468,7 +457,6 @@ void udp_data_transport::data_send() {
 }
 
 bool udp_data_transport::send_packet(packet& packet) {
-    bool send_ok                = true;
     packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1));
     packet_types_sent.at(packet.hdr.packet_type)++;
 
@@ -478,17 +466,21 @@ bool udp_data_transport::send_packet(packet& packet) {
     bytes_sent += bytes;
 
     if (bytes != packet.hdr.packet_size) {
-        LOG_ERROR("send error in udp data tx: size incorrect");
+        tx_state = TRANSPORT_ERROR;
+        LOG_ERROR("send error in udp data tx (size incorrect)");
         send_errors++;
-        send_ok = false;
+        if(throw_on_tx_error) {
+            throw(std::runtime_error("send error in udp data tx (size incorrect)"));
+        }
+        return false;
     } else if (err) {
+        tx_state = TRANSPORT_ERROR;
         LOG_ERROR("send error in udp data tx: {:s}", err.message());
         send_errors++;
-        send_ok = false;
-    }
-
-    if (not send_ok) {
-        tx_state = TRANSPORT_ERROR;
+        if(throw_on_tx_error) {
+            throw(std::runtime_error("send error in udp data tx"));
+        }
+        return false;
     }
 
     auto header_size = get_packet_header_size(packet.hdr);
@@ -497,7 +489,7 @@ bool udp_data_transport::send_packet(packet& packet) {
         samples_sent_current_stream += (bytes - header_size) / sizeof(std::complex<int16_t>);
     }
 
-    return send_ok;
+    return true;
 }
 
 #ifdef VXSDR_TARGET_MACOS
