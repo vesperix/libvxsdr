@@ -171,8 +171,6 @@ std::vector<std::string> vxsdr::imp::get_library_details() {
 
 template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
     LOG_DEBUG("get_rx_data from subdevice {:d} entered", subdev);
-    size_t n_received = 0;
-    data_queue_element q;
 
     if(subdev >= data_tport->rx_data_queue.size()) {
         LOG_ERROR("incorrect subdevice {:d} in get_rx_data()", subdev);
@@ -217,25 +215,59 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 
     LOG_DEBUG("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
 
+    size_t n_received = 0;
+
+    // first get any samples in the queue from previous packets
+
+    size_t saved_samples = data_tport->rx_sample_queue[subdev]->read_available();
+
+    if (saved_samples > 0) {
+        size_t n_to_copy = std::min(n_requested, saved_samples);
+        std::vector<std::complex<int16_t>> saved_data(n_to_copy);
+        int64_t n_saved = data_tport->rx_sample_queue[subdev]->pop(saved_data.data(), n_to_copy);
+        if constexpr(std::is_same<T, int16_t>()) {
+            for(int64_t i = 0; i < n_saved; i++) {
+                data[n_received + i] = saved_data[i];
+            }
+        } else if constexpr(std::is_floating_point<T>()) {
+            constexpr T scale = 1.0 / 32'768.0;
+            for(int64_t i = 0; i < n_saved; i++) {
+                data[n_received + i] = std::complex<T>(scale * (T)saved_data[i].real(), scale * (T)saved_data[i].imag());
+            }
+        }
+        n_received += n_saved;
+    }
+
+    // now get samples from new packets
     while (n_received < n_requested) {
         int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
         // setting rx_data_queue_wait_us = 0 results in a busy wait
+        data_queue_element q;
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
             auto packet_data = vxsdr::imp::get_packet_data_span(q);
             int64_t data_samples = packet_data.size();
 
             if (data_samples > 0) {
+                int64_t n_to_copy = std::min(n_remaining, data_samples);
                 if constexpr(std::is_same<T, int16_t>()) {
-                    for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
+                    for(int64_t i = 0; i < n_to_copy; i++) {
                         data[n_received + i] = packet_data[i];
                     }
                 } else if constexpr(std::is_floating_point<T>()) {
                     constexpr T scale = 1.0 / 32'768.0;
-                    for(int64_t i = 0; i < std::min(n_remaining, data_samples); i++) {
+                    for(int64_t i = 0; i < n_to_copy; i++) {
                         data[n_received + i] = std::complex<T>(scale * (T)packet_data[i].real(), scale * (T)packet_data[i].imag());
                     }
                 }
-                n_received += data_samples;
+                n_received += n_to_copy;
+            }
+            // if there are leftover samples, push them to the sample queue
+            if (data_samples > n_remaining) {
+                int64_t n_pushed = data_tport->rx_sample_queue[subdev]->push(&packet_data[n_remaining], data_samples - n_remaining);
+                if (n_pushed != data_samples - n_remaining) {
+                    LOG_ERROR("error pushing data to rx sample queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_pushed, data_samples - n_remaining);
+                    return n_received;
+                }
             }
         } else {
             LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received, n_requested);
