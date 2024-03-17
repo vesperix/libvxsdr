@@ -281,6 +281,7 @@ class data_transport : public packet_transport {
     std::atomic<unsigned> tx_packet_oos_count {0};
 
     // transmit throttling settings
+    bool use_tx_throttling = true;
     static constexpr unsigned throttle_hard_percent = 90;
     static constexpr unsigned throttle_on_percent   = 80;
     static constexpr unsigned throttle_off_percent  = 60;
@@ -297,6 +298,9 @@ class data_transport : public packet_transport {
     // vector of unique_ptrs to SPSC rx data queues, one for each subdevice
     // (required since SPSC queue is not moveable)
     std::vector<std::unique_ptr<spsc_queue<data_queue_element>>> rx_data_queue;
+    // sample queues for each device hold samples left over when the requested data
+    // size is less than a full packet
+    std::vector<std::unique_ptr<spsc_queue<std::complex<int16_t>>>> rx_sample_queue;
 
     void log_stats() {
         LOG_INFO("data transport:");
@@ -344,6 +348,7 @@ class data_transport : public packet_transport {
         samples_received_current_stream = 0;
         for (unsigned i = 0; i < num_rx_subdevs; i++) {
             rx_data_queue[i]->reset();
+            rx_sample_queue[i]->reset();
         }
         return true;
     }
@@ -366,6 +371,7 @@ class data_transport : public packet_transport {
         samples_received_current_stream = 0;
         for (unsigned i = 0; i < num_rx_subdevs; i++) {
             rx_data_queue[i]->reset();
+            rx_sample_queue[i]->reset();
         }
         LOG_DEBUG("reset rx stream finished");
         return true;

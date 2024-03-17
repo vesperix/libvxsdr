@@ -135,9 +135,12 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
     for (unsigned i = 0; i < num_rx_subdevs; i++) {
         rx_data_queue.push_back(
             std::make_unique<spsc_queue<data_queue_element>>(config["udp_data_transport:rx_data_queue_packets"]));
+        rx_sample_queue.push_back(
+            std::make_unique<spsc_queue<std::complex<int16_t>>>(MAX_DATA_LENGTH_SAMPLES));
     }
 
     LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
+    LOG_DEBUG("using {:d} receive sample buffers of {:d} samples", num_rx_subdevs, MAX_DATA_LENGTH_SAMPLES);
 
     rx_state        = TRANSPORT_STARTING;
     receiver_thread = vxsdr_thread([this] { data_receive(); });
