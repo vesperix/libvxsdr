@@ -271,6 +271,7 @@ class command_transport : public packet_transport {
 class data_transport : public packet_transport {
   protected:
     unsigned num_rx_subdevs;
+    unsigned max_samples_per_packet;
     // number of samples in current stream (0 if continuous)
     uint64_t desired_tx_stream_samples = 0;
     uint64_t desired_rx_stream_samples = 0;
@@ -295,7 +296,8 @@ class data_transport : public packet_transport {
 
   public:
 
-    data_transport(const unsigned n_rx_subdevs) : num_rx_subdevs(n_rx_subdevs) {};
+    data_transport(const unsigned n_rx_subdevs, const unsigned max_samps_per_packet) :
+                num_rx_subdevs(n_rx_subdevs), max_samples_per_packet(max_samps_per_packet)  {};
 
     virtual ~data_transport() = default;
 
@@ -392,6 +394,18 @@ class data_transport : public packet_transport {
         LOG_DEBUG("reset tx stream finished");
         return true;
     }
+
+    unsigned get_max_samples_per_packet() {
+        return max_samples_per_packet;
+    }
+
+    bool set_max_samples_per_packet(const unsigned n_samples) {
+        if (n_samples > 0 and n_samples <= MAX_DATA_LENGTH_SAMPLES) {
+            max_samples_per_packet = n_samples;
+            return true;
+        }
+        return false;
+    }
 };
 
 class udp_command_transport : public command_transport {
@@ -475,7 +489,8 @@ class udp_data_transport : public data_transport {
     explicit udp_data_transport(const std::string& local_address,
                                 const std::string& device_address,
                                 const std::map<std::string, int64_t>& settings,
-                                const unsigned n_rx_subdevs);
+                                const unsigned n_rx_subdevs,
+                                const unsigned max_samps_per_packet);
     ~udp_data_transport() noexcept;
 
   protected:

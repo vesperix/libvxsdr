@@ -23,8 +23,8 @@
 udp_data_transport::udp_data_transport(const std::string& local_address,
                                        const std::string& device_address,
                                        const std::map<std::string, int64_t>& settings,
-                                       const unsigned n_rx_subdevs)
-        : data_transport(n_rx_subdevs),
+                                       const unsigned n_rx_subdevs, const unsigned max_samps_per_packet)
+        : data_transport(n_rx_subdevs, max_samps_per_packet),
           sender_socket(context, net::ip::udp::v4()),
           receiver_socket(context, net::ip::udp::v4()) {
     LOG_DEBUG("udp data transport constructor entered");
