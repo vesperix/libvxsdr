@@ -23,7 +23,8 @@
 udp_data_transport::udp_data_transport(const std::string& local_address,
                                        const std::string& device_address,
                                        const std::map<std::string, int64_t>& settings,
-                                       const unsigned n_rx_subdevs, const unsigned max_samps_per_packet)
+                                       const unsigned n_rx_subdevs,
+                                       const unsigned max_samps_per_packet)
         : data_transport(n_rx_subdevs, max_samps_per_packet),
           sender_socket(context, net::ip::udp::v4()),
           receiver_socket(context, net::ip::udp::v4()) {
@@ -369,51 +370,55 @@ void udp_data_transport::data_send() {
     LOG_DEBUG("udp data tx in READY state");
 
     while (not sender_thread_stop_flag) {
-        // There are 3 throttling states: no throttling, normal throttling, and hard throttling;
-        // transitions are shown in the state machine below.
-        // Note the hysteresis in entering and exiting normal throttling (throttle_off_percent < throttle_on_percent),
-        // which reduces bouncing between states.
-        if (throttling_state == NO_THROTTLING) {
-            if (tx_buffer_fill_percent >= throttle_hard_percent) {
-                throttling_state = HARD_THROTTLING;
-                LOG_TRACE("udp data tx entering throttling state HARD from NONE ({:2d}% full)",
-                            (int)tx_buffer_fill_percent);
-            } else if (tx_buffer_fill_percent >= throttle_on_percent) {
-                throttling_state = NORMAL_THROTTLING;
-                LOG_TRACE("udp data tx entering throttling state NRML from NONE ({:2d}% full)",
-                            (int)tx_buffer_fill_percent);
+        if (use_tx_throttling) {
+            // There are 3 throttling states: no throttling, normal throttling, and hard throttling;
+            // transitions are shown in the state machine below.
+            // Note the hysteresis in entering and exiting normal throttling (throttle_off_percent < throttle_on_percent),
+            // which reduces bouncing between states.
+            if (throttling_state == NO_THROTTLING) {
+                if (tx_buffer_fill_percent >= throttle_hard_percent) {
+                    throttling_state = HARD_THROTTLING;
+                    LOG_TRACE("udp data tx entering throttling state HARD from NONE ({:2d}% full)",
+                                (int)tx_buffer_fill_percent);
+                } else if (tx_buffer_fill_percent >= throttle_on_percent) {
+                    throttling_state = NORMAL_THROTTLING;
+                    LOG_TRACE("udp data tx entering throttling state NRML from NONE ({:2d}% full)",
+                                (int)tx_buffer_fill_percent);
+                }
+            } else if (throttling_state == NORMAL_THROTTLING) {
+                if (tx_buffer_fill_percent >= throttle_hard_percent) {
+                    throttling_state = HARD_THROTTLING;
+                    LOG_TRACE("udp data tx entering throttling state HARD from NRML ({:2d}% full)",
+                                (int)tx_buffer_fill_percent);
+                } else if (tx_buffer_fill_percent < throttle_off_percent) {
+                    throttling_state = NO_THROTTLING;
+                    LOG_TRACE("udp data tx entering throttling state NONE from NRML ({:2d}% full)",
+                                (int)tx_buffer_fill_percent);
+                }
+            } else {  // current_state == HARD_THROTTLING
+                if (tx_buffer_fill_percent < throttle_off_percent) {
+                    throttling_state = NO_THROTTLING;
+                    LOG_TRACE("udp data tx entering throttling state NONE from HARD ({:2d}% full)",
+                                (int)tx_buffer_fill_percent);
+                } else if (tx_buffer_fill_percent < throttle_hard_percent) {
+                    throttling_state = NORMAL_THROTTLING;
+                    LOG_TRACE("udp data tx entering throttling state NRML from HARD ({:2d}% full)",
+                                (int)tx_buffer_fill_percent);
+                }
             }
-        } else if (throttling_state == NORMAL_THROTTLING) {
-            if (tx_buffer_fill_percent >= throttle_hard_percent) {
-                throttling_state = HARD_THROTTLING;
-                LOG_TRACE("udp data tx entering throttling state HARD from NRML ({:2d}% full)",
-                            (int)tx_buffer_fill_percent);
-            } else if (tx_buffer_fill_percent < throttle_off_percent) {
-                throttling_state = NO_THROTTLING;
-                LOG_TRACE("udp data tx entering throttling state NONE from NRML ({:2d}% full)",
-                            (int)tx_buffer_fill_percent);
-            }
-        } else {  // current_state == HARD_THROTTLING
-            if (tx_buffer_fill_percent < throttle_off_percent) {
-                throttling_state = NO_THROTTLING;
-                LOG_TRACE("udp data tx entering throttling state NONE from HARD ({:2d}% full)",
-                            (int)tx_buffer_fill_percent);
-            } else if (tx_buffer_fill_percent < throttle_hard_percent) {
-                throttling_state = NORMAL_THROTTLING;
-                LOG_TRACE("udp data tx entering throttling state NRML from HARD ({:2d}% full)",
-                            (int)tx_buffer_fill_percent);
-            }
-        }
-        // In no throttling and normal throttling, two control variables are set:
-        //    buffer_check_interval_packets = the number of packets to send between requesting an update on device buffer fill
-        //    max_packets_to_send           = the maximum number of packets to send in a burst
-        if (throttling_state == NORMAL_THROTTLING) {
-            buffer_check_interval = buffer_check_throttling_packets;
-            max_packets_to_send   = buffer_normal_packets_to_send;
+            // In no throttling and normal throttling, two control variables are set:
+            //    buffer_check_interval_packets = the number of packets to send between requesting an update on device buffer fill
+            //    max_packets_to_send           = the maximum number of packets to send in a burst
+            if (throttling_state == NORMAL_THROTTLING) {
+                buffer_check_interval = buffer_check_throttling_packets;
+                max_packets_to_send   = buffer_normal_packets_to_send;
 
-        } else if (throttling_state == NO_THROTTLING) {
-            buffer_check_interval = buffer_check_default_packets;
-            max_packets_to_send   = buffer_low_packets_to_send;
+            } else if (throttling_state == NO_THROTTLING) {
+                buffer_check_interval = buffer_check_default_packets;
+                max_packets_to_send   = buffer_low_packets_to_send;
+            }
+        } else {
+            throttling_state = NO_THROTTLING;
         }
 
         if (throttling_state == HARD_THROTTLING) {
@@ -427,7 +432,7 @@ void udp_data_transport::data_send() {
             // every buffer_check_interval packets
             unsigned n_popped = tx_data_queue->pop_or_timeout(&data_buffer.front(), max_packets_to_send, send_thread_wait_us, send_thread_sleep_us);
             for (unsigned i = 0; i < n_popped; i++) {
-                if (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval) {
+                if (use_tx_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
                     // request ack to update buffer use
                     data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
                     last_check = data_packets_processed;
@@ -435,7 +440,7 @@ void udp_data_transport::data_send() {
                 if (send_packet(data_buffer[i])) {
                     data_packets_processed++;
                 }
-                if (throttling_state != NO_THROTTLING) {
+                if (use_tx_throttling and throttling_state != NO_THROTTLING) {
                     // if we are throttling, pause between each packet
                     std::this_thread::sleep_for(std::chrono::microseconds(throttle_amount_us));
                 }
