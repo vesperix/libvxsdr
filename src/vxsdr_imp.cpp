@@ -86,8 +86,15 @@ vxsdr::imp::imp(const std::string& local_address,
         LOG_ERROR("device did not respond to get_num_rx_subdevs command");
         throw std::runtime_error("device did not respond to get_num_rx_subdevs command in vxsdr constructor");
     }
+    // data transport constructor needs to know the maximum samples_per_packet
+    auto max_payload_bytes = vxsdr::imp::get_max_payload_bytes();
+    if (not max_payload_bytes) {
+        LOG_ERROR("device did not respond to get_max_payload_bytes command");
+        throw std::runtime_error("device did not respond to get_max_payload_bytes command in vxsdr constructor");
+    }
+    unsigned max_samps_per_packet = (max_payload_bytes.value() - sizeof(time_spec_t) - sizeof(stream_spec_t)) / sizeof(std::complex<int16_t>);
 
-    data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)rx_num_subdevs.value());
+    data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)rx_num_subdevs.value(), max_samps_per_packet);
 
     start_time = std::chrono::steady_clock::now();
     while (data_tport->tx_state != packet_transport::TRANSPORT_READY and
@@ -319,10 +326,11 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
 
     // puts plain data_packets (no time, no stream)
     size_t n_put = 0;
-    for (size_t i = 0; i < n_requested; i += MAX_DATA_LENGTH_SAMPLES) {
+    size_t n_packet_max = data_tport->get_max_samples_per_packet();
+    for (size_t i = 0; i < n_requested; i += n_packet_max) {
         data_queue_element q;
         auto* p               = std::bit_cast<data_packet*>(&q);
-        auto n_samples        = (unsigned)std::min((size_t)MAX_DATA_LENGTH_SAMPLES, n_requested - i);
+        auto n_samples        = (unsigned)std::min(n_packet_max, n_requested - i);
         unsigned n_data_bytes = n_samples * sizeof(std::complex<int16_t>);
         auto packet_size      = (uint16_t)(sizeof(packet_header) + n_data_bytes);
         p->hdr                = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, subdev, 0, packet_size, 0};
