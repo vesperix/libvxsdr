@@ -217,6 +217,49 @@ class vxsdr::imp {
     void duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts);
     void simple_async_message_handler(const command_queue_element& a);
     size_t get_packet_header_size(const packet_header& hdr) const;
-    std::span<std::complex<int16_t>> get_packet_data_span(packet& q) const;
     std::map<std::string, int64_t> apply_settings(const std::map<std::string, int64_t>& settings) const;
+    template <typename SampleType> std::span<SampleType> get_packet_data_span(packet& q) const {
+        constexpr unsigned packet_header_only_size = sizeof(packet_header);
+        constexpr unsigned packet_header_time_size = sizeof(packet_header) + sizeof(time_spec_t);
+        constexpr unsigned packet_header_stream_size = sizeof(packet_header) + sizeof(stream_spec_t);
+        constexpr unsigned packet_header_time_stream_size = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
+        constexpr unsigned sample_size = sizeof(SampleType);
+
+        SampleType* d;
+        unsigned data_samples = 0;
+        unsigned data_bytes = 0;
+        const unsigned packet_bytes = q.hdr.packet_size;
+
+        const bool has_time      = (bool)(q.hdr.flags & FLAGS_TIME_PRESENT);
+        const bool has_stream_id = (bool)(q.hdr.flags & FLAGS_STREAM_ID_PRESENT);
+
+        if (not has_time and not has_stream_id) {
+            auto* p = std::bit_cast<data_packet*>(&q);
+            data_bytes = packet_bytes - packet_header_only_size;
+            d = (SampleType*)p->data;
+        } else if (has_time and not has_stream_id) {
+            auto* p = std::bit_cast<data_packet_time*>(&q);
+            data_bytes = packet_bytes - packet_header_time_size;
+            d = (SampleType*)p->data;
+        } else if (has_stream_id and not has_time) {
+            auto* p = std::bit_cast<data_packet_stream*>(&q);
+            data_bytes = packet_bytes - packet_header_stream_size;
+            d = (SampleType*)p->data;
+        } else {
+            auto* p = std::bit_cast<data_packet_time_stream*>(&q);
+            data_bytes = packet_bytes - packet_header_time_stream_size;
+            d = (SampleType*)p->data;
+        }
+        if (data_bytes < sample_size) {
+            data_samples = 0;
+            d = nullptr;
+        } else {
+            data_samples = data_bytes / sample_size;
+        }
+        return std::span(d, data_samples);
+    }
+    template <typename SampleType>unsigned max_samples_per_packet(const unsigned payload_bytes) const {
+      constexpr unsigned bytes_in_largest_header = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
+      return (payload_bytes - bytes_in_largest_header) / sizeof(SampleType);
+    }
 };

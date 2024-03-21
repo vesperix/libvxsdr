@@ -92,7 +92,7 @@ vxsdr::imp::imp(const std::string& local_address,
         LOG_ERROR("device did not respond to get_max_payload_bytes command");
         throw std::runtime_error("device did not respond to get_max_payload_bytes command in vxsdr constructor");
     }
-    unsigned max_samps_per_packet = (max_payload_bytes.value() - sizeof(time_spec_t) - sizeof(stream_spec_t)) / sizeof(std::complex<int16_t>);
+    auto max_samps_per_packet = max_samples_per_packet<std::complex<int16_t>>(max_payload_bytes.value());
 
     data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)rx_num_subdevs.value(), max_samps_per_packet);
 
@@ -251,7 +251,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         // setting rx_data_queue_wait_us = 0 results in a busy wait
         data_queue_element q;
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
-            auto packet_data = vxsdr::imp::get_packet_data_span(q);
+            auto packet_data = vxsdr::imp::get_packet_data_span<std::complex<int16_t>>(q);
             int64_t data_samples = packet_data.size();
 
             if (data_samples > 0) {
@@ -820,47 +820,6 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
         return typstr;
     }
     return subsys + " " + typstr;
-}
-
-std::span<std::complex<int16_t>> vxsdr::imp::get_packet_data_span(packet& q) const {
-    constexpr int64_t packet_header_only_size = sizeof(packet_header);
-    constexpr int64_t packet_header_time_size = sizeof(packet_header) + sizeof(time_spec_t);
-    constexpr int64_t  packet_header_stream_size = sizeof(packet_header) + sizeof(stream_spec_t);
-    constexpr int64_t packet_header_time_stream_size = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
-    constexpr int64_t sample_size = sizeof(std::complex<int16_t>);
-
-    std::complex<int16_t>* d;
-    size_t data_samples = 0;
-    int64_t data_bytes = 0;
-    const int64_t packet_bytes = q.hdr.packet_size;
-
-    bool has_time      = (bool)(q.hdr.flags & FLAGS_TIME_PRESENT);
-    bool has_stream_id = (bool)(q.hdr.flags & FLAGS_STREAM_ID_PRESENT);
-
-    if (not has_time and not has_stream_id) {
-        auto* p = std::bit_cast<data_packet*>(&q);
-        data_bytes = packet_bytes - packet_header_only_size;
-        d = (std::complex<int16_t>*)p->data;
-    } else if (has_time and not has_stream_id) {
-        auto* p = std::bit_cast<data_packet_time*>(&q);
-        data_bytes = packet_bytes - packet_header_time_size;
-        d = (std::complex<int16_t>*)p->data;
-    } else if (has_stream_id and not has_time) {
-        auto* p = std::bit_cast<data_packet_stream*>(&q);
-        data_bytes = packet_bytes - packet_header_stream_size;
-        d = (std::complex<int16_t>*)p->data;
-    } else {
-        auto* p = std::bit_cast<data_packet_time_stream*>(&q);
-        data_bytes = packet_bytes - packet_header_time_stream_size;
-        d = (std::complex<int16_t>*)p->data;
-    }
-    if (data_bytes < sample_size) {
-        data_samples = 0;
-        d = nullptr;
-    } else {
-        data_samples = data_bytes / sample_size;
-    }
-    return std::span(d, data_samples);
 }
 
 std::map<std::string, int64_t> vxsdr::imp::apply_settings(const std::map<std::string, int64_t>& settings) const {
