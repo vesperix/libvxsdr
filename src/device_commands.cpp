@@ -325,12 +325,13 @@ std::optional<unsigned> vxsdr::imp::get_max_payload_bytes() {
 }
 
 bool vxsdr::imp::set_max_payload_bytes(const unsigned max_payload_bytes) {
+    constexpr size_t bytes_in_largest_header =  sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
     one_uint32_packet p = {};
     p.hdr               = {PACKET_TYPE_DEVICE_CMD,  DEVICE_CMD_SET_MAX_PAYLOAD, 0, 0, 0, sizeof(p), 0};
     p.value1            = max_payload_bytes;
     if (vxsdr::imp::send_packet_and_check_response(p, "set_max_payload_bytes()")) {
         // update the value in the data transport
-        unsigned max_samps_per_packet = (max_payload_bytes - sizeof(time_spec_t) - sizeof(stream_spec_t)) / sizeof(std::complex<int16_t>);
+        unsigned max_samps_per_packet = (max_payload_bytes - bytes_in_largest_header) / sizeof(std::complex<int16_t>);
         return data_tport->set_max_samples_per_packet(max_samps_per_packet);
     }
     return false;
