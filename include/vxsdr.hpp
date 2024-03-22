@@ -39,17 +39,18 @@ class VXSDR_LIB_EXPORT vxsdr {
 
   /*!
     @brief The @p wire_sample type is used for data transfer between the host and device; wire samples may be translated
-    to and from other types by the host library
+    to and from other types by the host library.
   */
     using wire_sample = std::complex<int16_t>;
 
   /*!
-    @brief The @p filter_coefficient type is used for representing filter coefficients
+    @brief The @p filter_coefficient type is used for representing filter coefficients.
   */
     using filter_coefficient = std::complex<int16_t>;
 
   /*!
-    @brief The @p duration type is used for acquisition and wait durations
+    @brief The @p duration type is used for acquisition and wait durations; it has a 1 nanosecond resolution, although the
+    granularity of the device clock may be larger.
   */
     using duration = std::chrono::duration<int64_t, std::ratio<1, 1000000000>>;
 
@@ -85,19 +86,19 @@ class VXSDR_LIB_EXPORT vxsdr {
     vxsdr& operator=(vxsdr&&) = delete;
 
     /*!
-      @brief Gets the version number of this library
+      @brief Gets the version number of this library.
       @returns the library version number as 10,000 * major_version + 100 * minor_version + patch_level
     */
     uint32_t get_library_version();
 
     /*!
-      @brief Gets the packet version number supported by this library
+      @brief Gets the packet version number supported by this library.
       @returns the packet version number as 10,000 * major_version + 100 * minor_version + patch_level
     */
     uint32_t get_library_packet_version();
 
     /*!
-      @brief Gets more detailed information on this library
+      @brief Gets more detailed information on this library.
       @returns a std::vector of std::strings with version and build information
     */
     std::vector<std::string> get_library_details();
