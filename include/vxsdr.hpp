@@ -37,13 +37,13 @@ class VXSDR_LIB_EXPORT vxsdr {
     enum stream_state { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
   /*!
-    @brief The @p wire_sample type is the format used for data transfer between the host and device, which may be translated
+    @brief The @p wire_sample type is used for data transfer between the host and device; wire samples may be translated
     to and from other types by the host library
   */
     using wire_sample = std::complex<int16_t>;
 
   /*!
-    @brief The @p filter_coefficient type is the format internally for representing filter coefficients
+    @brief The @p filter_coefficient type is used for representing filter coefficients
   */
     using filter_coefficient = std::complex<int16_t>;
 
