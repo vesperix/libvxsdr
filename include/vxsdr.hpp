@@ -27,7 +27,8 @@ class VXSDR_LIB_EXPORT vxsdr {
   public:
   /*!
     @enum transport_type
-    @brief The @p transport_type describes how data and commands are sent and received. (UDP is currently the only transport supported.)
+    @brief The @p transport_type describes the transports used to send and receive data and commands.
+    (UDP is currently the only transport supported.)
   */
     enum transport_type { TRANSPORT_TYPE_UDP = 1, TRANSPORT_TYPE_PCIE };
   /*!
