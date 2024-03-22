@@ -92,7 +92,7 @@ vxsdr::imp::imp(const std::string& local_address,
         LOG_ERROR("device did not respond to get_max_payload_bytes command");
         throw std::runtime_error("device did not respond to get_max_payload_bytes command in vxsdr constructor");
     }
-    auto max_samps_per_packet = max_samples_per_packet<std::complex<int16_t>>(max_payload_bytes.value());
+    auto max_samps_per_packet = max_samples_per_packet<vxsdr::wire_sample>(max_payload_bytes.value());
 
     data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)rx_num_subdevs.value(), max_samps_per_packet);
 
@@ -230,7 +230,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 
     if (saved_samples > 0) {
         size_t n_to_copy = std::min(n_requested, saved_samples);
-        std::vector<std::complex<int16_t>> saved_data(n_to_copy);
+        std::vector<vxsdr::wire_sample> saved_data(n_to_copy);
         int64_t n_saved = data_tport->rx_sample_queue[subdev]->pop(saved_data.data(), n_to_copy);
         if constexpr(std::is_same<T, int16_t>()) {
             for(int64_t i = 0; i < n_saved; i++) {
@@ -251,7 +251,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         // setting rx_data_queue_wait_us = 0 results in a busy wait
         data_queue_element q;
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
-            auto packet_data = vxsdr::imp::get_packet_data_span<std::complex<int16_t>>(q);
+            auto packet_data = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
             int64_t data_samples = packet_data.size();
 
             if (data_samples > 0) {
@@ -331,7 +331,7 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         data_queue_element q;
         auto* p               = std::bit_cast<data_packet*>(&q);
         auto n_samples        = (unsigned)std::min(n_packet_max, n_requested - i);
-        unsigned n_data_bytes = n_samples * sizeof(std::complex<int16_t>);
+        unsigned n_data_bytes = n_samples * sizeof(vxsdr::wire_sample);
         auto packet_size      = (uint16_t)(sizeof(packet_header) + n_data_bytes);
         p->hdr                = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, subdev, 0, packet_size, 0};
         if constexpr(std::is_same<T, int16_t>()) {

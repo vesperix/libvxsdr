@@ -147,10 +147,10 @@ class vxsdr::imp {
     std::optional<double> get_rx_rate(const uint8_t subdev = 0);
     bool set_tx_filter_enabled(const bool enabled, const uint8_t subdev = 0);
     bool set_rx_filter_enabled(const bool enabled, const uint8_t subdev = 0);
-    std::optional<std::vector<std::complex<int16_t>>> get_tx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
-    std::optional<std::vector<std::complex<int16_t>>> get_rx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
-    bool set_tx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
-    bool set_rx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
+    std::optional<std::vector<vxsdr::filter_coefficient>> get_tx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
+    std::optional<std::vector<vxsdr::filter_coefficient>> get_rx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
+    bool set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
+    bool set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<unsigned> get_tx_filter_length(const uint8_t subdev = 0);
     std::optional<unsigned> get_rx_filter_length(const uint8_t subdev = 0);
     std::optional<unsigned> get_tx_num_subdevs();

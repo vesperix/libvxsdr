@@ -348,19 +348,19 @@ bool vxsdr::set_rx_filter_enabled(const bool enabled, const uint8_t subdev) {
     return p_imp->set_rx_filter_enabled(enabled, subdev);
 }
 
-std::optional<std::vector<std::complex<int16_t>>> vxsdr::get_tx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
+std::optional<std::vector<vxsdr::filter_coefficient>> vxsdr::get_tx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
     return p_imp->get_tx_filter_coeffs(subdev, channel);
 }
 
-std::optional<std::vector<std::complex<int16_t>>> vxsdr::get_rx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
+std::optional<std::vector<vxsdr::filter_coefficient>> vxsdr::get_rx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
     return p_imp->get_rx_filter_coeffs(subdev, channel);
 }
 
-bool vxsdr::set_tx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev, const uint8_t channel) {
+bool vxsdr::set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev, const uint8_t channel) {
     return p_imp->set_tx_filter_coeffs(coeffs, subdev, channel);
 }
 
-bool vxsdr::set_rx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev, const uint8_t channel) {
+bool vxsdr::set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev, const uint8_t channel) {
     return p_imp->set_rx_filter_coeffs(coeffs, subdev, channel);
 }
 

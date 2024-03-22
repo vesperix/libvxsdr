@@ -302,7 +302,7 @@ class data_transport : public packet_transport {
     std::vector<std::unique_ptr<spsc_queue<data_queue_element>>> rx_data_queue;
     // sample queues for each device hold samples left over when the requested data
     // size is less than a full packet
-    std::vector<std::unique_ptr<spsc_queue<std::complex<int16_t>>>> rx_sample_queue;
+    std::vector<std::unique_ptr<spsc_queue<vxsdr::wire_sample>>> rx_sample_queue;
 
     void log_stats() {
         LOG_INFO("data transport:");

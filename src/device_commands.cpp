@@ -330,7 +330,7 @@ bool vxsdr::imp::set_max_payload_bytes(const unsigned max_payload_bytes) {
     p.value1            = max_payload_bytes;
     if (vxsdr::imp::send_packet_and_check_response(p, "set_max_payload_bytes()")) {
         // update the value in the data transport
-        return data_tport->set_max_samples_per_packet(max_samples_per_packet<std::complex<int16_t>>(max_payload_bytes));
+        return data_tport->set_max_samples_per_packet(max_samples_per_packet<wire_sample>(max_payload_bytes));
     }
     return false;
 }

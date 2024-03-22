@@ -137,7 +137,7 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
         rx_data_queue.push_back(
             std::make_unique<spsc_queue<data_queue_element>>(config["udp_data_transport:rx_data_queue_packets"]));
         rx_sample_queue.push_back(
-            std::make_unique<spsc_queue<std::complex<int16_t>>>(MAX_DATA_LENGTH_SAMPLES));
+            std::make_unique<spsc_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
     }
 
     LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
@@ -302,7 +302,7 @@ void udp_data_transport::data_receive() {
                         if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
                             uint16_t header_size = get_packet_header_size(recv_buffer.hdr);
                             // update sample stats
-                            size_t n_samps = (recv_buffer.hdr.packet_size - header_size) / sizeof(std::complex<int16_t>);
+                            size_t n_samps = (recv_buffer.hdr.packet_size - header_size) / sizeof(vxsdr::wire_sample);
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
@@ -493,8 +493,8 @@ bool udp_data_transport::send_packet(packet& packet) {
 
     auto header_size = get_packet_header_size(packet.hdr);
     if (packet.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA and bytes > header_size) {
-        samples_sent += (bytes - header_size) / sizeof(std::complex<int16_t>);
-        samples_sent_current_stream += (bytes - header_size) / sizeof(std::complex<int16_t>);
+        samples_sent += (bytes - header_size) / sizeof(vxsdr::wire_sample);
+        samples_sent_current_stream += (bytes - header_size) / sizeof(vxsdr::wire_sample);
     }
 
     return true;

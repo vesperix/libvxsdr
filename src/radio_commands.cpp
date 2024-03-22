@@ -716,7 +716,7 @@ bool vxsdr::imp::set_rx_filter_enabled(const bool enabled, const uint8_t subdev)
     return vxsdr::imp::send_packet_and_check_response(p, "set_rx_filter_enabled()");
 }
 
-bool vxsdr::imp::set_tx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev, const uint8_t channel) {
+bool vxsdr::imp::set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev, const uint8_t channel) {
     filter_coeff_packet p;
     p.hdr = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_SET_FILTER_COEFFS, 0, subdev, channel, sizeof(p), 0};
     if (coeffs.size() > MAX_FRONTEND_FILTER_LENGTH) {
@@ -727,12 +727,12 @@ bool vxsdr::imp::set_tx_filter_coeffs(const std::vector<std::complex<int16_t>>& 
         p.coeffs[i] = coeffs[i];
     }
     for (unsigned i = p.length; i < MAX_FRONTEND_FILTER_LENGTH; i++) {
-        p.coeffs[i] = std::complex<int16_t>(0, 0);
+        p.coeffs[i] = vxsdr::filter_coefficient(0, 0);
     }
     return vxsdr::imp::send_packet_and_check_response(p, "set_tx_filter_coeffs()");
 }
 
-bool vxsdr::imp::set_rx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev, const uint8_t channel) {
+bool vxsdr::imp::set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev, const uint8_t channel) {
     filter_coeff_packet p;
     p.hdr = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_SET_FILTER_COEFFS, 0, subdev, channel, sizeof(p), 0};
     if (coeffs.size() > MAX_FRONTEND_FILTER_LENGTH) {
@@ -743,19 +743,19 @@ bool vxsdr::imp::set_rx_filter_coeffs(const std::vector<std::complex<int16_t>>& 
         p.coeffs[i] = coeffs[i];
     }
     for (unsigned i = p.length; i < MAX_FRONTEND_FILTER_LENGTH; i++) {
-        p.coeffs[i] = std::complex<int16_t>(0, 0);
+        p.coeffs[i] = vxsdr::filter_coefficient(0, 0);
     }
     return vxsdr::imp::send_packet_and_check_response(p, "set_rx_filter_coeffs()");
 }
 
-std::optional<std::vector<std::complex<int16_t>>> vxsdr::imp::get_tx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
+std::optional<std::vector<vxsdr::filter_coefficient>> vxsdr::imp::get_tx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_FILTER_COEFFS, 0, subdev, channel, sizeof(p), 0};
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_filter_coeffs()");
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<filter_coeff_packet*>(&q);
-        std::vector<std::complex<int16_t>> coeffs;
+        std::vector<vxsdr::filter_coefficient> coeffs;
         for (unsigned i = 0; i < r->length; i++) {
             coeffs.push_back(r->coeffs[i]);
         }
@@ -764,14 +764,14 @@ std::optional<std::vector<std::complex<int16_t>>> vxsdr::imp::get_tx_filter_coef
     return std::nullopt;
 }
 
-std::optional<std::vector<std::complex<int16_t>>> vxsdr::imp::get_rx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
+std::optional<std::vector<vxsdr::filter_coefficient>> vxsdr::imp::get_rx_filter_coeffs(const uint8_t subdev, const uint8_t channel) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_FILTER_COEFFS, 0, subdev, channel, sizeof(p), 0};
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_filter_coeffs()");
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<filter_coeff_packet*>(&q);
-        std::vector<std::complex<int16_t>> coeffs;
+        std::vector<vxsdr::filter_coefficient> coeffs;
         for (unsigned i = 0; i < r->length; i++) {
             coeffs.push_back(r->coeffs[i]);
         }

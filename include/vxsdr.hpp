@@ -37,6 +37,17 @@ class VXSDR_LIB_EXPORT vxsdr {
     enum stream_state { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
   /*!
+    @brief The @p wire_sample type is the format used for data transfer between the host and device, which may be translated
+    to and from other types by the host library
+  */
+    using wire_sample = std::complex<int16_t>;
+
+  /*!
+    @brief The @p filter_coefficient type is the format internally for representing filter coefficients
+  */
+    using filter_coefficient = std::complex<int16_t>;
+
+  /*!
     @brief The @p duration type is used for acquisition and wait durations
   */
     using duration = std::chrono::duration<int64_t, std::ratio<1, 1000000000>>;
@@ -767,37 +778,37 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the transmit frontend FIR filter coefficients.
-      @returns a std::optional with a std::vector<std::complex<int16t>> containing the filter coefficients
+      @returns a std::optional with a std::vector<filter_coefficient> containing the filter coefficients
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
-    std::optional<std::vector<std::complex<int16_t>>> get_tx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
+    std::optional<std::vector<filter_coefficient>> get_tx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
 
     /*!
       @brief Get the receive frontend FIR filter coefficients.
-      @returns a std::optional with a std::vector<std::complex<int16t>> containing the filter coefficients
+      @returns a std::optional with a std::vector<filter_coefficient> containing the filter coefficients
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
-    std::optional<std::vector<std::complex<int16_t>>> get_rx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
+    std::optional<std::vector<filter_coefficient>> get_rx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
 
     /*!
       @brief Set the transmit frontend FIR filter coefficients.
       @returns @b true if the command succeeds, @b false otherwise
-      @param coeffs a std::vector<std::complex<int16t>> containing the filter coefficients
+      @param coeffs a std::vector<filter_coefficient> containing the filter coefficients
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
-    bool set_tx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
+    bool set_tx_filter_coeffs(const std::vector<filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
 
     /*!
       @brief Set the receive frontend FIR filter coefficients.
       @returns @b true if the command succeeds, @b false otherwise
-      @param coeffs a std::vector<std::complex<int16t>> containing the filter coefficients
+      @param coeffs a std::vector<filter_coefficient> containing the filter coefficients
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
-    bool set_rx_filter_coeffs(const std::vector<std::complex<int16_t>>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
+    bool set_rx_filter_coeffs(const std::vector<filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
 
     /*!
       @brief Get the IQ DC bias for a transmit channel.
