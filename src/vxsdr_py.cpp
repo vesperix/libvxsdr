@@ -302,12 +302,12 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_ARGS(tx_start,
                 "Start transmitting at specified time until the specified number of samples are sent.",
                 py::arg("t"),
-                py::arg("n"),
+                py::arg("n") = 0,
                 py::arg("subdev") = 0)
         PYBIND_DEF_ARGS(rx_start,
                 "Start receiving at specified time until the specified number of samples are sent.",
                 py::arg("t"),
-                py::arg("n"),
+                py::arg("n") = 0,
                 py::arg("subdev") = 0)
         // repeating transmit and receive
         PYBIND_DEF_ARGS(tx_loop,
