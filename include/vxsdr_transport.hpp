@@ -264,7 +264,7 @@ class command_transport : public packet_transport {
 
 class data_transport : public packet_transport {
   protected:
-    unsigned num_rx_subdevs;
+    unsigned num_subdevs;
     unsigned max_samples_per_packet;
     // number of samples in current stream (0 if continuous)
     uint64_t desired_tx_stream_samples = 0;
@@ -290,8 +290,8 @@ class data_transport : public packet_transport {
 
   public:
 
-    data_transport(const unsigned n_rx_subdevs, const unsigned max_samps_per_packet) :
-                num_rx_subdevs(n_rx_subdevs), max_samples_per_packet(max_samps_per_packet)  {};
+    data_transport(const unsigned n_subdevs, const unsigned max_samps_per_packet) :
+                num_subdevs(n_subdevs), max_samples_per_packet(max_samps_per_packet)  {};
 
     virtual ~data_transport() = default;
 
@@ -348,7 +348,7 @@ class data_transport : public packet_transport {
         samples_received                = 0;
         sequence_errors_current_stream  = 0;
         samples_received_current_stream = 0;
-        for (unsigned i = 0; i < num_rx_subdevs; i++) {
+        for (unsigned i = 0; i < num_subdevs; i++) {
             rx_data_queue[i]->reset();
             rx_sample_queue[i]->reset();
         }
@@ -371,7 +371,7 @@ class data_transport : public packet_transport {
         desired_rx_stream_samples       = n_samples_desired;
         sequence_errors_current_stream  = 0;
         samples_received_current_stream = 0;
-        for (unsigned i = 0; i < num_rx_subdevs; i++) {
+        for (unsigned i = 0; i < num_subdevs; i++) {
             rx_data_queue[i]->reset();
             rx_sample_queue[i]->reset();
         }
@@ -479,7 +479,7 @@ class udp_data_transport : public data_transport {
 
   public:
     explicit udp_data_transport(const std::map<std::string, int64_t>& settings,
-                                const unsigned n_rx_subdevs,
+                                const unsigned n_subdevs,
                                 const unsigned max_samps_per_packet);
     ~udp_data_transport() noexcept;
 

@@ -69,6 +69,12 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& settings) {
                 vxsdr::imp::version_number_to_string(get_library_packet_version()), vxsdr::imp::version_number_to_string(res->at(4)));
     }
     LOG_INFO("   device status: {:d}", res->at(5));
+    LOG_INFO("   number of subdevices: {:d}", res->at(6));
+    LOG_INFO("   maximum data payload bytes: {:d}", res->at(7));
+
+    // data transport constructor needs to know the number of subdevices and  maximum samples_per_packet
+    unsigned num_subdevs = res->at(6);
+    unsigned max_samps_per_packet = max_samples_per_packet<vxsdr::wire_sample>(res->at(7));
 
     if (not vxsdr::imp::tx_stop() or not vxsdr::imp::rx_stop()) {
         LOG_ERROR("error stopping tx and rx");
@@ -78,21 +84,8 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& settings) {
         LOG_ERROR("error clearing status");
         throw std::runtime_error("error clearing status in vxsdr constructor");
     }
-    // data transport constructor needs to know the number of subdevices
-    auto rx_num_subdevs = vxsdr::imp::get_rx_num_subdevs();
-    if (not rx_num_subdevs) {
-        LOG_ERROR("device did not respond to get_num_rx_subdevs command");
-        throw std::runtime_error("device did not respond to get_num_rx_subdevs command in vxsdr constructor");
-    }
-    // data transport constructor needs to know the maximum samples_per_packet
-    auto max_payload_bytes = vxsdr::imp::get_max_payload_bytes();
-    if (not max_payload_bytes) {
-        LOG_ERROR("device did not respond to get_max_payload_bytes command");
-        throw std::runtime_error("device did not respond to get_max_payload_bytes command in vxsdr constructor");
-    }
-    auto max_samps_per_packet = max_samples_per_packet<vxsdr::wire_sample>(max_payload_bytes.value());
 
-    data_tport = std::make_unique<udp_data_transport>(config, (unsigned)rx_num_subdevs.value(), max_samps_per_packet);
+    data_tport = std::make_unique<udp_data_transport>(config, num_subdevs, max_samps_per_packet);
 
     start_time = std::chrono::steady_clock::now();
     while (data_tport->tx_state != packet_transport::TRANSPORT_READY and

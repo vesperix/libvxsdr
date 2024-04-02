@@ -20,15 +20,14 @@
     @brief Device command functions for the @p vxsdr class.
 */
 
-std::optional<std::array<uint32_t, 6>> vxsdr::imp::hello() {
+std::optional<std::array<uint32_t, 8>> vxsdr::imp::hello() {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_HELLO, 0, 0, 0, sizeof(p), 0};
     auto res = vxsdr::imp::send_packet_and_return_response(p, "hello()");
     if (res) {
         auto q                      = res.value();
-
-        auto* r                     = std::bit_cast<six_uint32_packet*>(&q);
-        std::array<uint32_t, 6> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6};
+        auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
+        std::array<uint32_t, 8> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
         return res;
     }
     return std::nullopt;
@@ -52,7 +51,6 @@ std::optional<std::array<uint32_t, 8>> vxsdr::imp::get_status(const uint8_t subd
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_status()");
     if (res) {
         auto q                      = res.value();
-
         auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
         std::array<uint32_t, 8> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
         return res;
@@ -81,7 +79,6 @@ std::optional<vxsdr::time_point> vxsdr::imp::get_time_now() {
     if (res) {
         auto q = res.value();
         if ((q.hdr.flags & FLAGS_TIME_PRESENT) != 0) {
-
             auto* r = std::bit_cast<time_packet*>(&q);
             return vxsdr::time_point(
                 std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::seconds(r->time.seconds) +
@@ -98,7 +95,6 @@ std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_info(const uint8_t
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_buffer_info()");
     if (res) {
         auto q                      = res.value();
-
         auto* r                     = std::bit_cast<two_uint32_packet*>(&q);
         // order for return is TX, RX, opposite of packet order
         std::array<uint32_t, 2> ret = {r->value2, r->value1};
@@ -113,7 +109,6 @@ std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_use(const uint8_t 
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_buffer_use()");
     if (res) {
         auto q                      = res.value();
-
         auto* r                     = std::bit_cast<two_uint32_packet*>(&q);
         // order for return is TX, RX, opposite of packet order
         std::array<uint32_t, 2> ret = {r->value2, r->value1};
@@ -128,7 +123,6 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_tx_stream_state(const uint8_t
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_stream_state()");
     if (res) {
         auto q                      = res.value();
-
         auto* r                     = std::bit_cast<one_uint64_packet*>(&q);
         bool running_flag = (r->value1 & STREAM_STATE_TX_RUNNING_FLAG) != 0;
         bool waiting_flag = (r->value1 & STREAM_STATE_TX_WAITING_FLAG) != 0;
@@ -154,7 +148,6 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_rx_stream_state(const uint8_t
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_stream_state()");
     if (res) {
         auto q                      = res.value();
-
         auto* r                     = std::bit_cast<one_uint64_packet*>(&q);
         bool running_flag = (r->value1 & STREAM_STATE_RX_RUNNING_FLAG) != 0;
         bool waiting_flag = (r->value1 & STREAM_STATE_RX_WAITING_FLAG) != 0;
@@ -180,7 +173,6 @@ std::optional<std::array<bool, 3>> vxsdr::imp::get_timing_status() {
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_timing_status()");
     if (res) {
         auto q                  = res.value();
-
         auto* r                 = std::bit_cast<one_uint32_packet*>(&q);
         std::array<bool, 3> ret = {(bool)(r->value1 & TIMING_STATUS_EXT_PPS_LOCK),
                                    (bool)(r->value1 & TIMING_STATUS_EXT_10MHZ_LOCK),
@@ -252,7 +244,6 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_DISCOVER, 0, 0, 0, sizeof(p), 0};
-
     auto bytes_sent      = discover_socket.send_to(net::buffer(&p, sizeof(p)), device_endpoint);
     if (bytes_sent != sizeof(p)) {
         LOG_ERROR("error sending discover packet in discover_ipv4_addresses()");

@@ -51,12 +51,13 @@ typedef struct {
    elements are unsigned.
 */
 
-struct time_spec_t {
+typedef struct {
   uint32_t              seconds;
   uint32_t              nanoseconds;
-};
+} time_spec_t;
 
 typedef uint64_t stream_spec_t;
+typedef uint64_t capabilities_t;
 
 #pragma pack(pop)
 
@@ -294,9 +295,7 @@ typedef uint64_t stream_spec_t;
 #define TIMING_STATUS_EXT_10MHZ_LOCK     (0x00000002U)
 #define TIMING_STATUS_REF_OSC_LOCK       (0x00000004U)
 
-#define MAX_DATA_LENGTH_SAMPLES              (2048UL)
 #define MAX_FRONTEND_FILTER_LENGTH           (16U)
-#define MAX_PAYLOAD_LENGTH_BYTES             (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
 #define MAX_NAME_LENGTH_BYTES                (8)  // maximum length of a name (sensors, gains stages) including terminating null
 
 #define VXSDR_ALL_SUBDEVICES                 (0xFF)

@@ -108,10 +108,12 @@ class VXSDR_LIB_EXPORT vxsdr {
           - FPGA code version
           - MCU code version,
           - device serial number,
-          - packet version supported
-          - device status
+          - packet version supported,
+          - device status,
+          - number of subdevices,
+          - maximum data payload in bytes
     */
-    std::optional<std::array<uint32_t, 6>> hello();
+    std::optional<std::array<uint32_t, 8>> hello();
 
     /*!
       @brief Reset the device.

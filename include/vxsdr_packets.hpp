@@ -106,7 +106,6 @@ class uint32_double_packet : public packet {
     uint32_t value1   = 0;
     uint32_t reserved = 0;
     double value2     = 0.0;
-
 };
 
 class uint32_two_double_packet : public packet {
@@ -143,11 +142,12 @@ class loop_packet : public time_samples_packet {
   public:
     time_spec_t t_delay = {0, 0};
     uint32_t n_repeat = 0;
+    uint32_t reserved = 0;
 };
 
 class largest_cmd_or_rsp_packet : public time_stream_packet {
   public:
-    uint8_t payload[MAX_PAYLOAD_LENGTH_BYTES] = {0};
+    uint8_t payload[MAX_CMD_RSP_PAYLOAD_BYTES] = {0};
 };
 
 using command_queue_element = largest_cmd_or_rsp_packet;

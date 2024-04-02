@@ -48,7 +48,7 @@ bool vxsdr::set_host_command_timeout(const double timeout_s) {
     return p_imp->set_host_command_timeout(timeout_s);
 }
 
-std::optional<std::array<uint32_t, 6>> vxsdr::hello() {
+std::optional<std::array<uint32_t, 8>> vxsdr::hello() {
     return p_imp->hello();
 }
 

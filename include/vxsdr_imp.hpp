@@ -78,7 +78,7 @@ class vxsdr::imp {
                        size_t n_requested,
                        const uint8_t subdev,
                        const double timeout_s);
-    std::optional<std::array<uint32_t, 6>> hello();
+    std::optional<std::array<uint32_t, 8>> hello();
     bool reset();
     bool clear_status(const uint8_t subdev = 0);
     std::optional<std::array<uint32_t, 8>> get_status(const uint8_t subdev = 0);
