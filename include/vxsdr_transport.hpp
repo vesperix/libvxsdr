@@ -429,9 +429,7 @@ class udp_command_transport : public command_transport {
     vxsdr_thread receiver_thread;
 
   public:
-    explicit udp_command_transport(const std::string& local_address,
-                                   const std::string& device_address,
-                                   const std::map<std::string, int64_t>& settings);
+    explicit udp_command_transport(const std::map<std::string, int64_t>& settings);
     ~udp_command_transport() noexcept;
 
   protected:
@@ -480,9 +478,7 @@ class udp_data_transport : public data_transport {
     std::atomic<unsigned> tx_buffer_fill_percent {0};
 
   public:
-    explicit udp_data_transport(const std::string& local_address,
-                                const std::string& device_address,
-                                const std::map<std::string, int64_t>& settings,
+    explicit udp_data_transport(const std::map<std::string, int64_t>& settings,
                                 const unsigned n_rx_subdevs,
                                 const unsigned max_samps_per_packet);
     ~udp_data_transport() noexcept;

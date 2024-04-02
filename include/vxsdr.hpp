@@ -66,9 +66,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param settings a std::map<std::string, int64_t> containing changes to the default settings; if a setting is not included, it is
              left at the default value.
     */
-    explicit vxsdr(const std::string& local_address,
-          const std::string& device_address,
-          const std::map<std::string, int64_t>& settings = {});
+    explicit vxsdr(const std::map<std::string, int64_t>& settings = {});
 
     //! Destructor for the vxsdr host interface class.
     ~vxsdr() noexcept;

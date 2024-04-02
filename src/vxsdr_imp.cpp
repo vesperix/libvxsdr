@@ -21,9 +21,7 @@
     @brief Constructor, destructor, and utility functions for the @p vxsdr_imp class.
 */
 
-vxsdr::imp::imp(const std::string& local_address,
-                const std::string& device_address,
-                const std::map<std::string, int64_t>& settings) {
+vxsdr::imp::imp(const std::map<std::string, int64_t>& settings) {
     LOG_INIT();
     LOG_DEBUG("vxsdr constructor entered");
 
@@ -41,7 +39,7 @@ vxsdr::imp::imp(const std::string& local_address,
     }
 
     // Make the transport objects here
-    command_tport = std::make_unique<udp_command_transport>(local_address, device_address, config);
+    command_tport = std::make_unique<udp_command_transport>(config);
 
     auto start_time = std::chrono::steady_clock::now();
     while (command_tport->tx_state != packet_transport::TRANSPORT_READY and
@@ -94,7 +92,7 @@ vxsdr::imp::imp(const std::string& local_address,
     }
     auto max_samps_per_packet = max_samples_per_packet<vxsdr::wire_sample>(max_payload_bytes.value());
 
-    data_tport = std::make_unique<udp_data_transport>(local_address, device_address, config, (unsigned)rx_num_subdevs.value(), max_samps_per_packet);
+    data_tport = std::make_unique<udp_data_transport>(config, (unsigned)rx_num_subdevs.value(), max_samps_per_packet);
 
     start_time = std::chrono::steady_clock::now();
     while (data_tport->tx_state != packet_transport::TRANSPORT_READY and

@@ -59,9 +59,7 @@ class vxsdr::imp {
     std::unique_ptr<data_transport>    data_tport{};
 
   public:
-    explicit imp(const std::string& local_address,
-          const std::string& device_address,
-          const std::map<std::string, int64_t>& settings);
+    explicit imp(const std::map<std::string, int64_t>& settings);
 
     ~imp() noexcept;
     imp(const imp&)            = delete;

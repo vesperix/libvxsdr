@@ -8,12 +8,8 @@
     @brief Constructor, destructor, and utility functions for the @p vxsdr class.
 */
 
-vxsdr::vxsdr(const std::string& local_address,
-             const std::string& device_address,
-             const std::map<std::string, int64_t>& settings) {
-    p_imp = std::make_unique<imp>(local_address,
-                                  device_address,
-                                  settings);
+vxsdr::vxsdr(const std::map<std::string, int64_t>& settings) {
+    p_imp = std::make_unique<imp>(settings);
 }
 
 vxsdr::~vxsdr() noexcept = default;

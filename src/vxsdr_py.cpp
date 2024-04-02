@@ -28,13 +28,7 @@ template <typename T> std::vector<T> numpy_to_vector(const py::array_t<T> &np) {
 
 class vxsdr_py : public vxsdr {
     public:
-        vxsdr_py(const std::string& local_ip_address,
-                 const std::string& device_ip_address,
-                 const std::map<std::string, int64_t>& settings) :
-                      vxsdr(local_ip_address,
-                            device_ip_address,
-                            settings) {}
-
+        vxsdr_py(const std::map<std::string, int64_t>& settings) : vxsdr(settings) {}
         size_t put_tx_data(const py::array_t<std::complex<float>, py::array::c_style | py::array::forcecast>& data_np,
                                 size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10) {
             if (data_np.ndim() != 1) {
@@ -98,10 +92,8 @@ PYBIND11_MODULE(vxsdr_py, m) {
     // bindings to vxsdr class
     py::class_<vxsdr_py>(m, "vxsdr_py")
          // constructor
-        .def(py::init<const std::string, const std::string, const std::map<std::string, int64_t>&>(),
+        .def(py::init<const std::map<std::string, int64_t>&>(),
                 "Constructor for the vxsdr_py class",
-                py::arg("local_ip_address"),
-                py::arg("device_ip_address"),
                 py::arg("settings"))
         // library information
         PYBIND_DEF_SIMPLE(get_library_version, "Get the version number of the library.")

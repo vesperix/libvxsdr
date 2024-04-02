@@ -20,9 +20,7 @@
     @brief Constructor, destructor, and utility functions for the @p vxsdr_udp data transport classes.
 */
 
-udp_data_transport::udp_data_transport(const std::string& local_address,
-                                       const std::string& device_address,
-                                       const std::map<std::string, int64_t>& settings,
+udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& settings,
                                        const unsigned n_rx_subdevs,
                                        const unsigned max_samps_per_packet)
         : data_transport(n_rx_subdevs, max_samps_per_packet),
@@ -32,8 +30,13 @@ udp_data_transport::udp_data_transport(const std::string& local_address,
 
     auto config = packet_transport::apply_transport_settings(settings, default_settings);
 
-    net::ip::address_v4 local_ip  = net::ip::address_v4::from_string(local_address);
-    net::ip::address_v4 device_ip = net::ip::address_v4::from_string(device_address);
+    if (config.count("udp_data_transport:local_address") == 0 or config.count("udp_data_transport:device_address") == 0) {
+        LOG_ERROR("udp data transport settings must include udp_data_transport:local_address and udp_data_transport:device_address");
+        throw std::runtime_error("udp data transport settings must include local address and device address");
+    }
+
+    net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_data_transport:local_address"]);
+    net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_data_transport:device_address"]);
     // FIXME: need to add cross-platform method to find local IPs and pick the most likely one
     //  so that command-line specification is no longer necessary
     //  e.g. getifaddrs() (Linux/MacOS) GetAdapterAddrs (Windows)
