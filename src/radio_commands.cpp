@@ -619,7 +619,7 @@ std::optional<double> vxsdr::imp::get_tx_gain_stage(const unsigned stage_num, co
 
 std::optional<double> vxsdr::imp::get_rx_gain_stage(const unsigned stage_num, const uint8_t subdev, const uint8_t channel) {
     one_uint32_packet p;
-    p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_RF_GAIN, 0, subdev, channel, sizeof(p), 0};
+    p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_RF_GAIN_STAGE, 0, subdev, channel, sizeof(p), 0};
     p.value1 = stage_num;
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_gain_stage()");
     if (res) {
