@@ -222,7 +222,15 @@ local pf_double_data        = ProtoField.double("vxsdr.f64_data", "Double Data")
 local pf_boolean_data       = ProtoField.new("Boolean Data", "vxsddr.u32_bool_data", ftypes.UINT32,
                               {[0] = "False", [1] = "True"}, base.DEC)
 
+local pf_uint32_result      = ProtoField.uint32("vxsdr.u32_result", "Result", base.DEC)
 local pf_uint32_stage       = ProtoField.uint32("vxsdr.u32_stage", "Stage", base.DEC)
+local pf_string8_name       = ProtoField.string("vxsdr.string8_name", "Name", base.ASCII)
+
+local pf_double_rtol        = ProtoField.double("vxsdr.f64_rtol", "Relative Tolerance")
+
+local pf_double_gain        = ProtoField.double("vxsdr.f64_gain", "Gain (dB)")
+local pf_double_rate        = ProtoField.double("vxsdr.f64_rate", "Rate (Hz)")
+local pf_double_freq        = ProtoField.double("vxsdr.f64_freq", "Frequency (Hz)")
 
 local pf_double_fmin        = ProtoField.double("vxsdr.f64_fmin", "Minumum (Hz)")
 local pf_double_fmax        = ProtoField.double("vxsdr.f64_fmax", "Maximum (Hz)")
@@ -253,23 +261,20 @@ local pf_double_a12         = ProtoField.double("vxsdr.f64_iqcorr_a12", "a(1,2)"
 local pf_double_a21         = ProtoField.double("vxsdr.f64_iqcorr_a21", "a(2,1)")
 local pf_double_a22         = ProtoField.double("vxsdr.f64_iqcorr_a22", "a(2,2)")
 
-local pf_double_freq        = ProtoField.double("vxsdr.f64_freq", "Frequency (Hz)")
-local pf_double_rtol        = ProtoField.double("vxsdr.f64_rtol", "Relative Tolerance")
 
-local pf_double_gain        = ProtoField.double("vxsdr.f64gain", "Gain (dB)")
-local pf_double_rate        = ProtoField.double("vxsdr.f64rate", "Rate (Hz)")
 
 vxsdr.fields = { pf_packet_type, pf_command, pf_flags, pf_target_subdevice, pf_channel, pf_packet_size, pf_sequence_counter,
                  pf_device_command, pf_radio_command, pf_device_command_err, pf_radio_command_err,
                  pf_device_command_rsp, pf_radio_command_rsp, pf_device_error, pf_radio_error, pf_async_msg_type, pf_async_msg_sys,
 --                 pf_flag_ack, pf_flag_time, pf_flag_stream,
                  pf_uint16_data, pf_uint32_data, pf_uint64_data, pf_double_data, pf_boolean_data,
-                 pf_uint32_stage,
+                 pf_uint32_result, pf_uint32_stage, pf_string8_name,
+                 pf_double_freq, pf_double_rtol,
+                 pf_double_gain, pf_double_rate,
                  pf_double_fmin, pf_double_fmax, pf_double_gmin, pf_double_gmax,
                  pf_uint32_sec, pf_uint32_nsec, pf_double_res, pf_stream_state,
                  pf_ext_pps_lock, pf_ext_10MHz_lock, pf_ref_osc_lock, pf_double_ibias, pf_double_qbias,
-                 pf_double_a11, pf_double_a12, pf_double_a21, pf_double_a22, pf_double_freq, pf_double_rtol,
-                 pf_double_gain, pf_double_rate }
+                 pf_double_a11, pf_double_a12, pf_double_a21, pf_double_a22  }
 
 function vxsdr.dissector(tvbuf, pktinfo, root)
 
@@ -439,6 +444,9 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_RANGE_STAGE"] then
                 tree:add_le(pf_double_gmin, tvbuf(8, 8))
                 tree:add_le(pf_double_gmax, tvbuf(16, 8))
+            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_STAGE_NAME"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ_STAGE_NAME"] then
+                tree:add_le(pf_string8_name, tvbuf(8, 8))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_IQ_BIAS"] then
                 tree:add_le(pf_double_ibias, tvbuf(8, 8))
                 tree:add_le(pf_double_qbias, tvbuf(16, 8))
@@ -454,7 +462,7 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_NUM_GAIN_STAGES"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_NUM_FREQ_STAGES"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_PORT"] then
-                tree:add_le(pf_uint32_data, tvbuf( 8, 4))
+                tree:add_le(pf_uint32_result, tvbuf( 8, 4))
             end
         -- radio command errors
         elseif pkt_type == packet_types_index["TX_RADIO_CMD_ERR"] or pkt_type == packet_types_index["RX_RADIO_CMD_ERR"] then
