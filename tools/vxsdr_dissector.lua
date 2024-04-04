@@ -156,12 +156,12 @@ local radio_cmds = {
     [0x22] = "SET_IQ_CORR",
     [0x23] = "SET_FILTER_ENABLED",
     [0x24] = "SET_FILTER_COEFFS",
-    [0x25] = "GET_NUM_RF_GAIN_STAGES",
+    [0x25] = "GET_RF_NUM_GAIN_STAGES",
     [0x26] = "GET_RF_GAIN_STAGE_NAME",
     [0x27] = "GET_RF_GAIN_RANGE_STAGE",
     [0x28] = "GET_RF_GAIN_STAGE",
     [0x29] = "SET_RF_GAIN_STAGE",
-    [0x2A] = "GET_NUM_RF_GAIN_STAGES",
+    [0x2A] = "GET_RF_NUM_FREQ_STAGES",
     [0x2B] = "GET_RF_FREQ_STAGE_NAME",
     [0x2C] = "GET_RF_FREQ_RANGE_STAGE",
     [0x2D] = "GET_RF_FREQ_STAGE",
@@ -222,6 +222,8 @@ local pf_double_data        = ProtoField.double("vxsdr.f64_data", "Double Data")
 local pf_boolean_data       = ProtoField.new("Boolean Data", "vxsddr.u32_bool_data", ftypes.UINT32,
                               {[0] = "False", [1] = "True"}, base.DEC)
 
+local pf_uint32_stage       = ProtoField.uint32("vxsdr.u32_stage", "Stage", base.DEC)
+
 local pf_double_fmin        = ProtoField.double("vxsdr.f64_fmin", "Minumum (Hz)")
 local pf_double_fmax        = ProtoField.double("vxsdr.f64_fmax", "Maximum (Hz)")
 
@@ -262,6 +264,7 @@ vxsdr.fields = { pf_packet_type, pf_command, pf_flags, pf_target_subdevice, pf_c
                  pf_device_command_rsp, pf_radio_command_rsp, pf_device_error, pf_radio_error, pf_async_msg_type, pf_async_msg_sys,
 --                 pf_flag_ack, pf_flag_time, pf_flag_stream,
                  pf_uint16_data, pf_uint32_data, pf_uint64_data, pf_double_data, pf_boolean_data,
+                 pf_uint32_stage,
                  pf_double_fmin, pf_double_fmax, pf_double_gmin, pf_double_gmax,
                  pf_uint32_sec, pf_uint32_nsec, pf_double_res, pf_stream_state,
                  pf_ext_pps_lock, pf_ext_10MHz_lock, pf_ref_osc_lock, pf_double_ibias, pf_double_qbias,
@@ -366,8 +369,21 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             elseif pkt_cmd == radio_cmds_index["SET_RF_FREQ"] then
                 tree:add_le(pf_double_freq, tvbuf(8, 8))
                 tree:add_le(pf_double_rtol, tvbuf(16, 8))
+            elseif pkt_cmd == radio_cmds_index["SET_RF_FREQ_STAGE"] then
+                tree:add_le(pf_uint32_stage, tvbuf(8, 4))
+                tree:add_le(pf_double_freq, tvbuf(16, 8))
             elseif pkt_cmd == radio_cmds_index["SET_RF_GAIN"] then
                 tree:add_le(pf_double_gain, tvbuf(8, 8))
+            elseif pkt_cmd == radio_cmds_index["SET_RF_GAIN_STAGE"] then
+                tree:add_le(pf_uint32_stage, tvbuf(8, 4))
+                tree:add_le(pf_double_gain, tvbuf(16, 8))
+            elseif pkt_cmd == radio_cmds_index["GET_RF_GAIN_STAGE"] or
+                   pkt_cmd == radio_cmds_index["GET_RF_FREQ_STAGE"] or
+                   pkt_cmd == radio_cmds_index["GET_RF_GAIN_STAGE_NAME"] or
+                   pkt_cmd == radio_cmds_index["GET_RF_FREQ_STAGE_NAME"] or
+                   pkt_cmd == radio_cmds_index["GET_RF_GAIN_RANGE_STAGE"] or
+                   pkt_cmd == radio_cmds_index["GET_RF_FREQ_RANGE_STAGE"] then
+                tree:add_le(pf_uint32_stage, tvbuf(8, 4))
             elseif pkt_cmd == radio_cmds_index["SET_SAMPLE_RATE"]  then
                 tree:add_le(pf_double_rate, tvbuf(8, 8))
             elseif pkt_cmd == radio_cmds_index["SET_IQ_BIAS"] then
@@ -406,17 +422,21 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             if pkt_cmd == radio_cmd_rsps_index["GET_RF_ENABLED"] then
                 tree:add_le(pf_boolean_data, tvbuf(8, 4))
             -- get freq, gain, or rate
-            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ"] then
+            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ_STAGE"] then
                 tree:add_le(pf_double_freq, tvbuf(8, 8))
-            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN"] then
+            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_STAGE"]then
                 tree:add_le(pf_double_gain, tvbuf(8, 8))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_SAMPLE_RATE"]  then
                 tree:add_le(pf_double_freq, tvbuf(8, 8))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ_RANGE"] or
-                   pkt_cmd == radio_cmd_rsps_index["GET_SAMPLE_RATE_RANGE"]  then
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ_RANGE_STAGE"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_SAMPLE_RATE_RANGE"] then
                 tree:add_le(pf_double_fmin, tvbuf(8, 8))
                 tree:add_le(pf_double_fmax, tvbuf(16, 8))
-            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_RANGE"] then
+            elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_RANGE"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_RANGE_STAGE"] then
                 tree:add_le(pf_double_gmin, tvbuf(8, 8))
                 tree:add_le(pf_double_gmax, tvbuf(16, 8))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_IQ_BIAS"] then
@@ -431,6 +451,8 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                    pkt_cmd == radio_cmd_rsps_index["GET_NUM_CHANNELS"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_NUM_RF_PORTS"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_FILTER_LENGTH"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_NUM_GAIN_STAGES"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_RF_NUM_FREQ_STAGES"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_PORT"] then
                 tree:add_le(pf_uint32_data, tvbuf( 8, 4))
             end
