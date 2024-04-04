@@ -73,8 +73,7 @@ removes the dependencies on Python and its development files.
 Installing prerequisites on Ubuntu 22.04 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. highlight:: shell
-.. code-block::
+.. code-block:: shell
 
    sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev
    sudo apt install python3-dev pybind11-dev
@@ -83,8 +82,7 @@ Installing prerequisites on Ubuntu 22.04 or later
 Installing prerequisites on Fedora 35 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. highlight:: shell
-.. code-block::
+.. code-block:: shell
 
    sudo dnf install gcc-c++ make git cmake boost-devel spdlog-devel
    sudo dnf install python3-devel pybind11-devel
@@ -92,8 +90,7 @@ Installing prerequisites on Fedora 35 or later
 Downloading, building, and installing the library
 -------------------------------------------------
 
-.. highlight:: shell
-.. code-block::
+.. code-block:: shell
 
    git clone https://github.com/vesperix/libvxsdr.git
    cd libvxsdr
