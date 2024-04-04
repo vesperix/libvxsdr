@@ -31,6 +31,9 @@ class vxsdr::imp {
         {"command_transport",             vxsdr::TRANSPORT_TYPE_UDP},
         {"data_transport",                vxsdr::TRANSPORT_TYPE_UDP},
     };
+    // relative tolerance for frequency settings
+    static constexpr double frequency_setting_rtol = 1e-12;
+
     // waits between tries for data queue push/pop
     static constexpr unsigned tx_data_queue_wait_us   = 200;
     static constexpr unsigned rx_data_queue_wait_us   = 200;

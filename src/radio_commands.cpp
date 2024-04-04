@@ -284,7 +284,7 @@ bool vxsdr::imp::set_tx_freq(const double freq_hz, const uint8_t subdev) {
     two_double_packet p;
     p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_SET_RF_FREQ, 0, subdev, 0, sizeof(p), 0};
     p.value1 = freq_hz;
-    p.value2 = 1e-9;
+    p.value2 = vxsdr::imp::frequency_setting_rtol;
     return vxsdr::imp::send_packet_and_check_response(p, "set_tx_freq()");
 }
 
@@ -292,7 +292,7 @@ bool vxsdr::imp::set_rx_freq(const double freq_hz, const uint8_t subdev) {
     two_double_packet p;
     p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_SET_RF_FREQ, 0, subdev, 0, sizeof(p), 0};
     p.value1 = freq_hz;
-    p.value2 = 1e-9;
+    p.value2 = vxsdr::imp::frequency_setting_rtol;
     return vxsdr::imp::send_packet_and_check_response(p, "set_rx_freq()");
 }
 
@@ -405,7 +405,7 @@ bool vxsdr::imp::set_tx_freq_stage(const double freq_hz, const unsigned stage_nu
     p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_SET_RF_FREQ_STAGE, 0, subdev, 0, sizeof(p), 0};
     p.value1 = stage_num;
     p.value2 = freq_hz;
-    p.value3 = 1e-9;
+    p.value3 = vxsdr::imp::frequency_setting_rtol;
     return vxsdr::imp::send_packet_and_check_response(p, "set_tx_freq_stage()");
 }
 
@@ -414,7 +414,7 @@ bool vxsdr::imp::set_rx_freq_stage(const double freq_hz, const unsigned stage_nu
     p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_SET_RF_FREQ_STAGE, 0, subdev, 0, sizeof(p), 0};
     p.value1 = stage_num;
     p.value2 = freq_hz;
-    p.value3 = 1e-9;
+    p.value3 = vxsdr::imp::frequency_setting_rtol;
     return vxsdr::imp::send_packet_and_check_response(p, "set_rx_freq_stage()");
 }
 
