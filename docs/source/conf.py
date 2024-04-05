@@ -24,7 +24,7 @@ release = '0.11.3'
 
 # Add any Sphinx extension module names here, as strings.
 
-extensions = [ 'sphinx.ext.imgmath', 'breathe' ]
+extensions = [ 'sphinx.ext.mathjax', 'breathe' ]
 
 breathe_projects = { 'vxsdr' : '../xml/' }
 

@@ -821,8 +821,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the IQ DC bias for a transmit channel.
-      @returns a std::optional with a std::array containing (i_bias, q_bias) with
-          (-1 >= @p i_bias >= 1) and (-1 >= @p q_bias >= 1)
+      @returns a std::optional with a std::array containing @f$i_{bias}, q_{bias}@f$
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -830,8 +829,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the IQ DC bias for a receive channel.
-      @returns a std::optional with a std::array containing (i_bias, q_bias) with
-          (-1 >= @p i_bias >= 1) and (-1 >= @p q_bias >= 1)
+      @returns a std::optional with a std::array containing @f$i_{bias}, q_{bias}@f$
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -839,8 +837,22 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Set the IQ DC bias for the transmitter to control LO feedthrough.
+      @details Bias correction adds a constant offset to the data stream:
+           \f[
+            \begin{bmatrix} i_{out} \\ q_{out} \end{bmatrix}
+            =
+              \begin{bmatrix} i_{in}   \\ q_{in} \end{bmatrix} +
+              \begin{bmatrix} i_{bias} \\ q_{bias} \end{bmatrix}
+           \f]
+      On transmit, this adjusts the mixer inputs so that local oscillator feedthrough can be minimized.
+
+      The values are normalized so that @f$1 \ge i_{bias} \ge -1@f$ and @f$1 \ge q_{bias} \ge -1@f$, where
+      the extremes are the maximum values allowed by the device.
+
+      Most devices have a fixed precision (e.g. 12 bits) for the coefficients.
+      The actual coefficients used can be determined by reading the coefficients back after they are set.
       @returns @b true if the command succeeds, @b false otherwise
-      @param bias   a std::array containing i_bias, q_bias in that order
+      @param bias   a std::array containing @f$i_{bias}, q_{bias}@f$ in that order
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -849,7 +861,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Set the IQ DC bias for the receiver to control LO feedthrough.
       @returns @b true if the command succeeds, @b false otherwise
-      @param bias   a std::array containing i_bias, q_bias in that order
+      @param bias   a std::array containing @f$i_{bias}, q_{bias}@f$ in that order
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -857,10 +869,37 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Set the IQ correction for a transmit channel to control image rejection.
-      @returns @b true if the command succeeds, @b false otherwise
-      @param corr    a std::array containing a_ii, a_iq, a_qi, a_qq (in that order),
-          which are the coefficients of the matrix which transforms the IQ data on transmission.
+      @details IQ correction transforms the sample stream using the following equation:
+           \f[
+            \begin{bmatrix} i_{out} \\ q_{out} \end{bmatrix}
+            =
+              \begin{bmatrix}
+              a_{ii} & a_{iq} \\
+              a_{qi} & a_{qq}
+              \end{bmatrix}
+            \begin{bmatrix} i_{in} \\ q_{in} \end{bmatrix}
+           \f]
+      If no transformation is needed, the matrix can be the identity matrix (which is the default).
+      Normally, it is sufficient to use only two coefficients to transform the data:
+           \f[
+            \begin{bmatrix} i_{out} \\ q_{out} \end{bmatrix}
+            =
+              \begin{bmatrix}
+              1 & 0 \\
+              a_{qi} & a_{qq}
+              \end{bmatrix}
+            \begin{bmatrix} i_{in} \\ q_{in} \end{bmatrix}
+           \f]
+      where @f$a_{qi} \approx 0@f$ and @f$a_{qq} \approx 1@f$.
 
+      Most devices have a fixed precision (e.g. 12 bits) for the coefficients. Some devices also restrict
+      one of the four coefficients to be zero for efficiency reasons; for these devices,
+      a Givens rotation is used to zero that coefficient if needed.
+
+      The actual coefficients used can be determined by reading the coefficients back after they are set.
+      @returns @b true if the command succeeds, @b false otherwise
+      @param corr    a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
+          which are the coefficients of the matrix which transforms the IQ data on transmission.
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -869,9 +908,8 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Set the IQ correction for a receive channel to control image rejection.
       @returns @b true if the command succeeds, @b false otherwise
-      @param corr    a std::array containing a_ii, a_iq, a_qi, a_qq (in that order),
+      @param corr    a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
           which are the coefficients of the matrix which transforms the IQ data on reception.
-
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -879,7 +917,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the IQ correction for a transmit channel.
-      @returns a std::optional with a std::array containing a_ii, a_iq, a_qi, a_qq (in that order),
+      @returns a std::optional with a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
           which are the coefficients of the matrix which transforms the IQ data on transmission.
 
       @param subdev the subdevice number
@@ -889,7 +927,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the IQ correction for a receive channel.
-      @returns a std::optional with a std::array containing a_ii, a_iq, a_qi, a_qq (in that order),
+      @returns a std::optional with a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
           which are the coefficients of the matrix which transforms the IQ data on reception.
 
       @param subdev the subdevice number
