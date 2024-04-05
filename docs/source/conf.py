@@ -18,7 +18,7 @@ copyright = '2024, Vesperix Corporation'
 author = 'Vesperix Corporation'
 
 # The full version, including alpha/beta/rc tags
-release = '@vxsdr_lib_version@'
+release = '0.11.3'
 
 # -- General configuration ---------------------------------------------------
 

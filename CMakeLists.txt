@@ -33,9 +33,6 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-configure_file(docs/source/conf.py.in ${PROJECT_SOURCE_DIR}/docs/source/conf.py)
-add_custom_target(update_doc_version ALL DEPENDS ${PROJECT_SOURCE_DIR}/docs/source/conf.py)
-
 set(vxsdr_lib_source src/vxsdr.cpp
                      src/vxsdr_imp.cpp
                      src/device_commands.cpp
