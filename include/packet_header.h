@@ -1,19 +1,19 @@
-// Copyright (c) 2023 Vesperix Corporation
+// Copyright (c) 2024 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef PACKET_HEADER_H
 #define PACKET_HEADER_H
 /*
   VXSDR packet definitions
-  Version 1.0.7 17 Oct 2023
+  Version 1.0.8 5 Apr 2024
 */
 
 #include <stdint.h>
 
-#define PACKET_VERSION_STRING                "1.0.7"
+#define PACKET_VERSION_STRING                "1.0.8"
 #define PACKET_VERSION_MAJOR                 (1)
 #define PACKET_VERSION_MINOR                 (0)
-#define PACKET_VERSION_PATCH                 (7)
+#define PACKET_VERSION_PATCH                 (8)
 
 /*
    The packet header and the elements used to fill it are defined below.
@@ -139,10 +139,11 @@ typedef uint64_t capabilities_t;
 #define DEVICE_CMD_SET_TIMING_REF            (0x15)  // OPTIONAL // set sources of 10 MHz and PPS
 #define DEVICE_CMD_GET_TIMING_RESOLUTION     (0x16)
 
-#define DEVICE_CMD_GET_NUM_SENSORS           (0x17)
-#define DEVICE_CMD_GET_SENSOR                (0x18)  // OPTIONAL
-#define DEVICE_CMD_GET_SENSOR_NAME           (0x19)  // OPTIONAL
-#define DEVICE_CMD_GET_CAPABILITIES          (0x1A)
+#define DEVICE_CMD_GET_NUM_SUBDEVS           (0x17)
+#define DEVICE_CMD_GET_NUM_SENSORS           (0x18)
+#define DEVICE_CMD_GET_SENSOR                (0x19)  // OPTIONAL
+#define DEVICE_CMD_GET_SENSOR_NAME           (0x1A)  // OPTIONAL
+#define DEVICE_CMD_GET_CAPABILITIES          (0x1B)
 
 #define DEVICE_CMD_APP_UPDATE_MODE_SET       (0x3C)
 #define DEVICE_CMD_APP_UPDATE_DATA           (0x3D)
@@ -191,7 +192,7 @@ typedef uint64_t capabilities_t;
 #define RADIO_CMD_SET_LO_INPUT               (0x16)
 #define RADIO_CMD_SET_MASTER_CLK             (0x17)
 
-#define RADIO_CMD_GET_NUM_SUBDEVS            (0x18)
+#define RADIO_CMD_GET_IF_FREQ                (0x18)
 #define RADIO_CMD_GET_RF_FREQ_RANGE          (0x19)
 #define RADIO_CMD_GET_RF_GAIN_RANGE          (0x1A)
 #define RADIO_CMD_GET_SAMPLE_RATE_RANGE      (0x1B)

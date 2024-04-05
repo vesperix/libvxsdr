@@ -17,6 +17,7 @@ The reset function performs a hard reset of the device.
 .. doxygenfunction:: reset
 .. doxygenfunction:: get_status
 .. doxygenfunction:: clear_status
+.. doxygenfunction:: get_num_subdevices
 .. doxygenfunction:: get_buffer_info
 .. doxygenfunction:: get_buffer_use
 .. doxygenfunction:: get_max_payload_bytes

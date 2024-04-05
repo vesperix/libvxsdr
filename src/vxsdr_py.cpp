@@ -109,6 +109,7 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_SIMPLE(get_max_payload_bytes, "Get the maximum payload size in bytes for transport to and from the device.")
         PYBIND_DEF_ARGS(set_max_payload_bytes, "Set the maximum payload size in bytes for transport to and from the device.",
                 py::arg("max_payload_bytes"))
+        PYBIND_DEF_SIMPLE(get_num_subdevices, "Get the number of subdevices.")
         // sensors
         PYBIND_DEF_SUBDEV(get_num_sensors, "Get the number of available sensors.")
         PYBIND_DEF_SUBDEV(get_sensor_names, "Get the names of available sensors.")
@@ -152,6 +153,8 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_ARGS(set_rx_freq, "Set the receive center frequency.",
                 py::arg("freq"),
                 py::arg("subdev") = 0)
+        PYBIND_DEF_SUBDEV(get_tx_if_freq, "Get the transmit intermediate frequency.")
+        PYBIND_DEF_SUBDEV(get_rx_if_freq, "Get the receive intermediate frequency.")
         PYBIND_DEF_SUBDEV(get_tx_num_freq_stages, "Get the number of transmit tuning stages.")
         PYBIND_DEF_SUBDEV(get_rx_num_freq_stages, "Get the number of receive tuning stages.")
         PYBIND_DEF_STAGE_SUBDEV(get_tx_freq_stage_name, "Get the name of a transmit tuning stage.")
@@ -232,8 +235,6 @@ PYBIND11_MODULE(vxsdr_py, m) {
                 py::arg("subdev") = 0,
                 py::arg("channel") = 0)
         // radio information
-        PYBIND_DEF_SIMPLE(get_tx_num_subdevs, "Get the number of transmit subdevices.")
-        PYBIND_DEF_SIMPLE(get_rx_num_subdevs, "Get the number of receive subdevices.")
         PYBIND_DEF_SUBDEV(get_tx_num_channels, "Get the number of transmit channels.")
         PYBIND_DEF_SUBDEV(get_rx_num_channels, "Get the number of receive channels.")
         PYBIND_DEF_SUBDEV(get_rx_stream_state, "Get the receive stream state")

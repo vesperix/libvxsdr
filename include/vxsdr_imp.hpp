@@ -114,6 +114,8 @@ class vxsdr::imp {
     bool set_rx_freq(const double freq_hz, const uint8_t subdev = 0);
     std::optional<double> get_tx_freq(const uint8_t subdev = 0);
     std::optional<double> get_rx_freq(const uint8_t subdev = 0);
+    std::optional<double> get_tx_if_freq(const uint8_t subdev = 0);
+    std::optional<double> get_rx_if_freq(const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_tx_gain_range(const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<std::array<double, 2>> get_rx_gain_range(const uint8_t subdev = 0, const uint8_t channel = 0);
     bool set_tx_gain(const double gain_db, const uint8_t subdev = 0, const uint8_t channel = 0);
@@ -154,8 +156,6 @@ class vxsdr::imp {
     bool set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<unsigned> get_tx_filter_length(const uint8_t subdev = 0);
     std::optional<unsigned> get_rx_filter_length(const uint8_t subdev = 0);
-    std::optional<unsigned> get_tx_num_subdevs();
-    std::optional<unsigned> get_rx_num_subdevs();
     bool get_tx_external_lo_enabled(const uint8_t subdev = 0);
     bool get_rx_external_lo_enabled(const uint8_t subdev = 0);
     bool set_tx_external_lo_enabled(const bool enabled, const uint8_t subdev = 0);
@@ -172,6 +172,7 @@ class vxsdr::imp {
     bool set_rx_port(const unsigned port_num, const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<unsigned> get_tx_port(const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<unsigned> get_rx_port(const uint8_t subdev = 0, const uint8_t channel = 0);
+    std::optional<unsigned> get_num_subdevices();
     std::optional<unsigned> get_num_sensors(const uint8_t subdev);
     std::vector<std::string> get_sensor_names(const uint8_t subdev);
     std::optional<double> get_sensor_reading(const std::string& sensor_name, const uint8_t subdev);

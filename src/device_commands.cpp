@@ -326,6 +326,18 @@ bool vxsdr::imp::set_max_payload_bytes(const unsigned max_payload_bytes) {
     return false;
 }
 
+std::optional<unsigned> vxsdr::imp::get_num_subdevices() {
+    header_only_packet p = {};
+    p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_NUM_SUBDEVS, 0, 0, 0, sizeof(p), 0};
+    auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_num_subdevices()");
+    if (res) {
+        auto q  = res.value();
+        auto* r = std::bit_cast<one_uint32_packet*>(&q);
+        return (unsigned)r->value1;
+    }
+    return std::nullopt;
+}
+
 std::optional<unsigned> vxsdr::imp::get_num_sensors(const uint8_t subdev) {
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_NUM_SENSORS, 0, subdev, 0, sizeof(p), 0};

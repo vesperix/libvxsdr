@@ -208,6 +208,14 @@ std::optional<double> vxsdr::get_rx_freq(const uint8_t subdev) {
     return p_imp->get_rx_freq(subdev);
 }
 
+std::optional<double> vxsdr::get_tx_if_freq(const uint8_t subdev) {
+    return p_imp->get_tx_if_freq(subdev);
+}
+
+std::optional<double> vxsdr::get_rx_if_freq(const uint8_t subdev) {
+    return p_imp->get_rx_if_freq(subdev);
+}
+
 std::optional<std::array<double, 2>> vxsdr::get_tx_gain_range(const uint8_t subdev) {
     return p_imp->get_tx_gain_range(subdev);
 }
@@ -368,14 +376,6 @@ std::optional<unsigned> vxsdr::get_rx_filter_length(const uint8_t subdev) {
     return p_imp->get_rx_filter_length(subdev);
 }
 
-std::optional<unsigned> vxsdr::get_tx_num_subdevs() {
-    return p_imp->get_tx_num_subdevs();
-}
-
-std::optional<unsigned> vxsdr::get_rx_num_subdevs() {
-    return p_imp->get_rx_num_subdevs();
-}
-
 bool vxsdr::get_tx_external_lo_enabled(const uint8_t subdev) {
     return p_imp->get_tx_external_lo_enabled(subdev);
 }
@@ -438,6 +438,10 @@ std::optional<unsigned> vxsdr::get_tx_port(const uint8_t subdev, const uint8_t c
 
 std::optional<unsigned> vxsdr::get_rx_port(const uint8_t subdev, const uint8_t channel) {
     return p_imp->get_rx_port(subdev, channel);
+}
+
+std::optional<unsigned> vxsdr::get_num_subdevices() {
+    return p_imp->get_num_subdevices();
 }
 
 std::optional<unsigned> vxsdr::get_num_sensors(const uint8_t subdev) {

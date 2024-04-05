@@ -630,6 +630,8 @@ std::string vxsdr::imp::device_cmd_to_name(const uint8_t cmd) const {
             return "SET_MAX_PAYLOAD";
         case DEVICE_CMD_SAVE_TRANSPORT_ADDR:
             return "SAVE_TRANSPORT_ADDR";
+        case DEVICE_CMD_GET_NUM_SUBDEVS:
+            return "GET_NUM_SUDEVS";
         case DEVICE_CMD_GET_NUM_SENSORS:
             return "GET_NUM_SENSORS";
         case DEVICE_CMD_GET_TIMING_INFO:
@@ -696,6 +698,8 @@ std::string vxsdr::imp::radio_cmd_to_name(const uint8_t cmd) const {
             return "LOOP";
         case RADIO_CMD_GET_RF_FREQ:
             return "GET_RF_FREQ";
+        case RADIO_CMD_GET_IF_FREQ:
+            return "GET_IF_FREQ";
         case RADIO_CMD_GET_RF_GAIN:
             return "GET_RF_GAIN";
         case RADIO_CMD_GET_SAMPLE_RATE:
@@ -730,8 +734,6 @@ std::string vxsdr::imp::radio_cmd_to_name(const uint8_t cmd) const {
             return "SET_LO_INPUT";
         case RADIO_CMD_SET_MASTER_CLK:
             return "SET_MASTER_CLK";
-        case RADIO_CMD_GET_NUM_SUBDEVS:
-            return "GET_NUM_SUBDEVS";
         case RADIO_CMD_GET_RF_FREQ_RANGE:
             return "GET_RF_FREQ_RANGE";
         case RADIO_CMD_GET_RF_GAIN_RANGE:

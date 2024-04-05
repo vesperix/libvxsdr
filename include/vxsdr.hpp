@@ -178,6 +178,11 @@ class VXSDR_LIB_EXPORT vxsdr {
     */
     bool set_max_payload_bytes(const unsigned max_payload_bytes);
 
+    /*!
+      @brief Get the number of subdevices.
+      @returns a std::optional with the number of subdevices
+    */
+    std::optional<unsigned> get_num_subdevices();
 
     /*!
       @brief Get the number of available sensors.
@@ -346,6 +351,20 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param subdev the subdevice number
     */
     bool set_rx_freq(const double freq_hz, const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the transmit intermediate frequency.
+      @returns a std::optional with the intermediate frequency in Hz
+      @param subdev the subdevice number
+    */
+    std::optional<double> get_tx_if_freq(const uint8_t subdev = 0);
+
+    /*!
+      @brief Get the receive intermediate frequency.
+      @returns a std::optional with the intermediate frequency in Hz
+      @param subdev the subdevice number
+    */
+    std::optional<double> get_rx_if_freq(const uint8_t subdev = 0);
 
     /*!
       @brief Get the number of transmit tuning stages.
@@ -670,18 +689,6 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param channel the channel number within the subdevice
     */
     bool set_rx_port(const unsigned port_num, const uint8_t subdev = 0, const uint8_t channel = 0);
-
-    /*!
-      @brief Get the number of transmit subdevices.
-      @returns a std::optional with the number of subdevices
-    */
-    std::optional<unsigned> get_tx_num_subdevs();
-
-    /*!
-      @brief Get the number of receive subdevices.
-      @returns a std::optional with the number of subdevices
-    */
-    std::optional<unsigned> get_rx_num_subdevs();
 
     /*!
       @brief Get the number of transmit channels.

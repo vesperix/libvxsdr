@@ -320,6 +320,30 @@ std::optional<double> vxsdr::imp::get_rx_freq(const uint8_t subdev) {
     return std::nullopt;
 }
 
+std::optional<double> vxsdr::imp::get_tx_if_freq(const uint8_t subdev) {
+    header_only_packet p;
+    p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_IF_FREQ, 0, subdev, 0, sizeof(p), 0};
+    auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_if_freq()");
+    if (res) {
+        auto q  = res.value();
+        auto* r = std::bit_cast<one_double_packet*>(&q);
+        return r->value1;
+    }
+    return std::nullopt;
+}
+
+std::optional<double> vxsdr::imp::get_rx_if_freq(const uint8_t subdev) {
+    header_only_packet p;
+    p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_IF_FREQ, 0, subdev, 0, sizeof(p), 0};
+    auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_if_freq()");
+    if (res) {
+        auto q  = res.value();
+        auto* r = std::bit_cast<one_double_packet*>(&q);
+        return r->value1;
+    }
+    return std::nullopt;
+}
+
 std::optional<unsigned> vxsdr::imp::get_tx_num_freq_stages(const uint8_t subdev) {
     header_only_packet p;
     p.hdr                = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_NUM_RF_FREQ_STAGES, 0, subdev, 0, sizeof(p), 0};
@@ -796,30 +820,6 @@ std::optional<unsigned> vxsdr::imp::get_rx_filter_length(const uint8_t subdev) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_FILTER_LENGTH, 0, subdev, 0, sizeof(p), 0};
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_rx_filter_length()");
-    if (res) {
-        auto q  = res.value();
-        auto* r = std::bit_cast<one_uint32_packet*>(&q);
-        return r->value1;
-    }
-    return std::nullopt;
-}
-
-std::optional<unsigned> vxsdr::imp::get_tx_num_subdevs() {
-    header_only_packet p = {};
-    p.hdr                = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_NUM_SUBDEVS, 0, 0, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_tx_num_subdevs()");
-    if (res) {
-        auto q  = res.value();
-        auto* r = std::bit_cast<one_uint32_packet*>(&q);
-        return r->value1;
-    }
-    return std::nullopt;
-}
-
-std::optional<unsigned> vxsdr::imp::get_rx_num_subdevs() {
-    header_only_packet p = {};
-    p.hdr                = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_NUM_SUBDEVS, 0, 0, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_packet_and_return_response(p, "get_rx_num_ports()");
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_uint32_packet*>(&q);

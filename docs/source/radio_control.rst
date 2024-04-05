@@ -25,6 +25,8 @@ control provided by the functions below.
 .. doxygenfunction:: get_rx_freq
 .. doxygenfunction:: set_tx_freq
 .. doxygenfunction:: set_rx_freq
+.. doxygenfunction:: get_tx_if_freq
+.. doxygenfunction:: get_rx_if_freq
 
 Tuning by Stage
 ^^^^^^^^^^^^^^^
@@ -102,17 +104,9 @@ control provided by the functions below.
 
 Radio Information
 ~~~~~~~~~~~~~~~~~
-Each device or subdevice provides several functions to determine its properties and
+Each subdevice provides several functions to determine its properties and
 its state.
 
-Device level functions:
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenfunction:: get_tx_num_subdevs
-.. doxygenfunction:: get_rx_num_subdevs
-
-Subdevice level functions:
-^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: get_tx_num_channels
 .. doxygenfunction:: get_rx_num_channels
 .. doxygenfunction:: get_tx_stream_state

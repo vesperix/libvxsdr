@@ -59,11 +59,12 @@ local device_cmds = {
     [0x14] = "GET_TIMING_REF",  -- unimplemented
     [0x15] = "SET_TIMING_REF",  -- unimplemented
     [0x16] = "GET_TIMING_RESOLUTION",
-    [0x17] = "GET_NUM_SENSORS",
-    [0x18] = "GET_SENSOR",
-    [0x19] = "GET_SENSOR_NAME",
-    [0x1A] = "GET_CAPABILITIES",
-    -- 0x20-0x2F reserved
+    [0x17] = "GET_NUM_SUBDEVS",
+    [0x18] = "GET_NUM_SENSORS",
+    [0x19] = "GET_SENSOR",
+    [0x1A] = "GET_SENSOR_NAME",
+    [0x1B] = "GET_CAPABILITIES",
+    -- 0x1C-0x3B reserved
     [0x3C] = "APP_UPDATE_MODE_SET",
     [0x3D] = "APP_UPDATE_DATA",
     [0x3E] = "APP_UPDATE_DONE",
@@ -143,7 +144,7 @@ local radio_cmds = {
     [0x15] = "SET_RF_PORT",
     [0x16] = "SET_LO_INPUT", -- unimplemented
     [0x17] = "SET_MASTER_CLK", --unimplemented
-    [0x18] = "GET_NUM_SUBDEVS",
+    [0x18] = "GET_IF_FREQ",
     [0x19] = "GET_RF_FREQ_RANGE",
     [0x1A] = "GET_RF_GAIN_RANGE",
     [0x1B] = "GET_SAMPLE_RATE_RANGE",
@@ -325,9 +326,11 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             if pkt_cmd == device_cmds_index["SET_TIME_NOW"] or pkt_cmd == device_cmds_index["SET_TIME_NEXT_PPS"] then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
-            elseif pkt_cmd == device_cmds_index["GET_NUM_SENSORS"] or
-                   pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] then
-                tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
+            elseif pkt_cmd == device_cmds_index["GET_NUM_SUBDEVS"] or
+                   pkt_cmd == device_cmds_index["GET_NUM_SENSORS"] then
+                tree:add_le(pf_uint32_result, tvbuf( 8, 4))
+            elseif pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] then
+                tree:add_le(pf_string8_name, tvbuf(8, 8))
             end
         -- device command responses
         elseif pkt_type == packet_types_index["DEVICE_CMD_RSP"] then
@@ -428,6 +431,7 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_boolean_data, tvbuf(8, 4))
             -- get freq, gain, or rate
             elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ"] or
+                   pkt_cmd == radio_cmd_rsps_index["GET_IF_FREQ"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ_STAGE"] then
                 tree:add_le(pf_double_freq, tvbuf(8, 8))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN"] or
@@ -455,8 +459,7 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_double_a12, tvbuf(16, 8))
                 tree:add_le(pf_double_a21, tvbuf(24, 8))
                 tree:add_le(pf_double_a22, tvbuf(32, 8))
-            elseif pkt_cmd == radio_cmd_rsps_index["GET_NUM_SUBDEVS"] or
-                   pkt_cmd == radio_cmd_rsps_index["GET_NUM_CHANNELS"] or
+            elseif pkt_cmd == radio_cmd_rsps_index["GET_NUM_CHANNELS"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_NUM_RF_PORTS"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_FILTER_LENGTH"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_NUM_GAIN_STAGES"] or
