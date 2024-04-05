@@ -288,7 +288,7 @@ typedef uint64_t capabilities_t;
 #define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
 
 #define MAX_FRONTEND_FILTER_LENGTH           (16U)
-#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header
+#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
 #define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Timing status return values
