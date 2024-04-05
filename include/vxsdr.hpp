@@ -61,14 +61,18 @@ class VXSDR_LIB_EXPORT vxsdr {
 
   /*!
       @brief Constructor for the @p vxsdr host interface class.
-      @param settings a std::map<std::string, int64_t> containing changes to the default settings; if a setting is not included, it is
-             left at the default value.
-      @details The settings map must include information on how to communicate with the VXSDR device, for example,
-      with UDP transport, the settings map must include the following values, which are not set by default:
-        - udp_command_transport:local_address
-        - udp_command_transport:device_address
-        - udp_data_transport:local_address
-        - udp_data_transport:device_address
+      @param settings a std::map<std::string, int64_t> containing settings for the host interface;
+      some of these settings have defaults, and if a setting is not included in this map, it is
+      left at the default value.
+
+      @details The @p settings map must include information on how to
+      communicate with the VXSDR device; for example, with UDP transport,
+      the settings map must include the following key-value pairs, which are not
+      set by default:
+        - "udp_command_transport:local_address" = ipv4 local address in host order
+        - "udp_command_transport:device_address" = ipv4 device address in host order
+        - "udp_data_transport:local_address" = ipv4 local address in host order
+        - "udp_data_transport:device_address" = ipv4 device address in host order
     */
     explicit vxsdr(const std::map<std::string, int64_t>& settings = {});
 
