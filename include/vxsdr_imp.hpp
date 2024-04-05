@@ -27,7 +27,7 @@ using namespace std::chrono_literals;
 
 class vxsdr::imp {
   private:
-    std::map<std::string, int64_t> default_settings = {
+    std::map<std::string, int64_t> default_config = {
         {"command_transport",             vxsdr::TRANSPORT_TYPE_UDP},
         {"data_transport",                vxsdr::TRANSPORT_TYPE_UDP},
     };
@@ -62,7 +62,7 @@ class vxsdr::imp {
     std::unique_ptr<data_transport>    data_tport{};
 
   public:
-    explicit imp(const std::map<std::string, int64_t>& settings);
+    explicit imp(const std::map<std::string, int64_t>& config);
 
     ~imp() noexcept;
     imp(const imp&)            = delete;
@@ -218,7 +218,7 @@ class vxsdr::imp {
     void duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts);
     void simple_async_message_handler(const command_queue_element& a);
     size_t get_packet_header_size(const packet_header& hdr) const;
-    std::map<std::string, int64_t> apply_settings(const std::map<std::string, int64_t>& settings) const;
+    std::map<std::string, int64_t> apply_config(const std::map<std::string, int64_t>& input_config) const;
     template <typename SampleType> std::span<SampleType> get_packet_data_span(packet& q) const {
         constexpr unsigned packet_header_only_size = sizeof(packet_header);
         constexpr unsigned packet_header_time_size = sizeof(packet_header) + sizeof(time_spec_t);

@@ -8,8 +8,8 @@
     @brief Constructor, destructor, and utility functions for the @p vxsdr class.
 */
 
-vxsdr::vxsdr(const std::map<std::string, int64_t>& settings) {
-    p_imp = std::make_unique<imp>(settings);
+vxsdr::vxsdr(const std::map<std::string, int64_t>& config) {
+    p_imp = std::make_unique<imp>(config);
 }
 
 vxsdr::~vxsdr() noexcept = default;

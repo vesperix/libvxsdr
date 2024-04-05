@@ -21,7 +21,7 @@
     @brief Constructor, destructor, and utility functions for the @p vxsdr_imp class.
 */
 
-vxsdr::imp::imp(const std::map<std::string, int64_t>& settings) {
+vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INIT();
     LOG_DEBUG("vxsdr constructor entered");
 
@@ -31,7 +31,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& settings) {
         LOG_INFO("    {:s}", str);
     }
 
-    auto config = vxsdr::imp::apply_settings(settings);
+    auto config = vxsdr::imp::apply_config(input_config);
 
     if (config["data_transport"] != vxsdr::TRANSPORT_TYPE_UDP or config["command_transport"] != vxsdr::TRANSPORT_TYPE_UDP) {
         LOG_ERROR("the transport specified is not supported");
@@ -813,9 +813,9 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
     return subsys + " " + typstr;
 }
 
-std::map<std::string, int64_t> vxsdr::imp::apply_settings(const std::map<std::string, int64_t>& settings) const {
-    std::map<std::string, int64_t> config = vxsdr::imp::default_settings;
-    for (const auto& s : settings) {
+std::map<std::string, int64_t> vxsdr::imp::apply_config(const std::map<std::string, int64_t>& input_config) const {
+    std::map<std::string, int64_t> config = vxsdr::imp::default_config;
+    for (const auto& s : input_config) {
         if (config.count(s.first) > 0) {
             if (config[s.first] != s.second) {
                 config[s.first] = s.second;

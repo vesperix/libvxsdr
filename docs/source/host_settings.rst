@@ -32,7 +32,7 @@ it is important to identify which processors are the fastest, so that these can
 be used for network processing for data transport.
 
 Processor affinity for these threads is controlled by the following entries in
-the settings map passed to the constructor for the ``vxsdr`` class:
+the configuration map passed to the constructor for the ``vxsdr`` class:
 
 .. highlight:: c++
 .. code-block::
