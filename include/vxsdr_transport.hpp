@@ -281,13 +281,6 @@ class data_transport : public packet_transport {
 
     std::atomic<unsigned> tx_packet_oos_count {0};
 
-    // transmit throttling settings
-    bool use_tx_throttling = true;
-    static constexpr unsigned throttle_hard_percent = 90;
-    static constexpr unsigned throttle_on_percent   = 80;
-    static constexpr unsigned throttle_off_percent  = 60;
-    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
-
   public:
 
     data_transport(const unsigned n_subdevs, const unsigned max_samps_per_packet) :
@@ -470,6 +463,13 @@ class udp_data_transport : public data_transport {
     // threads used for sending and receiving
     vxsdr_thread sender_thread;
     vxsdr_thread receiver_thread;
+
+    // transmit throttling settings
+    bool use_tx_throttling = true;
+    static constexpr unsigned throttle_hard_percent = 90;
+    static constexpr unsigned throttle_on_percent   = 80;
+    static constexpr unsigned throttle_off_percent  = 60;
+    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
 
     // parameters used to monitor status of the radio's internal buffers
     // (on the other end of the network connection) for throttling
