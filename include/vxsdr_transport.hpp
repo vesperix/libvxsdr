@@ -135,15 +135,15 @@ class packet_transport {
         }
         return true;
     }
-    size_t get_packet_header_size(const packet_header& hdr) const {
-        size_t header_size = sizeof(packet_header);
+    size_t get_packet_preamble_size(const packet_header& hdr) const {
+        size_t preamble_size = sizeof(packet_header);
         if ((bool)(hdr.flags & FLAGS_TIME_PRESENT)) {
-            header_size += sizeof(time_spec_t);
+            preamble_size += sizeof(time_spec_t);
         }
         if ((bool)(hdr.flags & FLAGS_STREAM_ID_PRESENT)) {
-            header_size += sizeof(stream_spec_t);
+            preamble_size += sizeof(stream_spec_t);
         }
-        return header_size;
+        return preamble_size;
     };
     std::map<std::string, int64_t> default_settings = {};
     std::string packet_type_to_string(const uint8_t number) const {

@@ -303,9 +303,9 @@ void udp_data_transport::data_receive() {
                     if (recv_buffer.hdr.packet_type == PACKET_TYPE_RX_SIGNAL_DATA) {
                         // check subdevice
                         if (recv_buffer.hdr.subdevice < num_subdevs) {
-                            uint16_t header_size = get_packet_header_size(recv_buffer.hdr);
+                            uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
                             // update sample stats
-                            size_t n_samps = (recv_buffer.hdr.packet_size - header_size) / sizeof(vxsdr::wire_sample);
+                            size_t n_samps = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
@@ -468,7 +468,7 @@ void udp_data_transport::data_send() {
 }
 
 bool udp_data_transport::send_packet(packet& packet) {
-    packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1));
+    packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1UL));
     packet_types_sent.at(packet.hdr.packet_type)++;
 
     net_error_code err;
@@ -494,10 +494,10 @@ bool udp_data_transport::send_packet(packet& packet) {
         return false;
     }
 
-    auto header_size = get_packet_header_size(packet.hdr);
-    if (packet.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA and bytes > header_size) {
-        samples_sent += (bytes - header_size) / sizeof(vxsdr::wire_sample);
-        samples_sent_current_stream += (bytes - header_size) / sizeof(vxsdr::wire_sample);
+    auto preamble_size = get_packet_preamble_size(packet.hdr);
+    if (packet.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA and bytes > preamble_size) {
+        samples_sent += (bytes - preamble_size) / sizeof(vxsdr::wire_sample);
+        samples_sent_current_stream += (bytes - preamble_size) / sizeof(vxsdr::wire_sample);
     }
 
     return true;

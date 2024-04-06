@@ -218,7 +218,6 @@ class vxsdr::imp {
     void time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts);
     void duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts);
     void simple_async_message_handler(const command_queue_element& a);
-    size_t get_packet_header_size(const packet_header& hdr) const;
     std::map<std::string, int64_t> apply_config(const std::map<std::string, int64_t>& input_config) const;
     template <typename SampleType> std::span<SampleType> get_packet_data_span(packet& q) const {
         constexpr unsigned packet_header_only_size = sizeof(packet_header);
