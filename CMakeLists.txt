@@ -67,6 +67,7 @@ if(VXSDR_FETCH_DEPENDENCIES)
     message(STATUS "Downloading and building Boost components; this will take some time...")
     set(BOOST_ENABLE_CMAKE ON)
     if(VXSDR_STANDALONE_ASIO)
+        set(vxsdr_dependency_defs "-DVXSDR_STANDALONE_ASIO")
         set(BOOST_INCLUDE_LIBRARIES "lockfree")
         FetchContent_Declare(
             Boost
@@ -239,6 +240,7 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_build_defs}
                                              ${vxsdr_log_defs}
                                              ${vxsdr_compiler_defs}
+                                             ${vxsdr_dependency_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
 if(VXSDR_STANDALONE_ASIO)
