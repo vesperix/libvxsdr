@@ -14,7 +14,7 @@ Device
 
 The top level of the device model is the VXSDR device, which has the following components:
 
-    * Data and Command Transport
+    * Data and Command Transports
     * Time Reference
     * Frequency Reference
 
@@ -54,7 +54,7 @@ Each subdevice has 0-254 TX channels, and 0-254 RX channels, so transmit-only or
 systems are possible. Each TX or RX channel has the following settings:
 
     * Gain
-    * Bias Correction (TX channels only)
+    * Bias Correction (currently implemented on TX channels only)
     * IQ Correction
     * FIR Filtering (optional, depending on FPGA size)
 
