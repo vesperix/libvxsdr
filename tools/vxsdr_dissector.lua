@@ -473,9 +473,12 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             tree:add_le(pf_uint32_data, tvbuf(12, 4))
         -- tx data acks
         elseif pkt_type == packet_types_index["TX_SIGNAL_DATA_ACK"] then
-            tree:add_le(pf_uint64_data, tvbuf( 8, 8))
+            tree:add_le(pf_uint32_data, tvbuf( 8, 4))
+            tree:add_le(pf_uint32_data, tvbuf(12, 4))
             tree:add_le(pf_uint32_data, tvbuf(16, 4))
             tree:add_le(pf_uint32_data, tvbuf(20, 4))
+            tree:add_le(pf_uint32_data, tvbuf(24, 4))
+            tree:add_le(pf_uint32_data, tvbuf(28, 4))
         end
     end
 end
