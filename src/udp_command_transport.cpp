@@ -27,6 +27,14 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
 
     auto config = packet_transport::apply_transport_settings(settings, default_settings);
 
+    // apply the convenience settings if specific settings are absent
+    if (config.count("udp_transport:local_address") != 0 and config.count("udp_command_transport:local_address") == 0) {
+        config["udp_command_transport:local_address"] = config["udp_transport:local_address"];
+    }
+    if (config.count("udp_transport:device_address") != 0 and config.count("udp_command_transport:device_address") == 0) {
+        config["udp_command_transport:device_address"] = config["udp_transport:device_address"];
+    }
+
     if (config.count("udp_command_transport:local_address") == 0 or config.count("udp_command_transport:device_address") == 0) {
         LOG_ERROR("udp command transport settings must include udp_command_transport:local_address and udp_command_transport:device_address");
         throw std::runtime_error("udp command transport settings must include local address and device address");

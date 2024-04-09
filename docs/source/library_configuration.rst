@@ -11,7 +11,7 @@ to the library when it is created using a ``std::map<std::string, int64_t>`` con
 Most of the options used by the library are set by default, and do not need to be changed in normal operation.
 However, the IPv4 addresses to use for communication with the VXSDR must be set by the user.
 
-There are four IPv4 addresses to be set: the local and device addresses for both the command and data transports.
+There are four IPv4 addresses to be set: the local and device addresses for the command and data transports.
 Normally, the local addresses and the device addresses for both transports are the same, so only two distinct IPv4
 addresses are used; one is the address of the network interface on the host, the other is the address of the
 radio.
@@ -34,10 +34,8 @@ The necessary options can be set in C++ like this:
     uint32_t local_addr = ntohl(inet_addr("192.168.200.201"));
     uint32_t device_addr = ntohl(inet_addr("192.168.200.1"));
     std::map<std::string, int64_t> my_config;
-    my_config["udp_command_transport:local_address"]  = local_addr;
-    my_config["udp_command_transport:device_address"] = device_addr;
-    my_config["udp_data_transport:local_address"]     = local_addr;
-    my_config["udp_data_transport:device_address"]    = device_addr;
+    my_config["udp_transport:local_address"]  = local_addr;
+    my_config["udp_transport:device_address"] = device_addr;
     radio = std::make_unique<vxsdr>(my_config);
 
 In Python, a similar approach is:
@@ -51,8 +49,6 @@ In Python, a similar approach is:
     local_addr = ipaddress.ip_address("192.168.200.201")
     device_addr = ipaddress.ip_address("192.168.200.1")
     my_config = {}
-    my_config["udp_command_transport:local_address"]  = local_addr
-    my_config["udp_command_transport:device_address"] = device_addr
-    my_config["udp_data_transport:local_address"]     = local_addr
-    my_config["udp_data_transport:device_address"]    = device_addr
+    my_config["udp_transport:local_address"]  = local_addr
+    my_config["udp_transport:device_address"] = device_addr
     radio = vxsdr_py.vxsdr_py(my_config)
