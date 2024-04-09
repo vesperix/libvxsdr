@@ -112,9 +112,11 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_SIMPLE(get_num_subdevices, "Get the number of subdevices.")
         // sensors
         PYBIND_DEF_SUBDEV(get_num_sensors, "Get the number of available sensors.")
-        PYBIND_DEF_SUBDEV(get_sensor_names, "Get the names of available sensors.")
+        PYBIND_DEF_ARGS(get_sensor_name, "Get the name of a sensor.",
+                py::arg("sensor_number"),
+                py::arg("subdev") = 0)
         PYBIND_DEF_ARGS(get_sensor_reading, "Get the sensor reading.",
-                py::arg("sensor_name"),
+                py::arg("sensor_number"),
                 py::arg("subdev") = 0)
         // timing
         PYBIND_DEF_SIMPLE(get_time_now, "Get the device time immediately.")

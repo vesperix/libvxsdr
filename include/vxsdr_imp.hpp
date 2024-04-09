@@ -174,8 +174,8 @@ class vxsdr::imp {
     std::optional<unsigned> get_rx_port(const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<unsigned> get_num_subdevices();
     std::optional<unsigned> get_num_sensors(const uint8_t subdev);
-    std::vector<std::string> get_sensor_names(const uint8_t subdev);
-    std::optional<double> get_sensor_reading(const std::string& sensor_name, const uint8_t subdev);
+    std::optional<std::string> get_sensor_name(const unsigned sensor_number, const uint8_t subdev);
+    std::optional<double> get_sensor_reading(const unsigned sensor_number, const uint8_t subdev);
     bool set_tx_enabled(const bool enabled, const uint8_t subdev = 0);
     bool set_rx_enabled(const bool enabled, const uint8_t subdev = 0);
     bool get_tx_enabled(const uint8_t subdev = 0);

@@ -350,32 +350,23 @@ std::optional<unsigned> vxsdr::imp::get_num_sensors(const uint8_t subdev) {
     return std::nullopt;
 }
 
-std::vector<std::string> vxsdr::imp::get_sensor_names(const uint8_t subdev) {
-    constexpr int MAX_NAMES = 64;
-    std::vector<std::string> names;
-    for (int i = 0; i < MAX_NAMES; i++) {
-        one_uint32_packet p = {};
-        p.hdr         = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR_NAME, 0, subdev, 0, sizeof(p), 0};
-        p.value1      = i;
-        auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor_names()");
-        if (res) {
-            auto q  = res.value();
-            auto* r = std::bit_cast<name_packet*>(&q);
-            if (strlen(r->name1) > 0) {
-                names.emplace_back(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
-            }
-        } else {
-            break;
-        }
+std::optional<std::string> vxsdr::imp::get_sensor_name(const unsigned sensor_number, const uint8_t subdev) {
+    one_uint32_packet p = {};
+    p.hdr         = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR_NAME, 0, subdev, 0, sizeof(p), 0};
+    p.value1      = sensor_number;
+    auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor_names()");
+    if (res) {
+        auto q  = res.value();
+        auto* r = std::bit_cast<name_packet*>(&q);
+        return (std::string)r->name1;
     }
-    return names;
+    return std::nullopt;
 }
 
-std::optional<double> vxsdr::imp::get_sensor_reading(const std::string& sensor_name, const uint8_t subdev) {
-    name_packet p = {};
-    p.hdr         = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR, 0, subdev, 0, sizeof(p), 0};
-    strncpy(p.name1, sensor_name.c_str(), MAX_NAME_LENGTH_BYTES - 1);
-    p.name1[MAX_NAME_LENGTH_BYTES - 1] = 0;
+std::optional<double> vxsdr::imp::get_sensor_reading(const unsigned sensor_number, const uint8_t subdev) {
+    one_uint32_packet p = {};
+    p.hdr         = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR_READING, 0, subdev, 0, sizeof(p), 0};
+    p.value1      = sensor_number;
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor_reading()");
     if (res) {
         auto q  = res.value();

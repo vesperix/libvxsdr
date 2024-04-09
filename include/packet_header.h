@@ -141,7 +141,7 @@ typedef uint64_t capabilities_t;
 
 #define DEVICE_CMD_GET_NUM_SUBDEVS           (0x17)
 #define DEVICE_CMD_GET_NUM_SENSORS           (0x18)
-#define DEVICE_CMD_GET_SENSOR                (0x19)  // OPTIONAL
+#define DEVICE_CMD_GET_SENSOR_READING        (0x19)  // OPTIONAL
 #define DEVICE_CMD_GET_SENSOR_NAME           (0x1A)  // OPTIONAL
 #define DEVICE_CMD_GET_CAPABILITIES          (0x1B)
 

@@ -61,7 +61,7 @@ local device_cmds = {
     [0x16] = "GET_TIMING_RESOLUTION",
     [0x17] = "GET_NUM_SUBDEVS",
     [0x18] = "GET_NUM_SENSORS",
-    [0x19] = "GET_SENSOR",
+    [0x19] = "GET_SENSOR_READING",
     [0x1A] = "GET_SENSOR_NAME",
     [0x1B] = "GET_CAPABILITIES",
     -- 0x1C-0x3B reserved
@@ -326,7 +326,7 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             if pkt_cmd == device_cmds_index["SET_TIME_NOW"] or pkt_cmd == device_cmds_index["SET_TIME_NEXT_PPS"] then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
-            elseif pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] then
+            elseif pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] or pkt_cmd == device_cmds_index["GET_SENSOR_READING"] then
                 tree:add_le(pf_uint32_data, tvbuf( 8, 4))
             end
         -- device command responses
@@ -364,6 +364,8 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_uint32_result, tvbuf( 8, 4))
             elseif pkt_cmd == device_cmd_rsps_index["GET_SENSOR_NAME"] then
                 tree:add_le(pf_string16_name, tvbuf(8, 16))
+            elseif pkt_cmd == device_cmd_rsps_index["GET_SENSOR_READING"] then
+                tree:add_le(pf_double_data, tvbuf(8, 16))
             end
         -- device command errors
         elseif pkt_type == packet_types_index["DEVICE_CMD_ERR"] then

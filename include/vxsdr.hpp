@@ -192,19 +192,20 @@ class VXSDR_LIB_EXPORT vxsdr {
     std::optional<unsigned> get_num_sensors(const uint8_t subdev = 0);
 
     /*!
-      @brief Get the names of available sensors.
-      @returns a std::vector of std:strings giving the names
+      @brief Get the name of a sensor.
+      @returns a std::optional with a std:strings giving the name
+      @param sensor_number the sensor number
       @param subdev the subdevice number
     */
-    std::vector<std::string> get_sensor_names(const uint8_t subdev = 0);
+    std::optional<std::string> get_sensor_name(const unsigned sensor_number, const uint8_t subdev = 0);
 
     /*!
       @brief Get the value of a sensor.
       @returns a std::optional with a double giving the sensor reading
-      @param sensor_name the desired sensor name
+      @param sensor_number the desired sensor number
       @param subdev the subdevice number
     */
-    std::optional<double> get_sensor_reading(const std::string& sensor_name, const uint8_t subdev = 0);
+    std::optional<double> get_sensor_reading(const unsigned sensor_number, const uint8_t subdev = 0);
 
     /*!
       @brief Get the device time immediately.

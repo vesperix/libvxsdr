@@ -448,12 +448,12 @@ std::optional<unsigned> vxsdr::get_num_sensors(const uint8_t subdev) {
     return p_imp->get_num_sensors(subdev);
 }
 
-std::vector<std::string> vxsdr::get_sensor_names(const uint8_t subdev) {
-    return p_imp->get_sensor_names(subdev);
+std::optional<std::string> vxsdr::get_sensor_name(const unsigned sensor_number, const uint8_t subdev) {
+    return p_imp->get_sensor_name(sensor_number, subdev);
 }
 
-std::optional<double> vxsdr::get_sensor_reading(const std::string& sensor_name, const uint8_t subdev) {
-    return p_imp->get_sensor_reading(sensor_name, subdev);
+std::optional<double> vxsdr::get_sensor_reading(const unsigned sensor_number, const uint8_t subdev) {
+    return p_imp->get_sensor_reading(sensor_number, subdev);
 }
 
 bool vxsdr::set_tx_enabled(const bool enabled, const uint8_t subdev) {
