@@ -225,7 +225,7 @@ local pf_boolean_data       = ProtoField.new("Boolean Data", "vxsddr.u32_bool_da
 
 local pf_uint32_result      = ProtoField.uint32("vxsdr.u32_result", "Result", base.DEC)
 local pf_uint32_stage       = ProtoField.uint32("vxsdr.u32_stage", "Stage", base.DEC)
-local pf_string8_name       = ProtoField.string("vxsdr.string8_name", "Name", base.ASCII)
+local pf_string16_name      = ProtoField.string("vxsdr.string16_name", "Name", base.ASCII)
 
 local pf_double_rtol        = ProtoField.double("vxsdr.f64_rtol", "Relative Tolerance")
 
@@ -269,7 +269,7 @@ vxsdr.fields = { pf_packet_type, pf_command, pf_flags, pf_target_subdevice, pf_c
                  pf_device_command_rsp, pf_radio_command_rsp, pf_device_error, pf_radio_error, pf_async_msg_type, pf_async_msg_sys,
 --                 pf_flag_ack, pf_flag_time, pf_flag_stream,
                  pf_uint16_data, pf_uint32_data, pf_uint64_data, pf_double_data, pf_boolean_data,
-                 pf_uint32_result, pf_uint32_stage, pf_string8_name,
+                 pf_uint32_result, pf_uint32_stage, pf_string16_name,
                  pf_double_freq, pf_double_rtol,
                  pf_double_gain, pf_double_rate,
                  pf_double_fmin, pf_double_fmax, pf_double_gmin, pf_double_gmax,
@@ -326,11 +326,8 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             if pkt_cmd == device_cmds_index["SET_TIME_NOW"] or pkt_cmd == device_cmds_index["SET_TIME_NEXT_PPS"] then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
-            elseif pkt_cmd == device_cmds_index["GET_NUM_SUBDEVS"] or
-                   pkt_cmd == device_cmds_index["GET_NUM_SENSORS"] then
-                tree:add_le(pf_uint32_result, tvbuf( 8, 4))
             elseif pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] then
-                tree:add_le(pf_string8_name, tvbuf(8, 8))
+                tree:add_le(pf_uint32_data, tvbuf( 8, 4))
             end
         -- device command responses
         elseif pkt_type == packet_types_index["DEVICE_CMD_RSP"] then
@@ -362,6 +359,11 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_uint32_data, tvbuf(20, 4))
                 tree:add_le(pf_uint32_data, tvbuf(24, 4))
                 tree:add_le(pf_uint32_data, tvbuf(28, 4))
+            elseif pkt_cmd == device_cmd_rsps_index["GET_NUM_SUBDEVS"] or
+                   pkt_cmd == device_cmd_rsps_index["GET_NUM_SENSORS"] then
+                tree:add_le(pf_uint32_result, tvbuf( 8, 4))
+            elseif pkt_cmd == device_cmd_rsps_index["GET_SENSOR_NAME"] then
+                tree:add_le(pf_string16_name, tvbuf(8, 16))
             end
         -- device command errors
         elseif pkt_type == packet_types_index["DEVICE_CMD_ERR"] then
@@ -450,7 +452,7 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_double_gmax, tvbuf(16, 8))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_RF_GAIN_STAGE_NAME"] or
                    pkt_cmd == radio_cmd_rsps_index["GET_RF_FREQ_STAGE_NAME"] then
-                tree:add_le(pf_string8_name, tvbuf(8, 8))
+                tree:add_le(pf_string16_name, tvbuf(8, 16))
             elseif pkt_cmd == radio_cmd_rsps_index["GET_IQ_BIAS"] then
                 tree:add_le(pf_double_ibias, tvbuf(8, 8))
                 tree:add_le(pf_double_qbias, tvbuf(16, 8))
