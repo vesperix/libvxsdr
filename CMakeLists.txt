@@ -68,25 +68,28 @@ if(VXSDR_FETCH_DEPENDENCIES)
     set(BOOST_ENABLE_CMAKE ON)
     if(VXSDR_STANDALONE_ASIO)
         set(vxsdr_dependency_defs "-DVXSDR_STANDALONE_ASIO")
-        set(BOOST_INCLUDE_LIBRARIES "lockfree")
-        FetchContent_Declare(
-            Boost
-            GIT_REPOSITORY https://github.com/boostorg/boost.git
-            GIT_TAG        boost-1.83.0
-        )
-        FetchContent_MakeAvailable(Boost)
         FetchContent_Declare(
             asio
             GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
-            GIT_TAG        asio-1-28-1
+            GIT_TAG        asio-1-30-1
+            GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(asio)
-    else()
-        set(BOOST_INCLUDE_LIBRARIES "lockfree;asio")
+        set(BOOST_INCLUDE_LIBRARIES lockfree)
         FetchContent_Declare(
             Boost
             GIT_REPOSITORY https://github.com/boostorg/boost.git
-            GIT_TAG        boost-1.83.0
+            GIT_TAG        boost-1.84.0
+            GIT_SHALLOW TRUE
+        )
+        FetchContent_MakeAvailable(Boost)
+    else()
+        set(BOOST_INCLUDE_LIBRARIES lockfree asio)
+        FetchContent_Declare(
+            Boost
+            GIT_REPOSITORY https://github.com/boostorg/boost.git
+            GIT_TAG        boost-1.84.0
+            GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(Boost)
     endif()
@@ -105,7 +108,8 @@ else()
         FetchContent_Declare(
             spdlog
             GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG        v1.12.0
+            GIT_TAG        v1.13.0
+            GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(spdlog)
     else()
@@ -200,7 +204,8 @@ if(VXSDR_PYTHON_BINDINGS)
         FetchContent_Declare(
             pybind11
             GIT_REPOSITORY https://github.com/pybind/pybind11.git
-            GIT_TAG        v2.11.1
+            GIT_TAG        v2.12
+            GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(pybind11)
     else()
@@ -243,11 +248,18 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_dependency_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
-if(VXSDR_STANDALONE_ASIO)
-    target_include_directories(vxsdr_lib PRIVATE ${asio_SOURCE_DIR}/asio/include)
-    # FIXME: does asio have a better definition?
-    # target_link_libraries(vxsdr_lib INTERFACE asio::asio_header_only)
+
+if(VXSDR_FETCH_DEPENDENCIES)
+    if(VXSDR_STANDALONE_ASIO)
+        target_include_directories(vxsdr_lib PRIVATE ${asio_SOURCE_DIR}/asio/include)
+        # FIXME: does asio have a better definition?
+        # target_link_libraries(vxsdr_lib INTERFACE asio::asio_header_only)
+    else()
+        target_link_libraries(vxsdr_lib PRIVATE Boost::asio)
+    endif()
+    target_link_libraries(vxsdr_lib PRIVATE Boost::lockfree)
 endif()
+
 if(Make_Python_Bindings)
     target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_build_python})
     target_include_directories(vxsdr_lib PRIVATE ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
