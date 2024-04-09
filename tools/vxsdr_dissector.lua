@@ -326,7 +326,9 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
             if pkt_cmd == device_cmds_index["SET_TIME_NOW"] or pkt_cmd == device_cmds_index["SET_TIME_NEXT_PPS"] then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
-            elseif pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] or pkt_cmd == device_cmds_index["GET_SENSOR_READING"] then
+            elseif pkt_cmd == device_cmds_index["GET_SENSOR_NAME"] or
+                   pkt_cmd == device_cmds_index["GET_SENSOR_READING"] or
+                   pkt_cmd == device_cmds_index["SET_MAX_PAYLOAD"] then
                 tree:add_le(pf_uint32_data, tvbuf( 8, 4))
             end
         -- device command responses
@@ -336,6 +338,10 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_uint32_data, tvbuf(12, 4))
                 tree:add_le(pf_uint32_data, tvbuf(16, 4))
                 tree:add_le(pf_uint32_data, tvbuf(20, 4))
+                tree:add_le(pf_uint32_data, tvbuf(24, 4))
+                tree:add_le(pf_uint32_data, tvbuf(28, 4))
+                tree:add_le(pf_uint32_data, tvbuf(32, 4))
+                tree:add_le(pf_uint32_data, tvbuf(36, 4))
             elseif pkt_cmd == device_cmd_rsps_index["GET_TIME"] then
                 tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
@@ -360,12 +366,13 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_uint32_data, tvbuf(24, 4))
                 tree:add_le(pf_uint32_data, tvbuf(28, 4))
             elseif pkt_cmd == device_cmd_rsps_index["GET_NUM_SUBDEVS"] or
-                   pkt_cmd == device_cmd_rsps_index["GET_NUM_SENSORS"] then
+                   pkt_cmd == device_cmd_rsps_index["GET_NUM_SENSORS"] or
+                   pkt_cmd == device_cmd_rsps_index["GET_MAX_PAYLOAD"] then
                 tree:add_le(pf_uint32_result, tvbuf( 8, 4))
             elseif pkt_cmd == device_cmd_rsps_index["GET_SENSOR_NAME"] then
                 tree:add_le(pf_string16_name, tvbuf(8, 16))
             elseif pkt_cmd == device_cmd_rsps_index["GET_SENSOR_READING"] then
-                tree:add_le(pf_double_data, tvbuf(8, 16))
+                tree:add_le(pf_double_data, tvbuf(8, 8))
             end
         -- device command errors
         elseif pkt_type == packet_types_index["DEVICE_CMD_ERR"] then
