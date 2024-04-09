@@ -376,7 +376,7 @@ std::optional<double> vxsdr::imp::get_sensor_reading(const std::string& sensor_n
     p.hdr         = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR, 0, subdev, 0, sizeof(p), 0};
     strncpy(p.name1, sensor_name.c_str(), MAX_NAME_LENGTH_BYTES - 1);
     p.name1[MAX_NAME_LENGTH_BYTES - 1] = 0;
-    auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor()");
+    auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_sensor_reading()");
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_double_packet*>(&q);
