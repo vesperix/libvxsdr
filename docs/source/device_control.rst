@@ -30,7 +30,7 @@ RF power levels. These functions provide information on any available sensors, a
 the sensors.
 
 .. doxygenfunction:: get_num_sensors
-.. doxygenfunction:: get_sensor_names
+.. doxygenfunction:: get_sensor_name
 .. doxygenfunction:: get_sensor_reading
 
 Timing
