@@ -5,15 +5,15 @@
 #define PACKET_HEADER_H
 /*
   VXSDR packet definitions
-  Version 1.0.8 5 Apr 2024
+  Version 1.0.9 9 Apr 2024
 */
 
 #include <stdint.h>
 
-#define PACKET_VERSION_STRING                "1.0.8"
+#define PACKET_VERSION_STRING                "1.0.9"
 #define PACKET_VERSION_MAJOR                 (1)
 #define PACKET_VERSION_MINOR                 (0)
-#define PACKET_VERSION_PATCH                 (8)
+#define PACKET_VERSION_PATCH                 (9)
 
 /*
    The packet header and the elements used to fill it are defined below.
@@ -258,30 +258,30 @@ typedef uint64_t capabilities_t;
 #define STREAM_STATE_TX_WAITING_FLAG         (0x2ULL << 32U)
 
 // Device Capabilities
-#define DEV_CAP_HAS_REF_LOCK_DETECT          (0x0001U)
-#define DEV_CAP_HAS_EXTERNAL_REF             (0x0002U)
-#define DEV_CAP_HAS_EXTERNAL_PPS             (0x0004U)
-#define DEV_CAP_HAS_TEMP_MEASURE             (0x0008U)
-#define DEV_CAP_HAS_DC_POWER_MEASURE         (0x0010U)
-#define DEV_CAP_HAS_GPIO                     (0x0020U)
+#define DEV_CAP_HAS_REF_LOCK_DETECT          (0x0001ULL)
+#define DEV_CAP_HAS_EXTERNAL_REF             (0x0002ULL)
+#define DEV_CAP_HAS_EXTERNAL_PPS             (0x0004ULL)
+#define DEV_CAP_HAS_TEMP_MEASURE             (0x0008ULL)
+#define DEV_CAP_HAS_DC_POWER_MEASURE         (0x0010ULL)
+#define DEV_CAP_HAS_GPIO                     (0x0020ULL)
 
 // Radio Capabilities
-#define RADIO_CAP_HAS_TUNING                 (0x0001U)
-#define RADIO_CAP_HAS_MANUAL_GAIN            (0x0002U)
-#define RADIO_CAP_HAS_AUTO_GAIN              (0x0004U)
-#define RADIO_CAP_HAS_ADJUSTABLE_RF_BW       (0x0008U)
-#define RADIO_CAP_HAS_ADJUSTABLE_IF_BW       (0x0010U)
-#define RADIO_CAP_HAS_SYNTH_LOCK_DETECT      (0x0020U)
-#define RADIO_CAP_HAS_EXTERNAL_LO_INPUT      (0x0040U)
-#define RADIO_CAP_HAS_LIMITER                (0x0080U)
-#define RADIO_CAP_HAS_LIMIT_DETECT           (0x0100U)
-#define RADIO_CAP_HAS_MANUAL_IQ_BIAS_CORR    (0x0200U)
-#define RADIO_CAP_HAS_MANUAL_IQ_BALANCE_CORR (0x0400U)
-#define RADIO_CAP_HAS_AUTO_IQ_BIAS_CORR      (0x0800U)
-#define RADIO_CAP_HAS_AUTO_IQ_BALANCE_CORR   (0x1000U)
-#define RADIO_CAP_HAS_TEMP_MEASURE           (0x2000U)
-#define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000U)
-#define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000U)
+#define RADIO_CAP_HAS_TUNING                 (0x0001ULL)
+#define RADIO_CAP_HAS_MANUAL_GAIN            (0x0002ULL)
+#define RADIO_CAP_HAS_AUTO_GAIN              (0x0004ULL)
+#define RADIO_CAP_HAS_ADJUSTABLE_RF_BW       (0x0008ULL)
+#define RADIO_CAP_HAS_ADJUSTABLE_IF_BW       (0x0010ULL)
+#define RADIO_CAP_HAS_SYNTH_LOCK_DETECT      (0x0020ULL)
+#define RADIO_CAP_HAS_EXTERNAL_LO_INPUT      (0x0040ULL)
+#define RADIO_CAP_HAS_LIMITER                (0x0080ULL)
+#define RADIO_CAP_HAS_LIMIT_DETECT           (0x0100ULL)
+#define RADIO_CAP_HAS_MANUAL_IQ_BIAS_CORR    (0x0200ULL)
+#define RADIO_CAP_HAS_MANUAL_IQ_BALANCE_CORR (0x0400ULL)
+#define RADIO_CAP_HAS_AUTO_IQ_BIAS_CORR      (0x0800ULL)
+#define RADIO_CAP_HAS_AUTO_IQ_BALANCE_CORR   (0x1000ULL)
+#define RADIO_CAP_HAS_TEMP_MEASURE           (0x2000ULL)
+#define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000ULL)
+#define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000ULL)
 
 #define MAX_DATA_LENGTH_SAMPLES              (2048UL)
 #define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
@@ -292,15 +292,14 @@ typedef uint64_t capabilities_t;
 #define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Timing status return values
-#define TIMING_STATUS_EXT_PPS_LOCK       (0x00000001U)
-#define TIMING_STATUS_EXT_10MHZ_LOCK     (0x00000002U)
-#define TIMING_STATUS_REF_OSC_LOCK       (0x00000004U)
+#define TIMING_STATUS_EXT_PPS_LOCK         (0x00000001U)
+#define TIMING_STATUS_EXT_10MHZ_LOCK       (0x00000002U)
+#define TIMING_STATUS_REF_OSC_LOCK         (0x00000004U)
 
-#define MAX_FRONTEND_FILTER_LENGTH           (16U)
-#define MAX_NAME_LENGTH_BYTES                (8)  // maximum length of a name (sensors, gains stages) including terminating null
+#define MAX_NAME_LENGTH_BYTES                      (16U)  // maximum length of a name (sensors, gains stages) including terminating null
 
-#define VXSDR_ALL_SUBDEVICES                 (0xFF)
-#define VXSDR_ALL_CHANNELS                   (0xFF)
+#define VXSDR_ALL_SUBDEVICES                      (0xFF)
+#define VXSDR_ALL_CHANNELS                        (0xFF)
 
 #ifdef __cplusplus
 #define VXSDR_CHECK_SIZE_EQUALS(x, n)     static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
