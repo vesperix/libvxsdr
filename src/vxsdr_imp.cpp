@@ -204,11 +204,6 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         }
     }
 
-    if (not data_tport->rx_usable()) {
-        LOG_ERROR("data transport rx is not usable in get_rx_data()");
-        return 0;
-    }
-
     data.reserve(n_requested);
 
     LOG_DEBUG("receiving {:d} samples from subdevice {:d}", n_requested, subdev);

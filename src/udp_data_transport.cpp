@@ -316,6 +316,10 @@ void udp_data_transport::data_receive() {
                             size_t n_samps = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
+                            if (samples_expected_rx_stream > 0 and samples_received_current_stream > samples_expected_rx_stream ) {
+                                LOG_WARN("more samples received than expected in udp data rx (received {:d} expected {:d})",
+                                          samples_received_current_stream, samples_expected_rx_stream);
+                            }
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("error pushing to data queue in udp data rx (subdevice {:d} sample {:d})",
@@ -506,6 +510,10 @@ bool udp_data_transport::send_packet(packet& packet) {
     if (packet.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA and bytes > preamble_size) {
         samples_sent += (bytes - preamble_size) / sizeof(vxsdr::wire_sample);
         samples_sent_current_stream += (bytes - preamble_size) / sizeof(vxsdr::wire_sample);
+        if (samples_expected_tx_stream > 0 and samples_sent_current_stream > samples_expected_tx_stream) {
+            LOG_WARN("more samples sent than expected in udp data tx (sent {:d} expected {:d})",
+                        samples_sent_current_stream, samples_expected_tx_stream);
+        }
     }
 
     return true;

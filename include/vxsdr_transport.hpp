@@ -108,7 +108,7 @@ class packet_transport {
     bool reset_rx() {
         if (rx_state == TRANSPORT_UNINITIALIZED or
             rx_state == TRANSPORT_SHUTDOWN) {
-            LOG_ERROR("reset rx stream failed: state is {:s}", transport_state_to_string(rx_state));
+            LOG_ERROR("reset rx failed: state is {:s}", transport_state_to_string(rx_state));
             return false;
         }
         rx_state = TRANSPORT_READY;
@@ -123,7 +123,7 @@ class packet_transport {
     bool reset_tx() {
         if (tx_state == TRANSPORT_UNINITIALIZED or
             tx_state == TRANSPORT_SHUTDOWN) {
-            LOG_ERROR("reset tx stream failed: state is {:s}", transport_state_to_string(tx_state));
+            LOG_ERROR("reset tx failed: state is {:s}", transport_state_to_string(tx_state));
             return false;
         }
         tx_state = TRANSPORT_READY;
@@ -267,8 +267,8 @@ class data_transport : public packet_transport {
     unsigned num_subdevs;
     unsigned max_samples_per_packet;
     // number of samples in current stream (0 if continuous)
-    uint64_t desired_tx_stream_samples = 0;
-    uint64_t desired_rx_stream_samples = 0;
+    uint64_t samples_expected_tx_stream = 0;
+    uint64_t samples_expected_rx_stream = 0;
 
     // statistics in addition to those in packet_transport
     uint64_t samples_sent                = 0;
@@ -348,7 +348,7 @@ class data_transport : public packet_transport {
         return true;
     }
 
-    bool reset_tx(const uint64_t n_samples_desired) {
+    bool reset_tx() {
         if (not packet_transport::reset_tx()) {
             return false;
         }
@@ -359,9 +359,9 @@ class data_transport : public packet_transport {
         return true;
     }
 
-    bool reset_rx_stream(const uint64_t n_samples_desired) {
+    bool reset_rx_stream(const uint64_t n_samples_expected) {
         LOG_DEBUG("reset rx stream started");
-        desired_rx_stream_samples       = n_samples_desired;
+        samples_expected_rx_stream      = n_samples_expected;
         sequence_errors_current_stream  = 0;
         samples_received_current_stream = 0;
         for (unsigned i = 0; i < num_subdevs; i++) {
@@ -372,9 +372,9 @@ class data_transport : public packet_transport {
         return true;
     }
 
-    bool reset_tx_stream(const uint64_t n_samples_desired) {
+    bool reset_tx_stream(const uint64_t n_samples_expected) {
         LOG_DEBUG("reset tx stream started");
-        desired_tx_stream_samples   = n_samples_desired;
+        samples_expected_tx_stream  = n_samples_expected;
         send_errors_current_stream  = 0;
         samples_sent_current_stream = 0;
         tx_data_queue->reset();
