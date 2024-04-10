@@ -96,7 +96,7 @@ bool vxsdr::imp::tx_loop(const vxsdr::time_point& t,
                               vxsdr::imp::stream_state_to_string(res.value()));
         return false;
     }
-    vxsdr::imp::data_tport->reset_tx_stream(n);
+    vxsdr::imp::data_tport->reset_tx_stream(n * n_repeat);
     loop_packet p{};
     p.hdr = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_LOOP, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
@@ -129,7 +129,7 @@ bool vxsdr::imp::rx_loop(const vxsdr::time_point& t,
         LOG_ERROR("rx stream state is {:s} in rx_loop()", vxsdr::imp::stream_state_to_string(res.value()));
         return false;
     }
-    vxsdr::imp::data_tport->reset_rx_stream(n);
+    vxsdr::imp::data_tport->reset_rx_stream(n * n_repeat);
     loop_packet p{};
     p.hdr = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_LOOP, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
