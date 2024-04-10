@@ -46,6 +46,16 @@ the stage settings produce the desired frequency.
 .. doxygenfunction:: set_tx_freq_stage
 .. doxygenfunction:: set_rx_freq_stage
 
+External LO
+^^^^^^^^^^^
+Each subdevice may allow selection of an external LO,
+allowing phase synchronization across many devices.
+
+.. doxygenfunction:: get_tx_external_lo_enabled
+.. doxygenfunction:: get_rx_external_lo_enabled
+.. doxygenfunction:: set_tx_external_lo_enabled
+.. doxygenfunction:: set_rx_external_lo_enabled
+
 Gain Control
 ~~~~~~~~~~~~
 Each channel may have an adjustable gain, with information and
@@ -114,18 +124,29 @@ its state.
 .. doxygenfunction:: get_tx_lo_locked
 .. doxygenfunction:: get_rx_lo_locked
 
-External LO
-~~~~~~~~~~~
-Each subdevice may allow selection of an external LO,
-allowing phase synchronization across many devices.
+IQ Corrections and Filtering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. doxygenfunction:: get_tx_external_lo_enabled
-.. doxygenfunction:: get_rx_external_lo_enabled
-.. doxygenfunction:: set_tx_external_lo_enabled
-.. doxygenfunction:: set_rx_external_lo_enabled
+Corrections
+^^^^^^^^^^^
+Each channel may allow manual adjustment of IQ bias, which provides control
+of LO feedthrough. On current devices, this adjustment is only enabled for the tx.
+
+.. doxygenfunction:: get_tx_iq_bias
+.. doxygenfunction:: get_rx_iq_bias
+.. doxygenfunction:: set_tx_iq_bias
+.. doxygenfunction:: set_rx_iq_bias
+
+Each channel may also allow manual correction of IQ amplitude and phase imbalance,
+which provides control of image rejection.
+
+.. doxygenfunction:: get_tx_iq_corr
+.. doxygenfunction:: get_rx_iq_corr
+.. doxygenfunction:: set_tx_iq_corr
+.. doxygenfunction:: set_rx_iq_corr
 
 Digital Filters
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 Each channel may have a complex FIR filter which operates at
 the master clock rate for equalization, fractional delay, or other
 purposes.
@@ -144,18 +165,3 @@ The coefficients of the filters may differ across channels.
 .. doxygenfunction:: get_rx_filter_coeffs
 .. doxygenfunction:: set_tx_filter_coeffs
 .. doxygenfunction:: set_rx_filter_coeffs
-
-Corrections
-~~~~~~~~~~~
-Each channel may allow manual adjustment of IQ bias, which provides control
-of LO feedthrough, and manual correction of IQ amplitude and phase imbalance,
-which provides control of image rejection.
-
-.. doxygenfunction:: get_tx_iq_bias
-.. doxygenfunction:: get_rx_iq_bias
-.. doxygenfunction:: set_tx_iq_bias
-.. doxygenfunction:: set_rx_iq_bias
-.. doxygenfunction:: get_tx_iq_corr
-.. doxygenfunction:: get_rx_iq_corr
-.. doxygenfunction:: set_tx_iq_corr
-.. doxygenfunction:: set_rx_iq_corr

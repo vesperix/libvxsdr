@@ -62,32 +62,23 @@ class VXSDR_LIB_EXPORT vxsdr {
   /*!
       @brief Constructor for the @p vxsdr host interface class.
       @param config a std::map<std::string, int64_t> containing configuration settings for the host interface;
-      some of these settings have defaults, and if a setting is not included in this map, it is left at the default value.
+      if a setting is not included in this map, it is left at the default value.
 
       @details The @p config map must include information on how to
       communicate with the VXSDR device; for example, with UDP transport,
       the settings map must include the following key-value pairs, which are not
       set by default:
-        - "udp_command_transport:local_address" = ipv4 local address in host order
-        - "udp_command_transport:device_address" = ipv4 device address in host order
-        - "udp_data_transport:local_address" = ipv4 local address in host order
-        - "udp_data_transport:device_address" = ipv4 device address in host order
+        - "udp_transport:local_address" = ipv4 local address in host order
+        - "udp_transport:device_address" = ipv4 device address in host order
     */
     explicit vxsdr(const std::map<std::string, int64_t>& config = {});
 
     //! Destructor for the vxsdr host interface class.
     ~vxsdr() noexcept;
 
-    //! @brief Deleted copy constructor for the @p vxsdr host interface class.
     vxsdr(const vxsdr&) = delete;
-
-    //! @brief Deleted copy assignment for the @p vxsdr host interface class.
     vxsdr& operator=(const vxsdr&) = delete;
-
-    //! @brief Deleted move constructor for the @p vxsdr host interface class.
     vxsdr(vxsdr&&) = delete;
-
-    //! @brief Deleted move assignment for the @p vxsdr host interface class.
     vxsdr& operator=(vxsdr&&) = delete;
 
     /*!
