@@ -298,9 +298,10 @@ typedef uint64_t capabilities_t;
 
 // Wire sample types
 #define SAMPLE_TYPE_REAL                     (0x00000000)
-#define SAMPLE_TYPE_COMPLEX                  (0x00010000)
+#define SAMPLE_TYPE_COMPLEX                  (0x10000000)
 #define SAMPLE_FORMAT_INT                    (0x00000000)
 #define SAMPLE_FORMAT_FLOAT                  (0x01000000)
+#define SAMPLE_LENGTH_MASK                   (0x000000FF)
 #define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   |  8UL)
 #define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 12UL)
 #define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 16UL)
