@@ -5,15 +5,15 @@
 #define PACKET_HEADER_H
 /*
   VXSDR packet definitions
-  Version 1.0.9 9 Apr 2024
+  Version 1.0.10 11 Apr 2024
 */
 
 #include <stdint.h>
 
-#define PACKET_VERSION_STRING                "1.0.9"
+#define PACKET_VERSION_STRING                "1.0.10"
 #define PACKET_VERSION_MAJOR                 (1)
 #define PACKET_VERSION_MINOR                 (0)
-#define PACKET_VERSION_PATCH                 (9)
+#define PACKET_VERSION_PATCH                 (10)
 
 /*
    The packet header and the elements used to fill it are defined below.
@@ -283,7 +283,12 @@ typedef uint64_t capabilities_t;
 #define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000ULL)
 #define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000ULL)
 
-#define MAX_DATA_LENGTH_SAMPLES              (2048UL)
+#define VXSDR_ALL_SUBDEVICES                      (0xFF)
+#define VXSDR_ALL_CHANNELS                        (0xFF)
+
+#define MAX_NAME_LENGTH_BYTES                      (16U)  // maximum length of a name (sensors, gains stages) including terminating null
+
+#define MAX_DATA_LENGTH_SAMPLES                 (2048UL)
 #define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
 #define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
 
@@ -291,15 +296,28 @@ typedef uint64_t capabilities_t;
 #define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
 #define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
+// Wire sample types
+#define SAMPLE_TYPE_REAL_I8                  (0x00000008)
+#define SAMPLE_TYPE_REAL_I12                 (0x0000000C)
+#define SAMPLE_TYPE_REAL_I16                 (0x00000010)
+#define SAMPLE_TYPE_REAL_I20                 (0x00000014)
+#define SAMPLE_TYPE_REAL_I24                 (0x00000018)
+#define SAMPLE_TYPE_REAL_I32                 (0x00000020)
+#define SAMPLE_TYPE_REAL_F32                 (0x01000020)
+#define SAMPLE_TYPE_REAL_F64                 (0x01000040)
+#define SAMPLE_TYPE_COMPLEX_I8               (0x00010008)
+#define SAMPLE_TYPE_COMPLEX_I12              (0x0001000C)
+#define SAMPLE_TYPE_COMPLEX_I16              (0x00010010)
+#define SAMPLE_TYPE_COMPLEX_I20              (0x00010014)
+#define SAMPLE_TYPE_COMPLEX_I24              (0x00010018)
+#define SAMPLE_TYPE_COMPLEX_I32              (0x00010020)
+#define SAMPLE_TYPE_COMPLEX_F32              (0x01010020)
+#define SAMPLE_TYPE_COMPLEX_F64              (0x01010040)
+
 // Timing status return values
-#define TIMING_STATUS_EXT_PPS_LOCK         (0x00000001U)
-#define TIMING_STATUS_EXT_10MHZ_LOCK       (0x00000002U)
-#define TIMING_STATUS_REF_OSC_LOCK         (0x00000004U)
-
-#define MAX_NAME_LENGTH_BYTES                      (16U)  // maximum length of a name (sensors, gains stages) including terminating null
-
-#define VXSDR_ALL_SUBDEVICES                      (0xFF)
-#define VXSDR_ALL_CHANNELS                        (0xFF)
+#define TIMING_STATUS_EXT_PPS_LOCK          (0x00000001U)
+#define TIMING_STATUS_EXT_10MHZ_LOCK        (0x00000002U)
+#define TIMING_STATUS_REF_OSC_LOCK          (0x00000004U)
 
 #ifdef __cplusplus
 #define VXSDR_CHECK_SIZE_EQUALS(x, n)     static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)

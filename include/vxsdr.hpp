@@ -107,7 +107,7 @@ class VXSDR_LIB_EXPORT vxsdr {
           - MCU code version,
           - device serial number,
           - packet version supported,
-          - device status,
+          - wire sample data format,
           - number of subdevices,
           - maximum data payload in bytes
     */
