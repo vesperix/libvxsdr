@@ -14,7 +14,7 @@ When the library builds correctly and passes testing with VXSDR devices on a
 new host OS, we will update the build settings below and remove the "experimental" notation.
 
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
-system version 3.16 or higher are required to build the VXSDR host library. (The C++20
+system version 3.16 or higher, are required to build the VXSDR host library. (The C++20
 requirement can currently be satisfied by gcc 11 or later, or by clang 14 or later;
 we do not now require all of the features introduced in C++20.)
 
@@ -65,7 +65,7 @@ running the initial CMake configure step (``cmake -B build``) with the option
 Fetching dependencies allows the build to use newer versions than
 are provided by the distribution, and ensures that known versions are used in the build.
 However, the build takes longer and all the dependencies are downloaded as source, which is
-generally larger than a binary package..
+generally larger than a binary package.
 
 We recommend trying this approach for distributions other than Debian-based
 (which should use the method shown for Ubuntu) and Red Hat-based (which should use the
