@@ -68,11 +68,12 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         LOG_WARN("library packet version is {:s}, device packet version is {:s}",
                 vxsdr::imp::version_number_to_string(get_library_packet_version()), vxsdr::imp::version_number_to_string(res->at(4)));
     }
-    LOG_INFO("   device status: {:d}", res->at(5));
+    LOG_INFO("   sample format: {:d}", res->at(5));
     LOG_INFO("   number of subdevices: {:d}", res->at(6));
     LOG_INFO("   maximum data payload bytes: {:d}", res->at(7));
 
-    // data transport constructor needs to know the number of subdevices and  maximum samples_per_packet
+    // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
+    unsigned sample_granularity = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
     unsigned num_subdevs = res->at(6);
     unsigned max_samps_per_packet = max_samples_per_packet<vxsdr::wire_sample>(res->at(7));
 
@@ -85,7 +86,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         throw std::runtime_error("error clearing status in vxsdr constructor");
     }
 
-    data_tport = std::make_unique<udp_data_transport>(config, num_subdevs, max_samps_per_packet);
+    data_tport = std::make_unique<udp_data_transport>(config, sample_granularity, num_subdevs, max_samps_per_packet);
 
     start_time = std::chrono::steady_clock::now();
     while (data_tport->tx_state != packet_transport::TRANSPORT_READY and

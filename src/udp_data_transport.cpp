@@ -21,9 +21,10 @@
 */
 
 udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& settings,
+                                       const unsigned granularity,
                                        const unsigned n_subdevs,
                                        const unsigned max_samps_per_packet)
-        : data_transport(n_subdevs, max_samps_per_packet),
+        : data_transport(granularity, n_subdevs, max_samps_per_packet),
           sender_socket(context, net::ip::udp::v4()),
           receiver_socket(context, net::ip::udp::v4()) {
     LOG_DEBUG("udp data transport constructor entered");

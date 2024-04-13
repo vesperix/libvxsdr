@@ -264,6 +264,7 @@ class command_transport : public packet_transport {
 
 class data_transport : public packet_transport {
   protected:
+    unsigned sample_granularity;
     unsigned num_subdevs;
     unsigned max_samples_per_packet;
     // number of samples in current stream (0 if continuous)
@@ -283,8 +284,8 @@ class data_transport : public packet_transport {
 
   public:
 
-    data_transport(const unsigned n_subdevs, const unsigned max_samps_per_packet) :
-                num_subdevs(n_subdevs), max_samples_per_packet(max_samps_per_packet)  {};
+    data_transport(const unsigned granularity, const unsigned n_subdevs, const unsigned max_samps_per_packet) :
+                sample_granularity(granularity), num_subdevs(n_subdevs), max_samples_per_packet(max_samps_per_packet)  {};
 
     virtual ~data_transport() = default;
 
@@ -479,6 +480,7 @@ class udp_data_transport : public data_transport {
 
   public:
     explicit udp_data_transport(const std::map<std::string, int64_t>& settings,
+                                const unsigned granularity,
                                 const unsigned n_subdevs,
                                 const unsigned max_samps_per_packet);
     ~udp_data_transport() noexcept;
