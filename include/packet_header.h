@@ -5,15 +5,15 @@
 #define PACKET_HEADER_H
 /*
   VXSDR packet definitions
-  Version 1.0.10 11 Apr 2024
+  Version 1.0.11 12 Apr 2024
 */
 
 #include <stdint.h>
 
-#define PACKET_VERSION_STRING                "1.0.10"
+#define PACKET_VERSION_STRING                "1.0.11"
 #define PACKET_VERSION_MAJOR                 (1)
 #define PACKET_VERSION_MINOR                 (0)
-#define PACKET_VERSION_PATCH                 (10)
+#define PACKET_VERSION_PATCH                 (11)
 
 /*
    The packet header and the elements used to fill it are defined below.
@@ -283,8 +283,8 @@ typedef uint64_t capabilities_t;
 #define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000ULL)
 #define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000ULL)
 
-#define VXSDR_ALL_SUBDEVICES                      (0xFF)
-#define VXSDR_ALL_CHANNELS                        (0xFF)
+#define VXSDR_ALL_SUBDEVICES                      (0xFFU)
+#define VXSDR_ALL_CHANNELS                        (0xFFU)
 
 #define MAX_NAME_LENGTH_BYTES                      (16U)  // maximum length of a name (sensors, gains stages) including terminating null
 
@@ -297,29 +297,31 @@ typedef uint64_t capabilities_t;
 #define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Wire sample types
-#define SAMPLE_TYPE_REAL                     (0x00000000)
-#define SAMPLE_TYPE_COMPLEX                  (0x10000000)
-#define SAMPLE_FORMAT_INT                    (0x00000000)
-#define SAMPLE_FORMAT_FLOAT                  (0x01000000)
-#define SAMPLE_LENGTH_MASK                   (0x000000FF)
-#define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   |  8UL)
-#define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 12UL)
-#define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 16UL)
-#define SAMPLE_TYPE_REAL_I20                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 20UL)
-#define SAMPLE_TYPE_REAL_I24                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 24UL)
-#define SAMPLE_TYPE_REAL_I32                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | 32UL)
-#define SAMPLE_TYPE_REAL_F16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | 16UL)
-#define SAMPLE_TYPE_REAL_F32                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | 32UL)
-#define SAMPLE_TYPE_REAL_F64                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | 64UL)
-#define SAMPLE_TYPE_COMPLEX_I8               (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   |  8UL)
-#define SAMPLE_TYPE_COMPLEX_I12              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | 12UL)
-#define SAMPLE_TYPE_COMPLEX_I16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | 16UL)
-#define SAMPLE_TYPE_COMPLEX_I20              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | 20UL)
-#define SAMPLE_TYPE_COMPLEX_I24              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | 24UL)
-#define SAMPLE_TYPE_COMPLEX_I32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | 32UL)
-#define SAMPLE_TYPE_COMPLEX_F16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | 16UL)
-#define SAMPLE_TYPE_COMPLEX_F32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | 32UL)
-#define SAMPLE_TYPE_COMPLEX_F64              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | 64UL)
+#define SAMPLE_TYPE_REAL                     (0x00000000UL)
+#define SAMPLE_TYPE_COMPLEX                  (0x00000100UL)
+#define SAMPLE_FORMAT_INT                    (0x00000000UL)
+#define SAMPLE_FORMAT_FLOAT                  (0x00000200UL)
+#define SAMPLE_LENGTH_MASK                   (0x000000FFUL)
+#define SAMPLE_GRANULARITY_MASK              (0xFF000000UL)
+#define SAMPLE_GRANULARITY_SHIFT                      (24U)
+#define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK &  8UL))
+#define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 12UL))
+#define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_REAL_I20                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 20UL))
+#define SAMPLE_TYPE_REAL_I24                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 24UL))
+#define SAMPLE_TYPE_REAL_I32                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_REAL_F16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_REAL_F32                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_REAL_F64                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 64UL))
+#define SAMPLE_TYPE_COMPLEX_I8               (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK &  8UL))
+#define SAMPLE_TYPE_COMPLEX_I12              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 12UL))
+#define SAMPLE_TYPE_COMPLEX_I16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_COMPLEX_I20              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 20UL))
+#define SAMPLE_TYPE_COMPLEX_I24              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 24UL))
+#define SAMPLE_TYPE_COMPLEX_I32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_COMPLEX_F16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_COMPLEX_F32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_COMPLEX_F64              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 64UL))
 
 // Timing status return values
 #define TIMING_STATUS_EXT_PPS_LOCK          (0x00000001U)
