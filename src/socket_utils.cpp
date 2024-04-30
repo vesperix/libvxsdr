@@ -4,8 +4,9 @@
 #include "vxsdr_net.hpp"
 
 #ifdef VXSDR_TARGET_LINUX
+#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/ip.h>
+#include <netinet/in.h>
 
 int get_socket_mtu(net::ip::udp::socket& sock) {
     int mtu = 0;
@@ -19,8 +20,8 @@ int get_socket_mtu(net::ip::udp::socket& sock) {
 }
 
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
+    // for UDP sockets, this just forces the DNF flag to be set; does not do discovery
     int val = IP_PMTUDISC_DO;
-    // FIXME: test this
     return setsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU_DISCOVER, (void *)&val, sizeof(val));
 }
 
@@ -43,7 +44,7 @@ int get_socket_mtu(net::ip::udp::socket& sock) {
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
     int val = 1;
     // FIXME: test this
-    return setsockopt(sock.native_handle(), IPPROTO_IP, IP_DONTFRAG, (char *)&val, sizeof(val));
+    return setsockopt(sock.native_handle(), IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val));
 }
 
 #endif  // VXSDR_TARGET_WINDOWS
@@ -66,9 +67,12 @@ int get_socket_mtu(net::ip::udp::socket& sock) {
 }
 
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
+    // FIXME: new in macOS 12: check
+    nw_ip_options_set_disable_fragmentation(nw_protocol_options_t options, true);
+
     int val = 1;
     // FIXME: test this
-    return setsockopt(sock.native_handle(), IPPROTO_IP, IP_DONTFRAG, (void *)&val, sizeof(val));
+    return setsockopt(sock.native_handle(), IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val));
 }
 
 #endif  // VXSDR_TARGET_MACOS

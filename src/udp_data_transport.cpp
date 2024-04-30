@@ -10,6 +10,7 @@
 #include <cstdint>
 
 #include "logging.hpp"
+#include "socket_utils.hpp"
 #include "thread_utils.hpp"
 #include "vxsdr_imp.hpp"
 #include "vxsdr_packets.hpp"
@@ -89,6 +90,12 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     if (err) {
         LOG_ERROR("error connecting udp data sender socket to device address {:s} ({:s})", device_ip.to_string(), err.message());
         throw std::runtime_error("error connecting udp data sender socket to device address " + device_ip.to_string());
+    }
+
+    LOG_DEBUG("setting do-not-fragment flag for udp data sender socket");
+    if (set_socket_dontfrag(sender_socket)) {
+        LOG_ERROR("error setting do-not-fragment flag for udp data sender socket");
+        throw std::runtime_error("error setting do-not-fragment flag for udp data sender socket");
     }
 
     LOG_DEBUG("connecting udp data receiver socket to address {:s} port {:d}", device_ip.to_string(), udp_device_data_send_port);
