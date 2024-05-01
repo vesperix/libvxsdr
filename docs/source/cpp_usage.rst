@@ -20,7 +20,7 @@ value to indicate an error return. For example, an old-fashioned C or C++ interf
 .. highlight:: c++
 .. code-block::
 
-    double freq = radio->get_rx_freq_old();
+    double freq = radio->get_rx_freq_old_fashioned();
     if (freq >= 0.0) {
         // use the result
         do_something(freq);
@@ -63,6 +63,5 @@ For those nostalgic for earlier idioms, it's possible to use the ``value_or()`` 
         // error occurred
     }
 
-We recommend using the modern approach; ``std::optional`` is not perfect, but it does
-provide a uniform way of handling errors without worrying about keeping track of
-which "flag" value applies to each function.
+This is almost self-documenting since the "flag" value is visible in ``value_or``.
+Either way works, but we recommend using the modern approach.
