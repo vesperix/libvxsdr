@@ -106,14 +106,16 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     LOG_DEBUG("checking mtu for udp data sender socket");
+    // the size returned is an estimate, so this check is not a guarantee
     auto mtu_est = get_socket_mtu(sender_socket);
     if (mtu_est < 0) {
         LOG_ERROR("error getting mtu for udp data sender socket");
         throw std::runtime_error("error getting mtu for udp data sender socket");
     }
-    if (mtu_est < (int)(MAX_DATA_PACKET_BYTES + 20)) { // 20 is a typical IP header size
-        LOG_ERROR("mtu too small for udp data sender socket");
-        throw std::runtime_error("mtu too small for udp data sender socket");
+    constexpr unsigned minimum_ip_header_bytes = 20;
+    if (mtu_est < (int)(MAX_DATA_PACKET_BYTES + minimum_ip_header_bytes)) {
+        LOG_ERROR("mtu too small on udp data sender socket");
+        throw std::runtime_error("mtu too small on udp data sender socket");
     }
 
     size_t network_send_buffer_bytes    = config["udp_data_transport:network_send_buffer_bytes"];
