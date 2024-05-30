@@ -81,10 +81,10 @@ class packet_transport {
         }
         return config;
     };
-    void log_stats(const bool value) {
+    void set_log_stats_on_exit(const bool value) {
         log_stats_on_exit = value;
     }
-    void throw_on_error(const bool value) {
+    void set_throw_on_error(const bool value) {
         throw_on_tx_error = value;
         throw_on_rx_error = value;
     }
@@ -105,7 +105,7 @@ class packet_transport {
     bool tx_rx_usable() {
         return tx_usable() and rx_usable();
     }
-    bool reset_rx() {
+    virtual bool reset_rx() {
         if (rx_state == TRANSPORT_UNINITIALIZED or
             rx_state == TRANSPORT_SHUTDOWN) {
             LOG_ERROR("reset rx failed: state is {:s}", transport_state_to_string(rx_state));
@@ -120,7 +120,7 @@ class packet_transport {
         }
         return true;
     }
-    bool reset_tx() {
+    virtual bool reset_tx() {
         if (tx_state == TRANSPORT_UNINITIALIZED or
             tx_state == TRANSPORT_SHUTDOWN) {
             LOG_ERROR("reset tx failed: state is {:s}", transport_state_to_string(tx_state));

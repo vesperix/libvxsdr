@@ -28,7 +28,7 @@ template <typename T> std::vector<T> numpy_to_vector(const py::array_t<T> &np) {
 
 class vxsdr_py : public vxsdr {
     public:
-        vxsdr_py(const std::map<std::string, int64_t>& settings) : vxsdr(settings) {}
+        explicit vxsdr_py(const std::map<std::string, int64_t>& settings) : vxsdr(settings) {}
         size_t put_tx_data(const py::array_t<std::complex<float>, py::array::c_style | py::array::forcecast>& data_np,
                                 size_t n_requested = 0, const uint8_t subdev = 0, const double timeout_s = 10) {
             if (data_np.ndim() != 1) {
