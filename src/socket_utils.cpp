@@ -68,7 +68,7 @@ int get_socket_mtu(net::ip::udp::socket& sock) {
 
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
     // FIXME: new in macOS 12: check
-    nw_ip_options_set_disable_fragmentation(nw_protocol_options_t options, true);
+    // nw_ip_options_set_disable_fragmentation(nw_protocol_options_t options, true);
 
     int val = 1;
     // FIXME: test this
