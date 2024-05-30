@@ -183,7 +183,7 @@ namespace vxsdr_lib_logging {
         spdlog::register_logger(lib_logger);
         lib_logger->flush_on(spdlog::level::debug);
         lib_logger->set_level(overall_level);
-        spdlog::set_default_logger(lib_logger);
+        spdlog::set_default_logger(std::move(lib_logger));
     }
 
     void shutdown() {
