@@ -849,7 +849,9 @@ class VXSDR_LIB_EXPORT vxsdr {
       the extremes are the maximum values allowed by the device.
 
       Most devices have a fixed precision (e.g. 12 bits) for the coefficients.
-      The actual coefficients used can be determined by reading the coefficients back after they are set.
+      The actual coefficients used can be determined by reading the coefficients back after they are set
+      with the @p get_tx_iq_bias() command.
+
       @returns @b true if the command succeeds, @b false otherwise
       @param bias   a std::array containing @f$i_{bias}, q_{bias}@f$ in that order
       @param subdev the subdevice number
@@ -859,8 +861,13 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Set the IQ DC bias for the receiver to control LO feedthrough.
+      @details  Most devices have a fixed precision (e.g. 12 bits) for the coefficients.
+      The actual coefficients used can be determined by reading the coefficients back after they are set
+      with the @p get_rx_iq_bias() command.
+
       @returns @b true if the command succeeds, @b false otherwise
       @param bias   a std::array containing @f$i_{bias}, q_{bias}@f$ in that order
+      (see the definition in the @p set_tx_iq_bias() section)
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
     */
@@ -895,7 +902,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       one of the four coefficients to be zero for efficiency reasons; for these devices,
       a Givens rotation is used to zero that coefficient if needed.
 
-      The actual coefficients used can be determined by reading the coefficients back after they are set.
+      The actual coefficients used can be determined by reading the coefficients back after they are set
+      with the @p get_tx_iq_corr() command.
       @returns @b true if the command succeeds, @b false otherwise
       @param corr    a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
           which are the coefficients of the matrix which transforms the IQ data on transmission.
@@ -906,11 +914,16 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Set the IQ correction for a receive channel to control image rejection.
+      @details  Most devices have a fixed precision and restrictions on which coefficients can be nonzero (as discussed in the
+      @p set_tx_iq_corr() section). The actual coefficients used can be determined by reading the coefficients back after they are set
+      with the @p get_rx_iq_corr() command.
       @returns @b true if the command succeeds, @b false otherwise
       @param corr    a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
-          which are the coefficients of the matrix which transforms the IQ data on reception.
+          which are the coefficients of the matrix which transforms the IQ data on reception
+          (see the definition in the @p set_tx_iq_corr() section)
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
+
     */
     bool set_rx_iq_corr(const std::array<double, 4> corr, const uint8_t subdev = 0, const uint8_t channel = 0);
 
