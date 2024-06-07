@@ -33,7 +33,7 @@ Tuning by Stage
 When multiple tuning stages are available, the functions below may be used
 to determine their ranges and control settings for each stage. Note that stage-level
 settings override the subdevice-level settings shown above; the user must ensure that
-the stage settings produce the desired frequency.
+the combined settings for all stages produce the desired frequency.
 
 .. doxygenfunction:: get_tx_num_freq_stages
 .. doxygenfunction:: get_rx_num_freq_stages
@@ -73,7 +73,7 @@ Gain Control by Stage
 When multiple gain control stages are available, the functions below may be used
 to determine their ranges and control settings for each stage. Note that stage-level
 settings override the channel-level settings shown above; the user must ensure that
-the stage settings produce the desired gain.
+the combined settings of all stages produce the desired gain.
 
 .. doxygenfunction:: get_tx_num_gain_stages
 .. doxygenfunction:: get_rx_num_gain_stages

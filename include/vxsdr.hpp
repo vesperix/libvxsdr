@@ -226,7 +226,7 @@ class VXSDR_LIB_EXPORT vxsdr {
           - the external PPS lock status
           - external 10 MHz lock status
           - internal reference oscillator lock status
-
+        Where @b true means the device is locked to that reference, and @b false means not locked.
         Note that the first two will be false if no external PPS and 10 MHz are connected.
     */
     std::optional<std::array<bool, 3>> get_timing_status();
@@ -965,8 +965,9 @@ class VXSDR_LIB_EXPORT vxsdr {
       repeating with a delay after each transmission of @p t_delay, for @p n_repeat iterations.
       If @p t is less than or equal to the current time, start immediately;
       if @p n_repeat is 0, continue until a stop command is sent.
-      Note that if you wish to send the samples to be looped only once, @p n_samples must be
-      small enough that the entire looped waveform fits in the device's transmit buffer.
+      If @p n_samples is small enough that the entire looped waveform fits in the device's transmit buffer
+      (whose size can be checked with the @p get_buffer_info() command),
+      the samples need only be sent once; otherwise, they must be resent for each repetition.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
       @param n the number of samples to send
