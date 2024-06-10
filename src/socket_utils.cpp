@@ -55,23 +55,13 @@ int set_socket_dontfrag(net::ip::udp::socket& sock) {
 #include <netinet/ip.h>
 
 int get_socket_mtu(net::ip::udp::socket& sock) {
-    int mtu = 0;
     // FIXME: is this call available on Mac OS?
-    socklen_t size = sizeof(mtu);
-    //int retval = getsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU, (void *)&mtu, &size);
-    int retval = -1;
-    if (retval == 0) {
-        return mtu;
-    }
     return -1;
 }
 
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
-    // FIXME: new in macOS 12: check
-    // nw_ip_options_set_disable_fragmentation(nw_protocol_options_t options, true);
-
-    int val = 1;
     // FIXME: test this
+    int val = 1;
     return setsockopt(sock.native_handle(), IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val));
 }
 
