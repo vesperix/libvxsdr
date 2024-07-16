@@ -93,6 +93,7 @@ class one_uint64_packet : public packet {
 class filter_coeff_packet : public packet {
   public:
     uint32_t length = 0;
+    uint32_t reserved = 0;
     std::complex<int16_t> coeffs[MAX_FRONTEND_FILTER_LENGTH] = {0};
 };
 
@@ -205,7 +206,7 @@ VXSDR_CHECK_SIZE_EQUALS(uint32_two_double_packet, 32);
 VXSDR_CHECK_SIZE_EQUALS(one_uint64_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(name_packet, (MAX_NAME_LENGTH_BYTES + 8));
 VXSDR_CHECK_SIZE_LESS_EQUAL(name_packet, sizeof(largest_cmd_or_rsp_packet));
-VXSDR_CHECK_SIZE_EQUALS(filter_coeff_packet, (4 * MAX_FRONTEND_FILTER_LENGTH + 12));
+VXSDR_CHECK_SIZE_EQUALS(filter_coeff_packet, (4 * MAX_FRONTEND_FILTER_LENGTH + 16));
 VXSDR_CHECK_SIZE_LESS_EQUAL(filter_coeff_packet, sizeof(largest_cmd_or_rsp_packet));
 VXSDR_CHECK_SIZE_EQUALS(largest_cmd_or_rsp_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(async_msg_packet, 8);

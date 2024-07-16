@@ -5,15 +5,15 @@
 #define PACKET_HEADER_H
 /*
   VXSDR packet definitions
-  Version 1.0.11 12 Apr 2024
+  Version 1.0.12 16 Jul 2024
 */
 
 #include <stdint.h>
 
-#define PACKET_VERSION_STRING                "1.0.11"
+#define PACKET_VERSION_STRING                "1.0.12"
 #define PACKET_VERSION_MAJOR                 (1)
 #define PACKET_VERSION_MINOR                 (0)
-#define PACKET_VERSION_PATCH                 (11)
+#define PACKET_VERSION_PATCH                 (12)
 
 /*
    The packet header and the elements used to fill it are defined below.
@@ -292,7 +292,7 @@ typedef uint64_t capabilities_t;
 #define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
 #define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
 
-#define MAX_FRONTEND_FILTER_LENGTH           (16U)
+#define MAX_FRONTEND_FILTER_LENGTH           (16U)  // must be even for packet size to be a multiple of 8 bytes
 #define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
 #define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
