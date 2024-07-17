@@ -285,7 +285,9 @@ class data_transport : public packet_transport {
   public:
 
     data_transport(const unsigned granularity, const unsigned n_subdevs, const unsigned max_samps_per_packet) :
-                sample_granularity(granularity), num_subdevs(n_subdevs), max_samples_per_packet(max_samps_per_packet)  {};
+                sample_granularity(granularity), num_subdevs(n_subdevs) {
+        max_samples_per_packet = sample_granularity * (max_samps_per_packet / sample_granularity);
+    };
 
     virtual ~data_transport() = default;
 
