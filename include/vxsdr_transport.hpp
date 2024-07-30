@@ -439,6 +439,7 @@ class udp_data_transport : public data_transport {
   protected:
     std::map<std::string, int64_t> default_settings = {{"udp_data_transport:tx_data_queue_packets",              511},
                                                        {"udp_data_transport:rx_data_queue_packets",          262'143},
+                                                       {"udp_data_transport:mtu_bytes",                        9'000},
                                                        {"udp_data_transport:network_send_buffer_bytes",      262'144},
                                                        {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
                                                        {"udp_data_transport:thread_priority",                      1},

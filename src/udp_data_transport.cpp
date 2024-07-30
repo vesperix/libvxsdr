@@ -112,10 +112,17 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         LOG_ERROR("error getting mtu for udp data sender socket");
         throw std::runtime_error("error getting mtu for udp data sender socket");
     }
-    constexpr unsigned minimum_ip_header_bytes = 20;
-    if (mtu_est < (int)(MAX_DATA_PACKET_BYTES + minimum_ip_header_bytes)) {
-        LOG_ERROR("mtu too small on udp data sender socket");
-        throw std::runtime_error("mtu too small on udp data sender socket");
+
+    if (config.count("udp_data_transport:mtu_bytes") > 0) {
+        if (mtu_est < config["udp_data_transport:mtu_bytes"]) {
+            LOG_ERROR("socket mtu is less than udp_data_transport:mtu_bytes");
+            throw std::runtime_error("socket mtu is less than udp_data_transport:mtu_bytes");
+        }
+    }
+    constexpr unsigned minimum_ip_udp_header_bytes = 28;
+    if (mtu_est < (int)(max_samples_per_packet * sizeof(vxsdr::wire_sample) + sizeof(packet_header) + sizeof(stream_spec_t) + sizeof(time_spec_t) + minimum_ip_udp_header_bytes)) {
+        LOG_ERROR("mtu too small for requested max_samples_per_packet on udp data sender socket");
+        throw std::runtime_error("mtu too small for requested max_samples_per_packet on udp data sender socket");
     }
 
     size_t network_send_buffer_bytes    = config["udp_data_transport:network_send_buffer_bytes"];

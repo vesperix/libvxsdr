@@ -109,7 +109,7 @@ class VXSDR_LIB_EXPORT vxsdr {
           - packet version supported,
           - wire sample data format,
           - number of subdevices,
-          - maximum data payload in bytes
+          - maximum sample payload size in bytes
     */
     std::optional<std::array<uint32_t, 8>> hello();
 
@@ -150,22 +150,23 @@ class VXSDR_LIB_EXPORT vxsdr {
     std::optional<std::array<uint32_t, 2>> get_buffer_use(const uint8_t subdev = 0);
 
     /*!
-      @brief Get the maximum payload size in bytes for transport to and from the device. Note
-      that the maximum packet size (which must not exceed the network MTU) is the maximum payload size
-      plus the size of the packet header, plus the stream spec and time spec, if those are used,
-      plus the size of the IPv4 header. The packet header, stream spec, and time spec are 8 bytes each,
-      and the IPv4 header is typically 20 bytes.
-      @returns a std::optional with the maximum payload in bytes
+      @brief Get the device's limit on maximum sample payload size in bytes, which does not account for any
+      transport limits. Note that for UDP transport, the maximum packet size, which must not exceed the network MTU,
+      is the maximum sample payload size plus the size of the VXSDR packet header, plus the stream spec and time spec,
+      plus the size of the UDP and IPv4 headers. The packet header, stream spec, and time spec are 8 bytes each,
+      the UDP header is 8 bytes, and IPv4 header is typically 20 bytes, for a total of 52 bytes.
+      @returns a std::optional with the maximum sample payload in bytes
     */
     std::optional<unsigned> get_max_payload_bytes();
 
     /*!
-      @brief Set the maximum payload size in bytes for transport to and from the device.
-      The payload size must be a multiple of 8 bytes (2 samples) and 1024 <= max_payload_bytes <= 16384.
-      We strongly recommend using the default of 8192, which is compatible with a typical jumbo packet
-      MTU of 9000, or a larger value if you are certain your network supports it.
-      @returns @p true if the size is set, @p false otherwise
-      @param max_payload_bytes the maximum payload size in bytes
+      @brief Set the maximum sample payload size in bytes for transport to and from the device.
+      The sample payload size must be between 1024 and 16384 bytes, and will be adjusted by the device to match
+      the device's sample granularity. For UDP transport, we strongly recommend using the UDP default of 8192,
+      which is compatible with a typical jumbo packet MTU of 9000; only use a larger value if you are certain your
+      network card supports it. A larger MTU can be specified using the udp_data_transport:mtu_bytes setting.
+      @returns @p true if the requested size is set, @p false otherwise
+      @param max_payload_bytes the maximum sample payload size in bytes
     */
     bool set_max_payload_bytes(const unsigned max_payload_bytes);
 
