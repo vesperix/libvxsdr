@@ -104,7 +104,7 @@ bool receive_discover_response_packets(net::ip::udp::socket& receiver_socket,
 }
 
 bool receive_hello_response_packet(net::ip::udp::socket& receiver_socket,
-                                       four_uint32_packet& result,
+                                       eight_uint32_packet& result,
                                        const double timeout_s) {
     net::ip::udp::endpoint remote_endpoint;
     largest_data_packet packet;
@@ -118,10 +118,10 @@ bool receive_hello_response_packet(net::ip::udp::socket& receiver_socket,
     return false;
 }
 
-void output_hello_response(four_uint32_packet& response) {
-    std::cout << "      board id                  = " << response.value1 << std::endl;
-    std::cout << "      fpga fw version           = " << response.value2 << std::endl;
-    std::cout << "      mcu sw version            = " << response.value3 << std::endl;
+void output_hello_response(eight_uint32_packet& response) {
+    std::cout << "      device id                 = " << response.value1 << std::endl;
+    std::cout << "      fpga firmware version     = " << response.value2 << std::endl;
+    std::cout << "      mcu software version      = " << response.value3 << std::endl;
     std::cout << "      serial number             = " << response.value4 << std::endl;
 }
 

@@ -59,6 +59,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         throw std::runtime_error("device did not respond to hello command in vxsdr constructor");
     }
     LOG_INFO("device info:");
+    LOG_INFO("   device ID: {:d}", res->at(0));
     LOG_INFO("   device FPGA code version: {:s}", vxsdr::imp::version_number_to_string(res->at(1)));
     LOG_INFO("   device MCU code version: {:s}", vxsdr::imp::version_number_to_string(res->at(2)));
     LOG_INFO("   device serial number: {:d}", res->at(3));
