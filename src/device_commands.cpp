@@ -205,7 +205,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     // wait 1 / 1000 of the timeout specified each rx
     unsigned discover_wait_ms = lround(timeout_s);
 
-   net_error_code error;
+    net_error_code error;
     net::io_context discover_context;
 
     auto work           = net::make_work_guard(discover_context);
@@ -269,11 +269,12 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
                 auto* r = std::bit_cast<one_uint32_packet*>(&q);
                 ret.push_back(net::ip::address_v4(r->value1).to_string());
+                LOG_INFO("response received from {:s}", net::ip::address_v4(r->value1).to_string());
             } else {
                 LOG_WARN("extraneous response received in discover_ipv4_addresses()");
             }
         }
-        t = t_start - std::chrono::steady_clock::now();
+        t = std::chrono::steady_clock::now() - t_start;
     } while (t.count() <= timeout_s);
 
     discover_socket.close(error);
