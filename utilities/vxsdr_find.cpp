@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
                     net::ip::udp::endpoint hello_endpoint(device_addr, udp_device_receive_port);
                     std::cout << "   Device at address " << device_addr.to_string() << ":" << std::endl;
                     if (send_hello_packet(sender_socket, hello_endpoint)) {
-                        four_uint32_packet r {};
+                        eight_uint32_packet r {};
                         if (receive_hello_response_packet(receiver_socket, r, timeout_s)) {
                             output_hello_response(r);
                         } else {
