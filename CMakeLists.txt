@@ -18,7 +18,7 @@ option(VXSDR_PYTHON_BINDINGS "Make Python bindings for libvxsdr" ON)
 option(BUILD_SHARED_LIBS "Build libvxsdr as a shared library" ON)
 
 # only make utilities and test programs when asked
-option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" OFF)
+option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" ON)
 option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
