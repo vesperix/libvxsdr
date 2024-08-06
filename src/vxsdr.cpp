@@ -52,7 +52,7 @@ std::optional<std::array<uint32_t, 8>> vxsdr::hello() {
     return p_imp->hello();
 }
 
-unsigned get_sample_granularity(const uint32_t wire_format) {
+unsigned vxsdr::get_sample_granularity(const uint32_t wire_format) const {
     return (wire_format & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
 }
 
