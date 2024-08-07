@@ -73,6 +73,16 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INFO("   number of subdevices: {:d}", res->at(6));
     LOG_INFO("   maximum data payload bytes: {:d}", res->at(7));
 
+    // check that the library's wire sample type and the devices are the same
+    if (std::is_same<vxsdr::wire_sample, std::complex<int16_t>>::value) {
+        if ((res->at(5) & SAMPLE_DATATYPE_MASK) != SAMPLE_TYPE_COMPLEX_I16) {
+            LOG_ERROR("library and device wire sample formats incompatible");
+            throw std::runtime_error("library and device wire sample formats incompatible");
+        }
+    } else {
+        LOG_WARN("library wire sample type is not std::complex<int16_t>> -- untested");
+    }
+
     // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
     unsigned sample_granularity = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
     unsigned num_subdevs = res->at(6);
