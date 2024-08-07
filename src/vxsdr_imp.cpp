@@ -62,7 +62,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INFO("   device ID: {:d}", res->at(0));
     LOG_INFO("   device FPGA code version: {:s}", vxsdr::imp::version_number_to_string(res->at(1)));
     LOG_INFO("   device MCU code version: {:s}", vxsdr::imp::version_number_to_string(res->at(2)));
-    LOG_INFO("   device serial number: {:d}", (uint32_t)res->at(3));
+    LOG_INFO("   device serial number: {:d}", res->at(3));
     LOG_INFO("   device supported packet version: {:s}", vxsdr::imp::version_number_to_string(res->at(4)));
     // check that library and device support the same packet version
     if (get_library_packet_version() != res->at(4)) {
