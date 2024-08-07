@@ -62,21 +62,21 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INFO("   device ID: {:d}", res->at(0));
     LOG_INFO("   device FPGA code version: {:s}", vxsdr::imp::version_number_to_string(res->at(1)));
     LOG_INFO("   device MCU code version: {:s}", vxsdr::imp::version_number_to_string(res->at(2)));
-    LOG_INFO("   device serial number: {:d}", res->at(3));
+    LOG_INFO("   device serial number: {:d}", (uint32_t)res->at(3));
     LOG_INFO("   device supported packet version: {:s}", vxsdr::imp::version_number_to_string(res->at(4)));
     // check that library and device support the same packet version
     if (get_library_packet_version() != res->at(4)) {
         LOG_WARN("library packet version is {:s}, device packet version is {:s}",
                 vxsdr::imp::version_number_to_string(get_library_packet_version()), vxsdr::imp::version_number_to_string(res->at(4)));
     }
-    LOG_INFO("   sample format: {:d}", res->at(5));
+    LOG_INFO("   sample format: 0x{:x}", res->at(5));
     LOG_INFO("   number of subdevices: {:d}", res->at(6));
     LOG_INFO("   maximum data payload bytes: {:d}", res->at(7));
 
     // check that the library's wire sample type and the devices are the same
     if (std::is_same<vxsdr::wire_sample, std::complex<int16_t>>::value) {
         if ((res->at(5) & SAMPLE_DATATYPE_MASK) != SAMPLE_TYPE_COMPLEX_I16) {
-            LOG_ERROR("library and device wire sample formats incompatible");
+            LOG_ERROR("library and device wire sample formats incompatible (0x{:x})", (res->at(5) & SAMPLE_DATATYPE_MASK));
             throw std::runtime_error("library and device wire sample formats incompatible");
         }
     } else {

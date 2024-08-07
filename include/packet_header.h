@@ -304,7 +304,7 @@ typedef uint64_t capabilities_t;
 #define SAMPLE_LENGTH_MASK                   (0x000000FFUL)
 #define SAMPLE_TYPE_MASK                     (0x00000100UL)
 #define SAMPLE_FORMAT_MASK                   (0x00000200UL)
-#define SAMPLE_DATATYPE_MASK                 (SAMPLE_TYPE_MASK & SAMPLE_FORMAT_MASK & SAMPLE_LENGTH_MASK)  // type, format, and length
+#define SAMPLE_DATATYPE_MASK                 (SAMPLE_TYPE_MASK | SAMPLE_FORMAT_MASK | SAMPLE_LENGTH_MASK)  // type, format, and length
 #define SAMPLE_GRANULARITY_MASK              (0xFF000000UL)
 #define SAMPLE_GRANULARITY_SHIFT                      (24U)
 #define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK &  8UL))
