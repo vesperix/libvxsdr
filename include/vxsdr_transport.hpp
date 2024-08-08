@@ -376,12 +376,10 @@ class data_transport : public packet_transport {
     }
 
     bool reset_tx_stream(const uint64_t n_samples_expected) {
-        LOG_DEBUG("reset tx stream started");
         samples_expected_tx_stream  = n_samples_expected;
         send_errors_current_stream  = 0;
         samples_sent_current_stream = 0;
         tx_data_queue->reset();
-        LOG_DEBUG("reset tx stream finished");
         return true;
     }
 
