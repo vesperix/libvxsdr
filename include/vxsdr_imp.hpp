@@ -124,8 +124,8 @@ class vxsdr::imp {
     std::optional<double> get_rx_gain(const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<unsigned> get_tx_num_freq_stages(const uint8_t subdev = 0);
     std::optional<unsigned> get_rx_num_freq_stages(const uint8_t subdev = 0);
-    std::string get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
-    std::string get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_tx_freq_range_stage(const unsigned stage_num, const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_rx_freq_range_stage(const unsigned stage_num, const uint8_t subdev = 0);
     bool set_tx_freq_stage(const double freq_hz, const unsigned stage_num, const uint8_t subdev = 0);
@@ -134,8 +134,8 @@ class vxsdr::imp {
     std::optional<double> get_rx_freq_stage(const unsigned stage_num, const uint8_t subdev = 0);
     std::optional<unsigned> get_tx_num_gain_stages(const uint8_t subdev = 0);
     std::optional<unsigned> get_rx_num_gain_stages(const uint8_t subdev = 0);
-    std::string get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
-    std::string get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_tx_gain_range_stage(const unsigned stage_num, const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_rx_gain_range_stage(const unsigned stage_num, const uint8_t subdev = 0);
     bool set_tx_gain_stage(const double gain_db, const unsigned stage_num, const uint8_t subdev = 0, const uint8_t channel = 0);

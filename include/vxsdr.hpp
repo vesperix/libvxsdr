@@ -185,7 +185,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a sensor.
-      @returns a std::optional with a std:strings giving the name
+      @returns a std::optional with a std:string giving the name
       @param sensor_number the sensor number
       @param subdev the subdevice number
     */
@@ -303,14 +303,14 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the transmit center frequency range.
-      @returns a std::optional with a  std::array containing the minimum and maximum frequencies in Hz
+      @returns a std::optional with a std::array containing the minimum and maximum frequencies in Hz
       @param subdev the subdevice number
     */
     std::optional<std::array<double, 2>> get_tx_freq_range(const uint8_t subdev = 0);
 
     /*!
       @brief Get the receive center frequency range.
-      @returns a std::optional with a  std::array containing the minimum and maximum frequencies in Hz
+      @returns a std::optional with a std::array containing the minimum and maximum frequencies in Hz
       @param subdev the subdevice number
     */
     std::optional<std::array<double, 2>> get_rx_freq_range(const uint8_t subdev = 0);
@@ -375,23 +375,23 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a transmit tuning stage.
-      @returns a std::string containing the name; a zero-length string is returned on failure
+      @returns a std::optional with a std::string containing the name
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
-    std::string get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
 
     /*!
       @brief Get the name of a receive tuning stage.
-      @returns a std::string containing the name; a zero-length string is returned on failure
+      @returns a std::optional with a a std::string containing the name
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
-    std::string get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
 
     /*!
       @brief Get the center frequency range for a transmit tuning stage.
-      @returns a std::optional with a  std::array containing the minimum and maximum frequencies in Hz
+      @returns a std::optional with a std::array containing the minimum and maximum frequencies in Hz
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
@@ -399,7 +399,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the center frequency range for a receive tuning stage.
-      @returns a std::optional with a  std::array containing the minimum and maximum frequencies in Hz
+      @returns a std::optional with a std::array containing the minimum and maximum frequencies in Hz
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
@@ -503,19 +503,19 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a transmit gain stage.
-      @returns a std::string containing the name; a zero-length string is returned on failure
+      @returns a std::optional with a std::string containing the name
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
-    std::string get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
 
     /*!
       @brief Get the name of a receive gain stage.
-      @returns a std::string containing the name; a zero-length string is returned on failure
+      @returns a std::optional with a std::string containing the name
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
-    std::string get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
+    std::optional<std::string> get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev = 0);
 
     /*!
       @brief Get the gain range for a transmit gain control stage.
@@ -649,7 +649,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a transmit output port.
-      @returns a std::optional with the name of the specified output port
+      @returns a std::optional with a std::string containing the name of the specified output port
       @param port_num the port number
       @param subdev the subdevice number
       @param channel the channel number within the subdevice
@@ -658,7 +658,7 @@ class VXSDR_LIB_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a receive input port.
-      @returns a std::optional with the name of the specified input port
+      @returns a std::optional with a std::string containing the name of the specified input port
       @param port_num the port number
       @param subdev the subdevice number
       @param channel the channel number within the subdevice

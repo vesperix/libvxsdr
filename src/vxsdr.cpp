@@ -252,11 +252,11 @@ std::optional<unsigned> vxsdr::get_rx_num_freq_stages(const uint8_t subdev) {
     return p_imp->get_rx_num_freq_stages(subdev);
 }
 
-std::string vxsdr::get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
     return p_imp->get_tx_freq_stage_name(stage_num, subdev);
 }
 
-std::string vxsdr::get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
     return p_imp->get_rx_freq_stage_name(stage_num, subdev);
 }
 
@@ -292,11 +292,11 @@ std::optional<unsigned> vxsdr::get_rx_num_gain_stages(const uint8_t subdev) {
     return p_imp->get_rx_num_gain_stages(subdev);
 }
 
-std::string vxsdr::get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
     return p_imp->get_tx_gain_stage_name(stage_num, subdev);
 }
 
-std::string vxsdr::get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
     return p_imp->get_rx_gain_stage_name(stage_num, subdev);
 }
 

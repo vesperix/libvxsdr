@@ -368,32 +368,30 @@ std::optional<unsigned> vxsdr::imp::get_rx_num_freq_stages(const uint8_t subdev)
     return std::nullopt;
 }
 
-std::string vxsdr::imp::get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::imp::get_tx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
     one_uint32_packet p;
     p.hdr         = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_RF_FREQ_STAGE_NAME, 0, subdev, 0, sizeof(p), 0};
     p.value1      = stage_num;
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_tx_freq_stage_name()");
-    std::string name;
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        name = r->name1;
+        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
     }
-    return name;
+    return std::nullopt;
 }
 
-std::string vxsdr::imp::get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::imp::get_rx_freq_stage_name(const unsigned stage_num, const uint8_t subdev) {
     one_uint32_packet p;
     p.hdr         = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_RF_FREQ_STAGE_NAME, 0, subdev, 0, sizeof(p), 0};
     p.value1      = stage_num;
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_rx_freq_stage_name()");
-    std::string name;
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        name = r->name1;
+        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
     }
-    return name;
+    return std::nullopt;
 }
 
 std::optional<std::array<double, 2>> vxsdr::imp::get_tx_freq_range_stage(const unsigned stage_num, const uint8_t subdev) {
@@ -556,32 +554,30 @@ std::optional<unsigned> vxsdr::imp::get_rx_num_gain_stages(const uint8_t subdev)
     return std::nullopt;
 }
 
-std::string vxsdr::imp::get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::imp::get_tx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
     one_uint32_packet p;
     p.hdr         = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_RF_GAIN_STAGE_NAME, 0, subdev, 0, sizeof(p), 0};
     p.value1      = stage_num;
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_tx_gain_stage_name()");
-    std::string name;
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        name = r->name1;
+        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
     }
-    return name;
+    return std::nullopt;
 }
 
-std::string vxsdr::imp::get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
+std::optional<std::string> vxsdr::imp::get_rx_gain_stage_name(const unsigned stage_num, const uint8_t subdev) {
     one_uint32_packet p;
     p.hdr         = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_GET_RF_GAIN_STAGE_NAME, 0, subdev, 0, sizeof(p), 0};
     p.value1      = stage_num;
     auto res      = vxsdr::imp::send_packet_and_return_response(p, "get_rx_gain_stage_name()");
-    std::string name;
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        name = r->name1;
+        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
     }
-    return name;
+    return std::nullopt;
 }
 
 std::optional<std::array<double, 2>> vxsdr::imp::get_tx_gain_range_stage(const unsigned stage_num, const uint8_t subdev) {
