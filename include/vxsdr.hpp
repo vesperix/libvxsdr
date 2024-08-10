@@ -38,6 +38,12 @@ class VXSDR_LIB_EXPORT vxsdr {
     enum stream_state { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
   /*!
+    @enum async_message_handler
+    @brief The @p async_message_handler type controls how asynchronous messages (including overflow, underflow, and sequence errors) are reported.
+  */
+    enum async_message_handler { ASYNC_NULL = 0, ASYNC_BRIEF_STDERR, ASYNC_FULL_STDERR, ASYNC_FULL_LOG, ASYNC_THROW };
+
+  /*!
     @brief The @p wire_sample type is used for data transfer between the host and device; wire samples may be translated
     to and from other types by the host library.
   */

@@ -30,6 +30,7 @@ class vxsdr::imp {
     std::map<std::string, int64_t> default_config = {
         {"command_transport",             vxsdr::TRANSPORT_TYPE_UDP},
         {"data_transport",                vxsdr::TRANSPORT_TYPE_UDP},
+        {"async_message_handler",         vxsdr::ASYNC_FULL_LOG}
     };
     // relative tolerance for frequency settings
     static constexpr double frequency_setting_rtol = 1e-12;
@@ -214,10 +215,14 @@ class vxsdr::imp {
     bool send_packet_and_check_response(packet& p, const std::string& cmd_name = "unknown");
     std::optional<command_queue_element> send_packet_and_return_response(packet& p, const std::string& cmd_name = "unknown");
     [[nodiscard]] bool cmd_queue_push_check(packet& p, const std::string& cmd_name = "unknown");
-    void async_handler();
-    void time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts);
-    void duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts);
-    void simple_async_message_handler(const command_queue_element& a);
+    void async_handler(const vxsdr::async_message_handler output_type);
+    void time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) const;
+    void duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts) const;
+    void null_async_message_handler(const command_queue_element& a) const;
+    void brief_async_message_handler(const command_queue_element& a) const;
+    void stderr_async_message_handler(const command_queue_element& a) const;
+    void log_async_message_handler(const command_queue_element& a) const;
+    void throw_async_message_handler(const command_queue_element& a) const;
     std::map<std::string, int64_t> apply_config(const std::map<std::string, int64_t>& input_config) const;
     template <typename SampleType> std::span<SampleType> get_packet_data_span(packet& q) const {
         constexpr unsigned packet_header_only_size = sizeof(packet_header);

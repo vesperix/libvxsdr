@@ -4,6 +4,7 @@
 #include <cmath>
 #include <ctime>
 #include <algorithm>
+#include <iostream>
 #include <iomanip>
 #include <iterator>
 #include <stdexcept>
@@ -51,7 +52,8 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         }
     }
 
-    async_handler_thread        = vxsdr_thread([this] { vxsdr::imp::async_handler(); });
+    const auto output_type = (vxsdr::async_message_handler)config["async_message_handler"];
+    async_handler_thread = vxsdr_thread([this, output_type] { vxsdr::imp::async_handler(output_type); });
 
     auto res = vxsdr::imp::hello();
     if (not res) {
@@ -471,35 +473,84 @@ double vxsdr::imp::get_host_command_timeout() const {
     return true;
 }
 
-void vxsdr::imp::async_handler() {
+void vxsdr::imp::async_handler(const vxsdr::async_message_handler output_type) {
     LOG_DEBUG("async_handler started");
     while (not async_handler_stop_flag and command_tport->rx_state != packet_transport::TRANSPORT_SHUTDOWN) {
         command_queue_element a;
         while (command_tport->async_msg_queue.pop(a)) {
-            vxsdr::imp::simple_async_message_handler(a);
+            switch(output_type) {
+                case vxsdr::ASYNC_NULL:
+                    vxsdr::imp::null_async_message_handler(a);
+                    break;
+                case vxsdr::ASYNC_BRIEF_STDERR:
+                    vxsdr::imp::brief_async_message_handler(a);
+                    break;
+                case vxsdr::ASYNC_FULL_STDERR:
+                    vxsdr::imp::stderr_async_message_handler(a);
+                    break;
+                case vxsdr::ASYNC_FULL_LOG:
+                    vxsdr::imp::log_async_message_handler(a);
+                    break;
+                case vxsdr::ASYNC_THROW:
+                    vxsdr::imp::throw_async_message_handler(a);
+                    break;
+            }
         }
         std::this_thread::sleep_for(async_queue_wait);
     }
     LOG_DEBUG("async_handler finished");
 }
+void vxsdr::imp::null_async_message_handler(const command_queue_element& a) const {}
 
-void vxsdr::imp::time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) {
-    auto secs = std::chrono::time_point_cast<std::chrono::seconds>(t);
-    auto nsecs = std::chrono::time_point_cast<std::chrono::nanoseconds>(t)
-                    - std::chrono::time_point_cast<std::chrono::nanoseconds>(secs);
-    ts.seconds     = (uint32_t)secs.time_since_epoch().count();
-    ts.nanoseconds = (uint32_t)nsecs.count();
+void vxsdr::imp::brief_async_message_handler(const command_queue_element& a) const {
+    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    switch(type) {
+        case ASYNC_NO_ERROR:
+            break;
+        case ASYNC_DATA_UNDERFLOW:
+            std::cerr << "U";
+            break;
+        case ASYNC_DATA_OVERFLOW:
+            std::cerr << "O";
+            break;
+        case ASYNC_OVER_TEMP:
+            std::cerr << "H";
+            break;
+        case ASYNC_POWER_ERROR:
+            std::cerr << "P";
+            break;
+        case ASYNC_FREQ_ERROR:
+            std::cerr << "F";
+            break;
+        case ASYNC_OUT_OF_SEQUENCE:
+            std::cerr << "S";
+            break;
+        case ASYNC_CMD_ERROR:
+            std::cerr << "C";
+            break;
+        case ASYNC_PPS_TIMEOUT:
+            std::cerr << "T";
+            break;
+        case ASYNC_VOLTAGE_ERROR:
+            std::cerr << "V";
+            break;
+        case ASYNC_CURRENT_ERROR:
+            std::cerr << "I";
+            break;
+        default:
+            std::cerr << "X";
+            break;
+    }
 }
 
-void vxsdr::imp::duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts) {
-    auto secs = std::chrono::duration_cast<std::chrono::seconds>(d);
-    auto nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(d)
-                    - std::chrono::duration_cast<std::chrono::nanoseconds>(secs);
-    ts.seconds     = (uint32_t)secs.count();
-    ts.nanoseconds = (uint32_t)nsecs.count();
+void vxsdr::imp::stderr_async_message_handler(const command_queue_element& a) const {
+    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    if (type != ASYNC_NO_ERROR) {
+        std::cerr << "async_msg: " + async_msg_to_name(a.hdr.command) + " subdevice " +  std::to_string(a.hdr.subdevice) << std::endl;
+    }
 }
 
-void vxsdr::imp::simple_async_message_handler(const command_queue_element& a) {
+void vxsdr::imp::log_async_message_handler(const command_queue_element& a) const {
     uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
         if (type == ASYNC_OUT_OF_SEQUENCE) {
@@ -509,6 +560,30 @@ void vxsdr::imp::simple_async_message_handler(const command_queue_element& a) {
             LOG_ASYNC("{:s} (subdev {:d})", "async_msg: " + async_msg_to_name(a.hdr.command), a.hdr.subdevice);
         }
     }
+}
+
+void vxsdr::imp::throw_async_message_handler(const command_queue_element& a) const {
+    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    if (type != ASYNC_NO_ERROR) {
+        std::string msg = async_msg_to_name(a.hdr.command) + " subdevice " +  std::to_string(a.hdr.subdevice);
+        throw std::runtime_error(msg);
+    }
+}
+
+void vxsdr::imp::time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) const {
+    auto secs = std::chrono::time_point_cast<std::chrono::seconds>(t);
+    auto nsecs = std::chrono::time_point_cast<std::chrono::nanoseconds>(t)
+                    - std::chrono::time_point_cast<std::chrono::nanoseconds>(secs);
+    ts.seconds     = (uint32_t)secs.time_since_epoch().count();
+    ts.nanoseconds = (uint32_t)nsecs.count();
+}
+
+void vxsdr::imp::duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts) const {
+    auto secs = std::chrono::duration_cast<std::chrono::seconds>(d);
+    auto nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(d)
+                    - std::chrono::duration_cast<std::chrono::nanoseconds>(secs);
+    ts.seconds     = (uint32_t)secs.count();
+    ts.nanoseconds = (uint32_t)nsecs.count();
 }
 
 std::string vxsdr::imp::stream_state_to_string(const vxsdr::stream_state state) const {
