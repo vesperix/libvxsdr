@@ -44,6 +44,17 @@ class VXSDR_LIB_EXPORT vxsdr {
     enum async_message_handler { ASYNC_NULL = 0, ASYNC_BRIEF_STDERR, ASYNC_FULL_STDERR, ASYNC_FULL_LOG, ASYNC_THROW };
 
   /*!
+    @class async_message_exception
+    @brief The @p async_message_exception type is used to report asynchronous messages when the message handler is asked to throw exceptions by
+    specifying @p ASYNC_THROW as the reporting method. The used must define a handler for this type which encloses all uses of the @p vxsdr class;
+    otherwise, any async message will result in an unhandled exception, which terminates the program.
+  */
+  class async_message_exception : public std::runtime_error {
+    public:
+      async_message_exception(const std::string& msg) : std::runtime_error{msg} {}
+  };
+
+  /*!
     @brief The @p wire_sample type is used for data transfer between the host and device; wire samples may be translated
     to and from other types by the host library.
   */

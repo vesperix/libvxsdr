@@ -566,7 +566,7 @@ void vxsdr::imp::throw_async_message_handler(const command_queue_element& a) con
     uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
         std::string msg = async_msg_to_name(a.hdr.command) + " subdevice " +  std::to_string(a.hdr.subdevice);
-        throw std::runtime_error(msg);
+        throw vxsdr::async_message_exception(msg);
     }
 }
 

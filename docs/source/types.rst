@@ -11,3 +11,5 @@ Types and Enums
 .. doxygentypedef:: filter_coefficient
 .. doxygentypedef:: time_point
 .. doxygentypedef:: duration
+.. doxygenenum:: async_message_handler
+.. doxygenclass:: async_message_exception
