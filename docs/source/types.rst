@@ -12,4 +12,4 @@ Types and Enums
 .. doxygentypedef:: time_point
 .. doxygentypedef:: duration
 .. doxygenenum:: async_message_handler
-.. doxygenstruct:: async_message_exception
+.. doxygenclass:: vxsdr::async_message_exception
