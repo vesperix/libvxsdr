@@ -42,7 +42,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
 
     if (config.count("udp_data_transport:local_address") == 0 or config.count("udp_data_transport:device_address") == 0) {
         LOG_ERROR("udp data transport settings must include udp_data_transport:local_address and udp_data_transport:device_address");
-        throw std::runtime_error("udp data transport settings must include local address and device address");
+        throw std::invalid_argument("udp data transport settings must include local address and device address");
     }
 
     net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_data_transport:local_address"]);

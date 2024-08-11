@@ -37,7 +37,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
 
     if (config.count("udp_command_transport:local_address") == 0 or config.count("udp_command_transport:device_address") == 0) {
         LOG_ERROR("udp command transport settings must include udp_command_transport:local_address and udp_command_transport:device_address");
-        throw std::runtime_error("udp command transport settings must include local address and device address");
+        throw std::invalid_argument("udp command transport settings must include local address and device address");
     }
 
     net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_command_transport:local_address"]);

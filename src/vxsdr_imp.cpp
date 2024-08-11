@@ -36,7 +36,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
 
     if (config["data_transport"] != vxsdr::TRANSPORT_TYPE_UDP or config["command_transport"] != vxsdr::TRANSPORT_TYPE_UDP) {
         LOG_ERROR("the transport specified is not supported");
-        throw std::runtime_error("the transport specified is not supported in vxsdr constructor");
+        throw std::invalid_argument("the transport specified is not supported in vxsdr constructor");
     }
 
     // Make the transport objects here
