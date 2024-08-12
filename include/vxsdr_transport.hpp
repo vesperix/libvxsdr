@@ -19,6 +19,7 @@ using namespace std::chrono_literals;
 
 #include "logging.hpp"
 #include "vxsdr_net.hpp"
+#include "vxsdr_pcie.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_queues.hpp"
 #include "vxsdr_threads.hpp"
@@ -491,4 +492,76 @@ class udp_data_transport : public data_transport {
     void data_receive();
     bool send_packet(packet& packet);
     size_t blocking_packet_send(const packet& packet, net_error_code& err);
+};
+
+class pcie_command_transport : public command_transport {
+  protected:
+    static constexpr unsigned send_thread_wait_us  = 10'000;
+    static constexpr unsigned send_thread_sleep_us =    200;
+
+    // timeouts for the PCIe transport to reach ready state
+    static constexpr auto pcie_ready_timeout = 100'000us;
+    static constexpr auto pcie_ready_wait    =   1'000us;
+
+    static constexpr unsigned queue_push_timeout_us = 10'000;
+    static constexpr unsigned queue_push_wait_us    =  1'000;
+
+    // threads used for sending and receiving
+    vxsdr_thread sender_thread;
+    vxsdr_thread receiver_thread;
+
+    std::shared_ptr<pcie_dma_interface> pcie_if = nullptr;
+
+  public:
+    explicit pcie_command_transport(const std::map<std::string, int64_t>& settings, std::shared_ptr<pcie_dma_interface> pcie_iface);
+    ~pcie_command_transport() noexcept;
+
+  protected:
+    void command_receive();
+    void command_send();
+    bool send_packet(packet& packet);
+    size_t blocking_packet_send(const packet& packet, int& err);
+};
+
+class pcie_data_transport : public data_transport {
+  protected:
+    std::map<std::string, int64_t> default_settings = {{"pcie_data_transport:tx_data_queue_packets",              511},
+                                                       {"pcie_data_transport:rx_data_queue_packets",          262'143},
+                                                       {"pcie_data_transport:thread_priority",                      1},
+                                                       {"pcie_data_transport:thread_affinity_offset",               0},
+                                                       {"pcie_data_transport:sender_thread_affinity",               0},
+                                                       {"pcie_data_transport:receiver_thread_affinity",             1}};
+
+    // timeouts for the PCIe transport to reach ready state
+    static constexpr auto pcie_ready_timeout = 100'000us;
+    static constexpr auto pcie_ready_wait    =   1'000us;
+
+    // threads used for sending and receiving
+    vxsdr_thread sender_thread;
+    vxsdr_thread receiver_thread;
+
+    static constexpr unsigned throttle_hard_percent = 95;
+    static constexpr unsigned throttle_on_percent   = 90;
+    static constexpr unsigned throttle_off_percent  = 85;
+
+    // parameters used to monitor status of the radio's internal buffers
+    // (on the other end of the network connection) for throttling
+    std::atomic<unsigned> tx_buffer_size_bytes   {0};
+    std::atomic<unsigned> tx_buffer_used_bytes   {0};
+    std::atomic<unsigned> tx_buffer_fill_percent {0};
+
+    std::shared_ptr<pcie_dma_interface> pcie_if = nullptr;
+
+  public:
+    explicit pcie_data_transport(const std::map<std::string, int64_t>& settings,
+                                 std::shared_ptr<pcie_dma_interface> pcie_iface,
+                                 const unsigned n_rx_subdevs,
+                                 const unsigned max_samps_per_packet);
+    ~pcie_data_transport() noexcept;
+
+  protected:
+    void data_send();
+    void data_receive();
+    bool send_packet(packet& packet);
+    size_t blocking_packet_send(const packet& packet, int& err);
 };
