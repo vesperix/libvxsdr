@@ -265,7 +265,7 @@ class command_transport : public packet_transport {
 class data_transport : public packet_transport {
   protected:
     unsigned sample_granularity;
-    unsigned num_subdevs;
+    unsigned num_rx_subdevs;
     unsigned max_samples_per_packet;
     // number of samples in current stream (0 if continuous)
     uint64_t samples_expected_tx_stream = 0;
@@ -284,8 +284,8 @@ class data_transport : public packet_transport {
 
   public:
 
-    data_transport(const unsigned granularity, const unsigned n_subdevs, const unsigned max_samps_per_packet) :
-                sample_granularity(granularity), num_subdevs(n_subdevs) {
+    data_transport(const unsigned granularity, const unsigned n_rx_subdevs, const unsigned max_samps_per_packet) :
+                sample_granularity(granularity), num_rx_subdevs(n_rx_subdevs) {
         max_samples_per_packet = sample_granularity * (max_samps_per_packet / sample_granularity);
     };
 
@@ -344,7 +344,7 @@ class data_transport : public packet_transport {
         samples_received                = 0;
         sequence_errors_current_stream  = 0;
         samples_received_current_stream = 0;
-        for (unsigned i = 0; i < num_subdevs; i++) {
+        for (unsigned i = 0; i < num_rx_subdevs; i++) {
             rx_data_queue[i]->reset();
             rx_sample_queue[i]->reset();
         }
@@ -367,7 +367,7 @@ class data_transport : public packet_transport {
         samples_expected_rx_stream      = n_samples_expected;
         sequence_errors_current_stream  = 0;
         samples_received_current_stream = 0;
-        for (unsigned i = 0; i < num_subdevs; i++) {
+        for (unsigned i = 0; i < num_rx_subdevs; i++) {
             rx_data_queue[i]->reset();
             rx_sample_queue[i]->reset();
         }
@@ -389,7 +389,7 @@ class data_transport : public packet_transport {
 
     bool set_max_samples_per_packet(const unsigned n_samples) {
         if (n_samples > 0 and n_samples <= MAX_DATA_LENGTH_SAMPLES) {
-            max_samples_per_packet = n_samples;
+            max_samples_per_packet = sample_granularity * (n_samples / sample_granularity);
             return true;
         }
         return false;

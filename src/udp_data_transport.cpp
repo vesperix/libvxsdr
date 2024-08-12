@@ -172,15 +172,15 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     LOG_DEBUG("using transmit data buffer of {:d} packets", config["udp_data_transport:tx_data_queue_packets"]);
     tx_data_queue = std::make_unique<spsc_queue<data_queue_element>>(config["udp_data_transport:tx_data_queue_packets"]);
 
-    for (unsigned i = 0; i < num_subdevs; i++) {
+    for (unsigned i = 0; i < num_rx_subdevs; i++) {
         rx_data_queue.push_back(
             std::make_unique<spsc_queue<data_queue_element>>(config["udp_data_transport:rx_data_queue_packets"]));
         rx_sample_queue.push_back(
             std::make_unique<spsc_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
     }
 
-    LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
-    LOG_DEBUG("using {:d} receive sample buffers of {:d} samples", num_subdevs, MAX_DATA_LENGTH_SAMPLES);
+    LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
+    LOG_DEBUG("using {:d} receive sample buffers of {:d} samples", num_rx_subdevs, MAX_DATA_LENGTH_SAMPLES);
 
     rx_state        = TRANSPORT_STARTING;
     receiver_thread = vxsdr_thread([this] { data_receive(); });
@@ -338,7 +338,7 @@ void udp_data_transport::data_receive() {
 
                     if (recv_buffer.hdr.packet_type == PACKET_TYPE_RX_SIGNAL_DATA) {
                         // check subdevice
-                        if (recv_buffer.hdr.subdevice < num_subdevs) {
+                        if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
                             uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
                             // update sample stats
                             size_t n_samps = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
