@@ -540,9 +540,14 @@ class pcie_data_transport : public data_transport {
     vxsdr_thread sender_thread;
     vxsdr_thread receiver_thread;
 
+    static constexpr unsigned send_thread_wait_us   = 10'000;
+    static constexpr unsigned send_thread_sleep_us  =    100;
+
+    static constexpr bool use_tx_throttling = false;
     static constexpr unsigned throttle_hard_percent = 95;
     static constexpr unsigned throttle_on_percent   = 90;
     static constexpr unsigned throttle_off_percent  = 85;
+    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
 
     // parameters used to monitor status of the radio's internal buffers
     // (on the other end of the network connection) for throttling
@@ -555,6 +560,7 @@ class pcie_data_transport : public data_transport {
   public:
     explicit pcie_data_transport(const std::map<std::string, int64_t>& settings,
                                  std::shared_ptr<pcie_dma_interface> pcie_iface,
+                                 const unsigned granularity,
                                  const unsigned n_rx_subdevs,
                                  const unsigned max_samps_per_packet);
     ~pcie_data_transport() noexcept;

@@ -34,13 +34,24 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
 
     auto config = vxsdr::imp::apply_config(input_config);
 
-    if (config["data_transport"] != vxsdr::TRANSPORT_TYPE_UDP or config["command_transport"] != vxsdr::TRANSPORT_TYPE_UDP) {
-        LOG_ERROR("the transport specified is not supported");
-        throw std::invalid_argument("the transport specified is not supported in vxsdr constructor");
+    std::shared_ptr<pcie_dma_interface> pcie_iface = nullptr;
+
+    // See if a PCIe interface is needed
+    if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE or config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
+        pcie_iface = std::make_shared<pcie_dma_interface>();
     }
 
-    // Make the transport objects here
-    command_tport = std::make_unique<udp_command_transport>(config);
+    // Make the command transport
+    if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_UDP) {
+        LOG_DEBUG("making udp command transport");
+        command_tport = std::make_unique<udp_command_transport>(config);
+    } else if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
+        LOG_DEBUG("making pcie command transport");
+        command_tport = std::make_unique<pcie_command_transport>(config, pcie_iface);
+    } else {
+        LOG_ERROR("the command transport specified is not supported");
+        throw std::invalid_argument("the command transport specified is not supported in vxsdr constructor");
+    }
 
     auto start_time = std::chrono::steady_clock::now();
     while (command_tport->tx_state != packet_transport::TRANSPORT_READY and
@@ -87,7 +98,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
 
     // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
     unsigned sample_granularity = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
-    unsigned num_subdevs = res->at(6);
+    unsigned num_rx_subdevs = res->at(6);
     unsigned max_samps_per_packet = sample_granularity * (max_samples_per_packet<vxsdr::wire_sample>(res->at(7)) / sample_granularity);
 
     if (not vxsdr::imp::tx_stop() or not vxsdr::imp::rx_stop()) {
@@ -99,7 +110,17 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         throw std::runtime_error("error clearing status in vxsdr constructor");
     }
 
-    data_tport = std::make_unique<udp_data_transport>(config, sample_granularity, num_subdevs, max_samps_per_packet);
+    // Make the data transport
+    if (config["data_transport"] == vxsdr::TRANSPORT_TYPE_UDP) {
+        LOG_DEBUG("making udp data transport with {:d} receive subdevices", num_rx_subdevs);
+        data_tport = std::make_unique<udp_data_transport>(config, sample_granularity, num_rx_subdevs, max_samps_per_packet);
+    } else if (config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
+        LOG_DEBUG("making pcie data transport with {:d} receive subdevices", num_rx_subdevs);
+        data_tport = std::make_unique<pcie_data_transport>(config, pcie_iface, sample_granularity, num_rx_subdevs, max_samps_per_packet);
+    } else {
+        LOG_ERROR("the data transport specified is not supported");
+        throw std::runtime_error("the data transport specified is not supported in vxsdr constructor");
+    }
 
     start_time = std::chrono::steady_clock::now();
     while (data_tport->tx_state != packet_transport::TRANSPORT_READY and
