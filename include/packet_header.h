@@ -288,7 +288,7 @@ typedef uint64_t capabilities_t;
 
 #define MAX_NAME_LENGTH_BYTES                      (16U)  // maximum length of a name (sensors, gains stages) including terminating null
 
-#define MAX_DATA_LENGTH_SAMPLES                 (2048UL)
+#define MAX_DATA_LENGTH_SAMPLES                 (4096UL)
 #define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
 #define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
 
