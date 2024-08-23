@@ -802,7 +802,7 @@ std::optional<std::vector<vxsdr::filter_coefficient>> vxsdr::imp::get_rx_filter_
 
 std::optional<unsigned> vxsdr::imp::get_tx_filter_length(const uint8_t subdev) {
     header_only_packet p;
-    p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_FILTER_LENGTH, 0, subdev, sizeof(p), 0};
+    p.hdr    = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_GET_FILTER_LENGTH, 0, subdev, 0, sizeof(p), 0};
     auto res = vxsdr::imp::send_packet_and_return_response(p, "get_tx_filter_length()");
     if (res) {
         auto q  = res.value();
