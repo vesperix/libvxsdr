@@ -77,13 +77,13 @@ bool receive_packet(net::ip::udp::socket& receiver_socket,
 
 bool send_discover_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint) {
     header_only_packet p = {};
-    p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_DISCOVER, 0, 0, sizeof(p), 0};
+    p.hdr = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_DISCOVER, 0, 0, 0, sizeof(p), 0};
     return send_packet(sender_socket, device_endpoint, p);
 }
 
 bool send_hello_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint) {
-    header_only_packet p = {};
-    p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_HELLO, 0, 0, sizeof(p), 0};
+    header_only_packet p;
+    p.hdr = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_HELLO, 0, 0, 0, sizeof(p), 0};
     return send_packet(sender_socket, device_endpoint, p);
 }
 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
         net::ip::udp::endpoint local_send_endpoint(local_addr, udp_host_send_port);
         net::ip::udp::endpoint local_receive_endpoint(local_addr, udp_host_receive_port);
-        net::ip::udp::endpoint device_endpoint(local_net.broadcast(), udp_device_receive_port);
+        net::ip::udp::endpoint discover_endpoint(local_net.broadcast(), udp_device_receive_port);
 
         std::cout << "Searching for VXSDR devices using broadcast address "
                   << local_net.broadcast().to_string() << " . . ." << std::endl;
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
 
         std::vector<one_uint32_packet> results;
 
-        if (not send_discover_packet(sender_socket, device_endpoint)) {
+        if (not send_discover_packet(sender_socket, discover_endpoint)) {
             std::cerr << "Error: failed to send discover packet" << std::endl;
         } else {
             if (receive_discover_response_packets(receiver_socket, results, timeout_s)) {
