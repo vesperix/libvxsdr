@@ -61,15 +61,15 @@ bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& de
 }
 
 bool receive_packet(net::ip::udp::socket& receiver_socket,
-                    largest_data_packet& recv_buffer,
+                    largest_cmd_or_rsp_packet& recv_buffer,
                     net::ip::udp::endpoint& remote_endpoint,
                     const unsigned receive_timeout_ms) {
 
     auto result = receiver_socket.async_receive_from(net::buffer(&recv_buffer, sizeof(recv_buffer)), remote_endpoint, net::use_future);
     if (result.wait_for(std::chrono::milliseconds(receive_timeout_ms)) == std::future_status::ready) {
-        std::cerr << "type = 0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << (unsigned)recv_buffer.hdr.packet_type << " "
-                  << "cmd  = 0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << (unsigned)recv_buffer.hdr.command  << " "
-                  << "size =   " << std::setw(6) << std::setfill(' ') << (unsigned)recv_buffer.hdr.packet_size  << std::endl;
+    //    std::cerr << "type = 0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << (unsigned)recv_buffer.hdr.packet_type << " "
+    //              << "cmd  = 0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << (unsigned)recv_buffer.hdr.command  << " "
+    //              << "size =   " << std::setw(6) << std::setfill(' ') << (unsigned)recv_buffer.hdr.packet_size  << std::endl;
         return true;
     }
     return false;
@@ -91,14 +91,16 @@ bool receive_discover_response_packets(net::ip::udp::socket& receiver_socket,
                                        std::vector<one_uint32_packet>& results,
                                        const double timeout_s) {
     net::ip::udp::endpoint remote_endpoint;
-    largest_data_packet packet;
+    largest_cmd_or_rsp_packet packet;
+    packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     unsigned timeout_ms = std::lround(1000 * timeout_s);
     while (receive_packet(receiver_socket, packet, remote_endpoint, timeout_ms)) {
         if (packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP and packet.hdr.command == DEVICE_CMD_DISCOVER) {
             one_uint32_packet res;
-            std::memcpy((void*)&res, &packet, std::min((size_t)packet.hdr.packet_size, sizeof(res)));
+            std::memcpy((void *)&res, &packet, std::min((size_t)packet.hdr.packet_size, sizeof(res)));
             results.push_back(res);
         }
+        packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     }
     return not results.empty();
 }
@@ -107,13 +109,15 @@ bool receive_hello_response_packet(net::ip::udp::socket& receiver_socket,
                                        eight_uint32_packet& result,
                                        const double timeout_s) {
     net::ip::udp::endpoint remote_endpoint;
-    largest_data_packet packet;
+    largest_cmd_or_rsp_packet packet;
+    packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     unsigned timeout_ms = std::lround(1000 * timeout_s);
-    while (receive_packet(receiver_socket, packet, remote_endpoint, timeout_ms)) {
-        if (packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP and packet.hdr.command == DEVICE_CMD_HELLO) {
-            std::memcpy((void*)&result, &packet, std::min((size_t)result.hdr.packet_size, sizeof(result)));
-            return true;
-        }
+    receive_packet(receiver_socket, packet, remote_endpoint, timeout_ms);
+    if (packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP and packet.hdr.command == DEVICE_CMD_HELLO) {
+        eight_uint32_packet res;
+        std::memcpy((void *)&res, &packet, std::min((size_t)result.hdr.packet_size, sizeof(res)));
+        result = res;
+        return true;
     }
     return false;
 }
@@ -133,7 +137,7 @@ int main(int argc, char* argv[]) {
     const unsigned udp_host_receive_port   = 1030;
     const unsigned udp_host_send_port      = 55123;
     const unsigned udp_device_receive_port = 1030;
-    const double timeout_s                 = 1.5; // maximum delay in discover response is 1024 ms
+    const double timeout_s                 = 2; // maximum delay in discover response is 1024 ms
     try {
         boost::program_options::options_description desc("Command line options");
         boost::program_options::variables_map vm;
