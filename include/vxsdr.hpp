@@ -51,7 +51,7 @@ class VXSDR_LIB_EXPORT vxsdr {
   */
   struct async_message_exception : public std::runtime_error {
     public:
-      async_message_exception(const std::string& msg) : std::runtime_error{msg} {}
+      explicit async_message_exception(const std::string& msg) : std::runtime_error{msg} {}
   };
 
   /*!
@@ -316,7 +316,6 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param subdev the subdevice number
     */
     bool set_rx_enabled(const bool enabled, const uint8_t subdev = 0);
-
 
     /*!
       @brief Get the transmit center frequency range.
@@ -1073,7 +1072,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
-    size_t put_tx_data(const std::vector<std::complex<float>>& data,
+    // this function is virtual because the Python interface derives from it
+    virtual size_t put_tx_data(const std::vector<std::complex<float>>& data,
                        size_t n_requested = 0,
                        const uint8_t subdev   = 0,
                        const double timeout_s = 10);
@@ -1101,7 +1101,8 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
-    size_t get_rx_data(std::vector<std::complex<float>>& data,
+    // this function is virtual because the Python interface derives from it
+    virtual size_t get_rx_data(std::vector<std::complex<float>>& data,
                        const size_t n_requested = 0,
                        const uint8_t subdev = 0,
                        const double timeout_s = 10);
