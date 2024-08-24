@@ -114,9 +114,7 @@ bool receive_hello_response_packet(net::ip::udp::socket& receiver_socket,
     unsigned timeout_ms = std::lround(1000 * timeout_s);
     receive_packet(receiver_socket, packet, remote_endpoint, timeout_ms);
     if (packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP and packet.hdr.command == DEVICE_CMD_HELLO) {
-        eight_uint32_packet res;
-        std::memcpy((void *)&res, &packet, std::min((size_t)result.hdr.packet_size, sizeof(res)));
-        result = res;
+        std::memcpy((void *)&result, &packet, std::min((size_t)packet.hdr.packet_size, sizeof(result)));
         return true;
     }
     return false;
