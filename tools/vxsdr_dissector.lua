@@ -142,7 +142,7 @@ local radio_cmds = {
     [0x13] = "SET_RF_BW",  -- unimplemented
     [0x14] = "SET_RF_ENABLED",
     [0x15] = "SET_RF_PORT",
-    [0x16] = "SET_LO_INPUT", -- unimplemented
+    [0x16] = "SET_LO_INPUT",
     [0x17] = "SET_MASTER_CLK", --unimplemented
     [0x18] = "GET_IF_FREQ",
     [0x19] = "GET_RF_FREQ_RANGE",
@@ -204,8 +204,8 @@ local pf_device_command     = ProtoField.uint16("vxsdr.device_command", "Device 
 local pf_device_command_err = ProtoField.uint16("vxsdr.device_command_err", "Device Command Error", base.HEX, device_cmds, command_mask)
 local pf_device_command_rsp = ProtoField.uint16("vxsdr.device_command_rsp", "Device Command Response", base.HEX, device_cmds, command_mask)
 local pf_radio_command      = ProtoField.uint16("vxsdr.radio_command", "Radio Command", base.HEX, radio_cmds, command_mask)
-local pf_radio_command_err  = ProtoField.uint16("vxsdr.radio_command_err", "Radio Command Error", base.HEX, radio_cmds,command_mask)
-local pf_radio_command_rsp  = ProtoField.uint16("vxsdr.radio_command_rsp", "Radio Command Response", base.HEX, radio_cmds,command_mask)
+local pf_radio_command_err  = ProtoField.uint16("vxsdr.radio_command_err", "Radio Command Error", base.HEX, radio_cmds, command_mask)
+local pf_radio_command_rsp  = ProtoField.uint16("vxsdr.radio_command_rsp", "Radio Command Response", base.HEX, radio_cmds, command_mask)
 local pf_device_error       = ProtoField.uint32("vxsdr.device_error", "Device Error Reason", base.HEX, cmd_errs)
 local pf_radio_error        = ProtoField.uint32("vxsdr.radio_error", "Radio Error Reason", base.HEX, cmd_errs)
 local pf_async_msg_type     = ProtoField.uint16("vxsdr.async_msg_type", "Async Message Type", base.HEX, async_msgs, async_type_mask)
@@ -298,11 +298,11 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
         tree:add_le(   pf_device_command_rsp,     tvbuf(0, 2))
     elseif pkt_type == packet_types_index["DEVICE_CMD_ERR"] then
         tree:add_le(   pf_device_command_err,     tvbuf(0, 2))
-    elseif pkt_type == packet_types_index["TX_RADIO_CMD"] or pkt_type ==packet_types_index["RX_RADIO_CMD"] then
+    elseif pkt_type == packet_types_index["TX_RADIO_CMD"] or pkt_type == packet_types_index["RX_RADIO_CMD"] then
         tree:add_le(   pf_radio_command,          tvbuf(0, 2))
-    elseif pkt_type == packet_types_index["TX_RADIO_CMD_RSP"] or pkt_type ==packet_types_index["RX_RADIO_CMD_RSP"] then
+    elseif pkt_type == packet_types_index["TX_RADIO_CMD_RSP"] or pkt_type == packet_types_index["RX_RADIO_CMD_RSP"] then
         tree:add_le(   pf_radio_command_rsp,      tvbuf(0, 2))
-    elseif ppkt_type == packet_types_index["TX_RADIO_CMD_ERR"] or pkt_type ==packet_types_index["RX_RADIO_CMD_ERR"] then
+    elseif pkt_type == packet_types_index["TX_RADIO_CMD_ERR"] or pkt_type == packet_types_index["RX_RADIO_CMD_ERR"] then
         tree:add_le(   pf_radio_command_err,      tvbuf(0, 2))
     elseif pkt_type == packet_types_index["ASYNC_MSG"] then
         tree:add_le(   pf_async_msg_type,         tvbuf(0, 2))
