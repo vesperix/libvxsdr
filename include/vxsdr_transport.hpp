@@ -73,11 +73,9 @@ class packet_transport {
             if (config.count(s.first) > 0) {
                 if (config[s.first] != s.second) {
                     config[s.first] = s.second;
-                    LOG_DEBUG("changed setting {:s} = {:d}", s.first, config[s.first]);
                 }
             } else {
                 config[s.first] = s.second;
-                LOG_DEBUG("added setting {:s} = {:d}", s.first, config[s.first]);
             }
         }
         return config;
@@ -364,7 +362,6 @@ class data_transport : public packet_transport {
     }
 
     bool reset_rx_stream(const uint64_t n_samples_expected) {
-        LOG_DEBUG("reset rx stream started");
         samples_expected_rx_stream      = n_samples_expected;
         sequence_errors_current_stream  = 0;
         samples_received_current_stream = 0;
@@ -372,7 +369,6 @@ class data_transport : public packet_transport {
             rx_data_queue[i]->reset();
             rx_sample_queue[i]->reset();
         }
-        LOG_DEBUG("reset rx stream finished");
         return true;
     }
 
