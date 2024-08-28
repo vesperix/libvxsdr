@@ -967,7 +967,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Start transmitting at time @p t until @p n samples are sent.
       If @p t is less than the current time, start immediately;
-      if @p n is 0, continue until a @ref stop command is received.
+      if @p n is 0, continue until a @ref tx_stop(uint8_t) "tx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
       @param n the number of samples to send
@@ -980,7 +980,7 @@ class VXSDR_LIB_EXPORT vxsdr {
     /*!
       @brief Start receiving at time @p t until @p n samples are received.
       If @p t is less than the current time, start immediately;
-      if @p n is 0, continue until a @ref stop command is received.
+      if @p n is 0, continue until a @ref rx_stop(uint8_t) "rx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
       @param n the number of samples to receive
@@ -994,9 +994,9 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Start transmitting at time @p t until @p n samples are sent,
       repeating with a delay after each transmission of @p t_delay, for @p n_repeat iterations.
       If @p t is less than or equal to the current time, start immediately;
-      if @p n_repeat is 0, continue until a @ref stop command is received.
+      if @p n_repeat is 0, continue until a @ref tx_stop(uint8_t) "tx_stop" command is received.
       If @p n_samples is small enough that the entire looped waveform fits in the device's transmit buffer
-      (whose size can be checked with the @ref get_buffer_info command),
+      (whose size can be checked with the @ref get_buffer_info(uint8_t) "get_buffer_info" command),
       the samples need only be sent once; otherwise, they must be resent for each repetition.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
@@ -1015,7 +1015,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       @brief Start receiving at time @p t until @p n samples are received,
       repeating with a delay after each reception of @p t_delay, for @p n_repeat iterations.
       If @p t is less than or equal to the current time, start immediately;
-      if @p n_repeat is 0, continue until a @ref stop command is received.
+      if @p n_repeat is 0, continue until a @ref rx_stop(uint8_t) "rx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
       @param n the number of samples to receive
