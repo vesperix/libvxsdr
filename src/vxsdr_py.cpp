@@ -320,12 +320,8 @@ PYBIND11_MODULE(vxsdr_py, m) {
                 py::arg("n_repeat") = 0,
                 py::arg("subdev") = 0)
         // interrupting transmit and receive
-        PYBIND_DEF_ARGS(tx_stop, "Stop transmitting at the specified time.",
-                py::arg("t") = vxsdr::time_point{},
-                py::arg("subdev") = 0)
-        PYBIND_DEF_ARGS(rx_stop, "Stop receiving at the specified time.",
-                py::arg("t") = vxsdr::time_point{},
-                py::arg("subdev") = 0)
+        PYBIND_DEF_SUBDEV(tx_stop, "Stop transmitting immediately.")
+        PYBIND_DEF_SUBDEV(rx_stop, "Stop receiving immediately.")
         // sending and receiving samples
         PYBIND_DEF_ARGS(put_tx_data,
                 "Send transmit data to the device.",

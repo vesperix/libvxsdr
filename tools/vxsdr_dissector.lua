@@ -426,9 +426,6 @@ function vxsdr.dissector(tvbuf, pktinfo, root)
                 tree:add_le(pf_uint32_sec, tvbuf(24, 4))
                 tree:add_le(pf_uint32_nsec, tvbuf(28, 4))
                 tree:add_le(pf_uint32_data, tvbuf(32, 4))
-            elseif pkt_cmd == radio_cmds_index["STOP"]  then
-                tree:add_le(pf_uint32_sec, tvbuf( 8, 4))
-                tree:add_le(pf_uint32_nsec, tvbuf(12, 4))
             -- set rf port
             elseif pkt_cmd == radio_cmds_index["SET_RF_PORT"] or
                    pkt_cmd == radio_cmds_index["SET_LO_INPUT"] then

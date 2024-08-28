@@ -107,8 +107,8 @@ class vxsdr::imp {
                                         const vxsdr::duration& t_delay = vxsdr::duration::zero(),
                                         const uint32_t n_repeat = 0,
                                         const uint8_t subdev = 0);
-    bool tx_stop(const vxsdr::time_point& t = {}, const uint8_t subdev = 0);
-    bool rx_stop(const vxsdr::time_point& t = {}, const uint8_t subdev = 0);
+    bool tx_stop(const uint8_t subdev = 0);
+    bool rx_stop(const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_tx_freq_range(const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_rx_freq_range(const uint8_t subdev = 0);
     bool set_tx_freq(const double freq_hz, const uint8_t subdev = 0);
