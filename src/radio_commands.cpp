@@ -143,11 +143,9 @@ bool vxsdr::imp::rx_loop(const vxsdr::time_point& t,
     return false;
 }
 
-
-bool vxsdr::imp::tx_stop(const vxsdr::time_point& t, const uint8_t subdev) {
-    time_packet p;
-    p.hdr        = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_STOP, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
-    vxsdr::imp::time_point_to_time_spec_t(t, p.time);
+bool vxsdr::imp::tx_stop(const uint8_t subdev) {
+    header_only_packet p;
+    p.hdr        = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_STOP, 0, subdev, 0, sizeof(p), 0};
     auto resp_ok = vxsdr::imp::send_packet_and_check_response(p, "tx_stop()");
     if (resp_ok) {
         return true;
@@ -155,10 +153,9 @@ bool vxsdr::imp::tx_stop(const vxsdr::time_point& t, const uint8_t subdev) {
     return false;
 }
 
-bool vxsdr::imp::rx_stop(const vxsdr::time_point& t, const uint8_t subdev) {
-    time_packet p;
-    p.hdr        = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_STOP, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
-    vxsdr::imp::time_point_to_time_spec_t(t, p.time);
+bool vxsdr::imp::rx_stop(const uint8_t subdev) {
+    header_only_packet p;
+    p.hdr        = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_STOP, 0, subdev, 0, sizeof(p), 0};
     auto resp_ok = vxsdr::imp::send_packet_and_check_response(p, "rx_stop()");
     if (resp_ok) {
         return true;
