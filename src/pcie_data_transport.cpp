@@ -150,12 +150,12 @@ void pcie_data_transport::data_receive() {
         size_t bytes_in_packet = 0;
 
         // sync receive
-        bytes_in_packet = pcie_if->data_receive(&recv_buffer, sizeof(recv_buffer), err);
+        bytes_in_packet = packet_receive(recv_buffer, err);
 
         if (not receiver_thread_stop_flag) {
             if (err != 0 and err != ETIMEDOUT) {
                 rx_state = TRANSPORT_ERROR;
-                LOG_ERROR("pcie data receive error: {:s} ({:d})", std::strerror(err), err);
+                LOG_ERROR("pcie data receive error: {:s}", std::strerror(err));
                 if (throw_on_rx_error) {
                     throw(std::runtime_error("pcie data receive error"));
                 }
@@ -358,7 +358,7 @@ bool pcie_data_transport::send_packet(packet& packet) {
     packet_types_sent.at(packet.hdr.packet_type)++;
 
     int err = 0;
-    size_t bytes = pcie_if->data_send(&packet, packet.hdr.packet_size, err);
+    size_t bytes = packet_send(packet, err);
 
     if (err != 0) {
         tx_state = TRANSPORT_ERROR;
@@ -386,4 +386,13 @@ bool pcie_data_transport::send_packet(packet& packet) {
     }
 
     return true;
+}
+
+size_t pcie_data_transport::packet_send(const packet& packet, int& error_code) {
+    return pcie_if->data_send(&packet, packet.hdr.packet_size, error_code);
+}
+
+size_t pcie_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
+    packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
+    return pcie_if->data_receive(&packet, sizeof(packet), error_code);
 }

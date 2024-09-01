@@ -148,154 +148,13 @@ udp_command_transport::~udp_command_transport() noexcept {
     LOG_DEBUG("udp command transport destructor complete");
 }
 
-void udp_command_transport::command_receive() {
-    LOG_DEBUG("udp command rx started");
-    uint16_t last_seq = 0;
-    bytes_received    = 0;
-    packets_received  = 0;
-    sequence_errors   = 0;
-
-    rx_state = TRANSPORT_READY;
-    LOG_DEBUG("udp command rx in READY state");
-
-    while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
-        static command_queue_element recv_buffer;
-        net::socket_base::message_flags flags = 0;
-        net_error_code err;
-        size_t bytes_in_packet = 0;
-
-        // clear buffer header and sync receive
-        recv_buffer.hdr = { 0, 0, 0, 0, 0, 0, 0 };
-        bytes_in_packet = receiver_socket.receive(net::buffer(&recv_buffer, sizeof(recv_buffer)), flags, err);
-        if (not receiver_thread_stop_flag) {
-            if (err) {
-                rx_state = TRANSPORT_ERROR;
-                LOG_ERROR("udp command receive error: {:s}", err.message());
-                if (throw_on_rx_error) {
-                    throw(std::runtime_error("udp command rx error"));
-                }
-            } else if (bytes_in_packet > 0) {
-                // check size and discard unless packet size agrees with header
-                if (recv_buffer.hdr.packet_size != bytes_in_packet) {
-                    rx_state = TRANSPORT_ERROR;
-                    LOG_ERROR("packet size error in udp command rx (header {:d}, packet {:d})",
-                            (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
-                    if (throw_on_rx_error) {
-                        LOG_ERROR("packet size error in udp command rx");
-                    }
-                } else {
-                    // update stats
-                    packets_received++;
-                    packet_types_received.at(recv_buffer.hdr.packet_type)++;
-                    bytes_received += bytes_in_packet;
-
-                    // check sequence and update sequence counter
-                    if (packets_received > 1 and recv_buffer.hdr.sequence_counter != (uint16_t)(last_seq + 1)) {
-                        rx_state = TRANSPORT_ERROR;
-                        uint16_t received = recv_buffer.hdr.sequence_counter;
-                        LOG_ERROR("sequence error in udp command rx (expected {:d}, received {:d})", (uint16_t)(last_seq + 1), received);
-
-                        sequence_errors++;
-                        if (throw_on_rx_error) {
-                            throw(std::runtime_error("sequence error in udp command rx"));
-                        }
-                    }
-                    last_seq = recv_buffer.hdr.sequence_counter;
-
-                    switch (recv_buffer.hdr.packet_type) {
-                        case PACKET_TYPE_ASYNC_MSG:
-                            if (not async_msg_queue.push_or_timeout(recv_buffer, queue_push_timeout_us, queue_push_wait_us)) {
-                                rx_state = TRANSPORT_ERROR;
-                                LOG_ERROR("timeout pushing to async message queue in udp command rx");
-                                if (throw_on_rx_error) {
-                                    throw(std::runtime_error("timeout pushing to async message queue in udp command rx"));
-                                }
-                            }
-                            break;
-
-                        case PACKET_TYPE_DEVICE_CMD_RSP:
-                        case PACKET_TYPE_TX_RADIO_CMD_RSP:
-                        case PACKET_TYPE_RX_RADIO_CMD_RSP:
-                        case PACKET_TYPE_DEVICE_CMD_ERR:
-                        case PACKET_TYPE_TX_RADIO_CMD_ERR:
-                        case PACKET_TYPE_RX_RADIO_CMD_ERR:
-                            if (not response_queue.push_or_timeout(recv_buffer, queue_push_timeout_us, queue_push_wait_us)) {
-                                rx_state = TRANSPORT_ERROR;
-                                LOG_ERROR("timeout pushing to command response queue in udp command rx");
-                                if (throw_on_rx_error) {
-                                    throw(std::runtime_error("timeout pushing to command response queue in udp command rx"));
-                                }
-                            }
-                            break;
-
-                        default:
-                            LOG_WARN("udp command rx discarded incorrect packet (type {:d})", (int)recv_buffer.hdr.packet_type);
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    rx_state = TRANSPORT_SHUTDOWN;
-
-    LOG_DEBUG("udp command rx exiting");
-}
-
-void udp_command_transport::command_send() {
-    LOG_DEBUG("udp command tx started");
-    static command_queue_element packet_buffer;
-
-    tx_state = TRANSPORT_READY;
-    LOG_DEBUG("udp command tx in READY state");
-
-    while (not sender_thread_stop_flag) {
-        if (command_queue.pop_or_timeout(packet_buffer, send_thread_wait_us, send_thread_sleep_us)) {
-            send_packet(packet_buffer);
-        }
-    }
-
-    tx_state = TRANSPORT_SHUTDOWN;
-
-    LOG_DEBUG("udp command tx exiting");
-}
-
-bool udp_command_transport::send_packet(packet& packet) {
-    packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1));
-    packet_types_sent.at(packet.hdr.packet_type)++;
-
-    net_error_code err;
-    size_t bytes = blocking_packet_send(packet, err);
-
-    bytes_sent += bytes;
-
-    if (bytes != packet.hdr.packet_size) {
-        tx_state = TRANSPORT_ERROR;
-        LOG_ERROR("send error in udp command tx (size incorrect)");
-        send_errors++;
-        if(throw_on_tx_error) {
-            throw(std::runtime_error("send error in udp command tx (size incorrect)"));
-        }
-        return false;
-    } else if (err) {
-        tx_state = TRANSPORT_ERROR;
-        LOG_ERROR("send error in udp command tx: {:s}", err.message());
-        send_errors++;
-        if(throw_on_tx_error) {
-            throw(std::runtime_error("send error in udp command tx"));
-        }
-        return false;
-    }
-
-    return true;
-}
-
 #ifdef VXSDR_TARGET_MACOS
 #define UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
 #endif
 
-size_t udp_command_transport::blocking_packet_send(const packet& packet, net_error_code& err) {
+size_t udp_command_transport::packet_send(const packet& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
+    net_error_code err;
 #ifdef UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
     size_t bytes = 0;
     while (true) {
@@ -309,5 +168,15 @@ size_t udp_command_transport::blocking_packet_send(const packet& packet, net_err
 #else
     size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
 #endif
+    error_code = err.value();
+    return bytes;
+}
+
+size_t udp_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
+    net::socket_base::message_flags flags = 0;
+    net_error_code err;
+    packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
+    size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
+    error_code = err.value();
     return bytes;
 }
