@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.27)
 
 set(vxsdr_lib_version_major  0)
 set(vxsdr_lib_version_minor 18)
-set(vxsdr_lib_version_patch  0)
+set(vxsdr_lib_version_patch  1)
 
 set(vxsdr_lib_version ${vxsdr_lib_version_major}.${vxsdr_lib_version_minor}.${vxsdr_lib_version_patch})
 
@@ -37,6 +37,8 @@ set(vxsdr_lib_source src/vxsdr.cpp
                      src/vxsdr_imp.cpp
                      src/device_commands.cpp
                      src/radio_commands.cpp
+                     src/command_transport.cpp
+                     src/data_transport.cpp
                      src/udp_command_transport.cpp
                      src/udp_data_transport.cpp
                      src/pcie_command_transport.cpp
