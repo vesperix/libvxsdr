@@ -78,7 +78,7 @@ class packet_transport {
     std::atomic<transport_state> tx_state {TRANSPORT_UNINITIALIZED};
     std::atomic<transport_state> rx_state {TRANSPORT_UNINITIALIZED};
 
-    size_t packet_send(const packet& packet, int& error_code);
+    virtual size_t packet_send(const packet& packet, int& error_code);
 
     virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
@@ -295,8 +295,8 @@ class command_transport : public packet_transport {
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code);
 
-    void command_receive();
-    void command_send();
+    virtual void command_send();
+    virtual void command_receive();
 
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
@@ -375,8 +375,8 @@ class data_transport : public packet_transport {
     bool send_packet(packet& packet);
     virtual size_t packet_receive(data_queue_element& packet, int& error_code);
 
-    void data_receive();
-    void data_send();
+    virtual void data_send();
+    virtual void data_receive();
 
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
@@ -458,11 +458,11 @@ class udp_command_transport : public command_transport {
     ~udp_command_transport() noexcept;
 
   protected:
-    void command_receive();
-    void command_send();
+    void command_send() override;
+    void command_receive() override;
 
-    size_t packet_send(const packet& packet, int& error_code);
-    size_t packet_receive(command_queue_element& packet, int& error_code);
+    size_t packet_send(const packet& packet, int& error_code) override;
+    size_t packet_receive(command_queue_element& packet, int& error_code) override;
 };
 
 class udp_data_transport : public data_transport {
@@ -507,11 +507,11 @@ class udp_data_transport : public data_transport {
     ~udp_data_transport() noexcept;
 
   protected:
-    void data_send();
-    void data_receive();
+    void data_send() override;
+    void data_receive() override;
 
-    size_t packet_send(const packet& packet, int& error_code);
-    size_t packet_receive(data_queue_element& packet, int& error_code);
+    size_t packet_send(const packet& packet, int& error_code) override;
+    size_t packet_receive(data_queue_element& packet, int& error_code) override;
 };
 
 class pcie_command_transport : public command_transport {
@@ -529,11 +529,11 @@ class pcie_command_transport : public command_transport {
     ~pcie_command_transport() noexcept;
 
   protected:
-    void command_receive();
-    void command_send();
+    void command_send() override;
+    void command_receive() override;
 
-    size_t packet_send(const packet& packet, int& error_code);
-    size_t packet_receive(command_queue_element& packet, int& error_code);
+    size_t packet_send(const packet& packet, int& error_code) override;
+    size_t packet_receive(command_queue_element& packet, int& error_code) override;
 };
 
 class pcie_data_transport : public data_transport {
@@ -567,9 +567,9 @@ class pcie_data_transport : public data_transport {
     ~pcie_data_transport() noexcept;
 
   protected:
-    void data_send();
-    void data_receive();
+    void data_send() override;
+    void data_receive() override;
 
-    size_t packet_send(const packet& packet, int& error_code);
-    size_t packet_receive(data_queue_element& packet, int& error_code);
+    size_t packet_send(const packet& packet, int& error_code) override;
+    size_t packet_receive(data_queue_element& packet, int& error_code) override;
 };
