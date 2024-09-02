@@ -1,108 +1,18 @@
 #include "vxsdr_transport.hpp"
 
-void data_transport::data_receive() {
-    LOG_DEBUG("{:s} data rx started", transport_type);
-    uint16_t last_seq = 0;
-    bytes_received    = 0;
-    samples_received  = 0;
-    packets_received  = 0;
-    sequence_errors   = 0;
-
-    if (rx_data_queue.empty()) {
-        rx_state = TRANSPORT_SHUTDOWN;
-        LOG_FATAL("queues not initialized in {:s} data rx", transport_type);
-        throw(std::runtime_error("queues not initialized in " + transport_type + " data rx"));
-        return;
+bool data_transport::send_packet(packet& packet) {
+    if (not packet_transport::send_packet(packet)) {
+        return false;
     }
 
-    rx_state = TRANSPORT_READY;
-    LOG_DEBUG("{:s} data rx in READY state", transport_type);
-
-    while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
-        static data_queue_element recv_buffer;
-        int err = 0;
-        size_t bytes_in_packet = 0;
-
-        // sync receive
-        bytes_in_packet = packet_receive(recv_buffer, err);
-
-        if (not receiver_thread_stop_flag) {
-            if (err != 0 and err != ETIMEDOUT) {
-                rx_state = TRANSPORT_ERROR;
-                LOG_ERROR("{:s} data receive error: {:s}", transport_type, std::strerror(err));
-                if (throw_on_rx_error) {
-                    throw(std::runtime_error(transport_type + " data receive error"));
-                }
-            } else if (bytes_in_packet > 0) {
-                // check size and discard unless packet size agrees with header
-                if (recv_buffer.hdr.packet_size != bytes_in_packet) {
-                    rx_state = TRANSPORT_ERROR;
-                    LOG_ERROR("packet size error in {:s} data rx (header {:d}, packet {:d})",
-                            transport_type, (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
-                    if (throw_on_rx_error) {
-                        throw(std::runtime_error("packet size error in " + transport_type + " data rx"));
-                    }
-                } else {
-                    // update stats
-                    packets_received++;
-                    packet_types_received.at(recv_buffer.hdr.packet_type)++;
-                    bytes_received += bytes_in_packet;
-
-                    // check sequence and update sequence counter
-                    if (packets_received > 1 and recv_buffer.hdr.sequence_counter != (uint16_t)(last_seq + 1)) {
-                        rx_state = TRANSPORT_ERROR;
-                        uint16_t received = recv_buffer.hdr.sequence_counter;
-                        LOG_ERROR("sequence error in {:s} data rx (expected {:d}, received {:d})",
-                                transport_type, (uint16_t)(last_seq + 1), received);
-                        sequence_errors++;
-                        sequence_errors_current_stream++;
-                        if (throw_on_rx_error) {
-                            throw(std::runtime_error("sequence error in " + transport_type + " data rx"));
-                        }
-                    }
-                    last_seq = recv_buffer.hdr.sequence_counter;
-
-                    if (recv_buffer.hdr.packet_type == PACKET_TYPE_RX_SIGNAL_DATA) {
-                        // check subdevice
-                        if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
-                            uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
-                            // update sample stats
-                            size_t n_samps = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
-                            samples_received += n_samps;
-                            samples_received_current_stream += n_samps;
-                            if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
-                                rx_state = TRANSPORT_ERROR;
-                                LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
-                                        transport_type, recv_buffer.hdr.subdevice, samples_received);
-                                if (throw_on_rx_error) {
-                                    throw(std::runtime_error("error pushing to data queue in " + transport_type + " data rx"));
-                                }
-                            }
-                        } else {
-                            LOG_WARN("{:s} data rx discarded rx data packet from unknown subdevice {:d}",
-                                    transport_type, recv_buffer.hdr.subdevice);
-                        }
-                    } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
-                        auto* r = std::bit_cast<six_uint32_packet*>(&recv_buffer);
-                        tx_buffer_used_bytes = r->value3;
-                        tx_buffer_size_bytes = r->value4;
-                        tx_packet_oos_count  = r->value5;
-                        if (tx_buffer_size_bytes > 0) {
-                            tx_buffer_fill_percent = (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
-                        } else {
-                            tx_buffer_fill_percent = 0;
-                        }
-                    } else {
-                        LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", transport_type, (int)recv_buffer.hdr.packet_type);
-                    }
-                }
-            }
-        }
+    // additional stats for data packets
+    auto header_size = get_packet_preamble_size(packet.hdr);
+    if (packet.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA and packet.hdr.packet_size > header_size) {
+        samples_sent += (packet.hdr.packet_size - header_size) / sizeof(vxsdr::wire_sample);
+        samples_sent_current_stream += (packet.hdr.packet_size - header_size) / sizeof(vxsdr::wire_sample);
     }
 
-    rx_state = TRANSPORT_SHUTDOWN;
-
-    LOG_DEBUG("{:s} data rx exiting", transport_type);
+    return true;
 }
 
 void data_transport::data_send() {
@@ -228,17 +138,107 @@ void data_transport::data_send() {
     LOG_DEBUG("{:s} data tx exiting", transport_type);
 }
 
-    bool data_transport::send_packet(packet& packet) {
-        if (not packet_transport::send_packet(packet)) {
-            return false;
-        }
+void data_transport::data_receive() {
+    LOG_DEBUG("{:s} data rx started", transport_type);
+    uint16_t last_seq = 0;
+    bytes_received    = 0;
+    samples_received  = 0;
+    packets_received  = 0;
+    sequence_errors   = 0;
 
-        // additional stats for data packets
-        auto header_size = get_packet_preamble_size(packet.hdr);
-        if (packet.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA and packet.hdr.packet_size > header_size) {
-            samples_sent += (packet.hdr.packet_size - header_size) / sizeof(vxsdr::wire_sample);
-            samples_sent_current_stream += (packet.hdr.packet_size - header_size) / sizeof(vxsdr::wire_sample);
-        }
-
-        return true;
+    if (rx_data_queue.empty()) {
+        rx_state = TRANSPORT_SHUTDOWN;
+        LOG_FATAL("queues not initialized in {:s} data rx", transport_type);
+        throw(std::runtime_error("queues not initialized in " + transport_type + " data rx"));
+        return;
     }
+
+    rx_state = TRANSPORT_READY;
+    LOG_DEBUG("{:s} data rx in READY state", transport_type);
+
+    while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
+        static data_queue_element recv_buffer;
+        int err = 0;
+        size_t bytes_in_packet = 0;
+
+        // sync receive
+        bytes_in_packet = packet_receive(recv_buffer, err);
+
+        if (not receiver_thread_stop_flag) {
+            if (err != 0 and err != ETIMEDOUT) {
+                rx_state = TRANSPORT_ERROR;
+                LOG_ERROR("{:s} data receive error: {:s}", transport_type, std::strerror(err));
+                if (throw_on_rx_error) {
+                    throw(std::runtime_error(transport_type + " data receive error"));
+                }
+            } else if (bytes_in_packet > 0) {
+                // check size and discard unless packet size agrees with header
+                if (recv_buffer.hdr.packet_size != bytes_in_packet) {
+                    rx_state = TRANSPORT_ERROR;
+                    LOG_ERROR("packet size error in {:s} data rx (header {:d}, packet {:d})",
+                            transport_type, (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
+                    if (throw_on_rx_error) {
+                        throw(std::runtime_error("packet size error in " + transport_type + " data rx"));
+                    }
+                } else {
+                    // update stats
+                    packets_received++;
+                    packet_types_received.at(recv_buffer.hdr.packet_type)++;
+                    bytes_received += bytes_in_packet;
+
+                    // check sequence and update sequence counter
+                    if (packets_received > 1 and recv_buffer.hdr.sequence_counter != (uint16_t)(last_seq + 1)) {
+                        rx_state = TRANSPORT_ERROR;
+                        uint16_t received = recv_buffer.hdr.sequence_counter;
+                        LOG_ERROR("sequence error in {:s} data rx (expected {:d}, received {:d})",
+                                transport_type, (uint16_t)(last_seq + 1), received);
+                        sequence_errors++;
+                        sequence_errors_current_stream++;
+                        if (throw_on_rx_error) {
+                            throw(std::runtime_error("sequence error in " + transport_type + " data rx"));
+                        }
+                    }
+                    last_seq = recv_buffer.hdr.sequence_counter;
+
+                    if (recv_buffer.hdr.packet_type == PACKET_TYPE_RX_SIGNAL_DATA) {
+                        // check subdevice
+                        if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
+                            uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
+                            // update sample stats
+                            size_t n_samps = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
+                            samples_received += n_samps;
+                            samples_received_current_stream += n_samps;
+                            if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
+                                rx_state = TRANSPORT_ERROR;
+                                LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
+                                        transport_type, recv_buffer.hdr.subdevice, samples_received);
+                                if (throw_on_rx_error) {
+                                    throw(std::runtime_error("error pushing to data queue in " + transport_type + " data rx"));
+                                }
+                            }
+                        } else {
+                            LOG_WARN("{:s} data rx discarded rx data packet from unknown subdevice {:d}",
+                                    transport_type, recv_buffer.hdr.subdevice);
+                        }
+                    } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
+                        auto* r = std::bit_cast<six_uint32_packet*>(&recv_buffer);
+                        tx_buffer_used_bytes = r->value3;
+                        tx_buffer_size_bytes = r->value4;
+                        tx_packet_oos_count  = r->value5;
+                        if (tx_buffer_size_bytes > 0) {
+                            tx_buffer_fill_percent = (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
+                        } else {
+                            tx_buffer_fill_percent = 0;
+                        }
+                    } else {
+                        LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", transport_type, (int)recv_buffer.hdr.packet_type);
+                    }
+                }
+            }
+        }
+    }
+
+    rx_state = TRANSPORT_SHUTDOWN;
+
+    LOG_DEBUG("{:s} data rx exiting", transport_type);
+}

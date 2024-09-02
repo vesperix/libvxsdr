@@ -78,7 +78,7 @@ class packet_transport {
     std::atomic<transport_state> tx_state {TRANSPORT_UNINITIALIZED};
     std::atomic<transport_state> rx_state {TRANSPORT_UNINITIALIZED};
 
-    virtual size_t packet_send(const packet& packet, int& error_code);
+    virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
 
     virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
@@ -94,7 +94,7 @@ class packet_transport {
         }
         return config;
     }
-    bool send_packet(packet& packet) {
+    virtual bool send_packet(packet& packet) {
         packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1));
         packet_types_sent.at(packet.hdr.packet_type)++;
 
@@ -293,10 +293,10 @@ class command_transport : public packet_transport {
     mpmc_queue<command_queue_element> response_queue{response_queue_length};
     mpmc_queue<command_queue_element> async_msg_queue{async_msg_queue_length};
 
-    virtual size_t packet_receive(command_queue_element& packet, int& error_code);
+    virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 
-    virtual void command_send();
-    virtual void command_receive();
+    void command_send();
+    void command_receive();
 
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
@@ -372,11 +372,11 @@ class data_transport : public packet_transport {
     // size is less than a full packet
     std::vector<std::unique_ptr<spsc_queue<vxsdr::wire_sample>>> rx_sample_queue;
 
-    bool send_packet(packet& packet);
-    virtual size_t packet_receive(data_queue_element& packet, int& error_code);
+    bool send_packet(packet& packet) final;
+    virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };
 
-    virtual void data_send();
-    virtual void data_receive();
+    void data_send();
+    void data_receive();
 
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
@@ -458,11 +458,8 @@ class udp_command_transport : public command_transport {
     ~udp_command_transport() noexcept;
 
   protected:
-    void command_send() override;
-    void command_receive() override;
-
-    size_t packet_send(const packet& packet, int& error_code) override;
-    size_t packet_receive(command_queue_element& packet, int& error_code) override;
+    size_t packet_send(const packet& packet, int& error_code) final;
+    size_t packet_receive(command_queue_element& packet, int& error_code) final;
 };
 
 class udp_data_transport : public data_transport {
@@ -507,11 +504,8 @@ class udp_data_transport : public data_transport {
     ~udp_data_transport() noexcept;
 
   protected:
-    void data_send() override;
-    void data_receive() override;
-
-    size_t packet_send(const packet& packet, int& error_code) override;
-    size_t packet_receive(data_queue_element& packet, int& error_code) override;
+    size_t packet_send(const packet& packet, int& error_code) final;
+    size_t packet_receive(data_queue_element& packet, int& error_code) final;
 };
 
 class pcie_command_transport : public command_transport {
@@ -529,11 +523,8 @@ class pcie_command_transport : public command_transport {
     ~pcie_command_transport() noexcept;
 
   protected:
-    void command_send() override;
-    void command_receive() override;
-
-    size_t packet_send(const packet& packet, int& error_code) override;
-    size_t packet_receive(command_queue_element& packet, int& error_code) override;
+    size_t packet_send(const packet& packet, int& error_code) final;
+    size_t packet_receive(command_queue_element& packet, int& error_code) final;
 };
 
 class pcie_data_transport : public data_transport {
@@ -567,9 +558,6 @@ class pcie_data_transport : public data_transport {
     ~pcie_data_transport() noexcept;
 
   protected:
-    void data_send() override;
-    void data_receive() override;
-
-    size_t packet_send(const packet& packet, int& error_code) override;
-    size_t packet_receive(data_queue_element& packet, int& error_code) override;
+    size_t packet_send(const packet& packet, int& error_code) final;
+    size_t packet_receive(data_queue_element& packet, int& error_code) final;
 };
