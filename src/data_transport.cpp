@@ -118,7 +118,7 @@ void data_transport::data_send() {
                     // FIXME: tracking possible error in tx_data_queue
                     if (data_buffer[i].hdr.packet_size == 0) {
                         LOG_ERROR("zero size packet popped ( i = {:d} n_popped = {:d}, type = 0x{:02x} cmd = 0x{:02x})",
-                                 i, n_popped, data_buffer[i].hdr.packet_type, data_buffer[i].hdr.command);
+                                 i, n_popped, (unsigned)data_buffer[i].hdr.packet_type, (unsigned)data_buffer[i].hdr.command);
                     } else {
                         if (send_packet(data_buffer[i])) {
                             data_packets_processed++;
