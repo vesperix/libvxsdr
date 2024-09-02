@@ -8,12 +8,11 @@
 #include <bit>
 #include <cerrno>
 
-#ifdef VXSDR_TARGET_LINUX
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+
+#ifdef VXSDR_TARGET_LINUX
 #include <linux/ioctl.h>
-#else
-#error "PCIe interface is only supported on Linux"
 #endif
 
 #include "vxsdr_packets.hpp"

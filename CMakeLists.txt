@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.27)
 
 set(vxsdr_lib_version_major  0)
 set(vxsdr_lib_version_minor 18)
-set(vxsdr_lib_version_patch  1)
+set(vxsdr_lib_version_patch  2)
 
 set(vxsdr_lib_version ${vxsdr_lib_version_major}.${vxsdr_lib_version_minor}.${vxsdr_lib_version_patch})
 
@@ -22,6 +22,7 @@ option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" ON)
 option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
+option(VXSDR_IWYU "Run include-what-you-use during libvxsdr builds" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type defined -- assuming Release")
@@ -133,23 +134,29 @@ if(UNIX)
         if(NOT CYGWIN)
             message(STATUS "Using Linux target (other Unix variants not supported)")
             set(vxsdr_system_defs -DVXSDR_TARGET_LINUX -DTARGET_OS=Linux)
+            # PCIe only enabled on Linux
+            set(vxsdr_transport_defs -DVXSDR_ENABLE_UDP -DVXSDR_ENABLE_PCIE)
         else() # CYGWIN
             message(WARNING "Cygwin target is not supported, good luck!")
             set(vxsdr_system_defs -DVXSDR_TARGET_LINUX -DTARGET_OS=Unsupported)
+            set(vxsdr_transport_defs -DVXSDR_ENABLE_UDP)
         endif()
     elseif(APPLE)
         message(WARNING "macOS target is experimental")
         #message(STATUS "Using macOS target")
         set(vxsdr_system_defs -DVXSDR_TARGET_MACOS -DTARGET_OS=macOS)
+        set(vxsdr_transport_defs -DVXSDR_ENABLE_UDP)
     endif()
 elseif(WIN32)
     if(NOT CYGWIN)
         message(WARNING "Windows target is experimental")
         #message(STATUS "Using Windows target")
         set(vxsdr_system_defs -DVXSDR_TARGET_WINDOWS -DTARGET_OS=Windows)
+        set(vxsdr_transport_defs -DVXSDR_ENABLE_UDP)
     else() # CYGWIN
         message(WARNING "Cygwin target is not supported, good luck!")
         set(vxsdr_system_defs -DVXSDR_TARGET_LINUX -DTARGET_OS=Unsupported)
+        set(vxsdr_transport_defs -DVXSDR_ENABLE_UDP)
     endif()
 else()
     message(FATAL_ERROR "Unable to recognize the target platform")
@@ -239,6 +246,11 @@ get_target_property(vxsdr_lib_public_headers vxsdr_lib INTERFACE_SOURCES)
 set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER "${vxsdr_lib_public_headers}")
 target_include_directories(vxsdr_lib INTERFACE ${CMAKE_CURRENT_BUILD_DIR})
 
+if(VXSDR_IWYU)
+    find_program(iwyu_path NAMES include-what-you-use iwyu REQUIRED)
+    set_property(TARGET vxsdr_lib PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
+
 if(VXSDR_STATIC_ANALYSIS)
     set_target_properties(vxsdr_lib PROPERTIES CMAKE_CXX_CLANG_TIDY "clang-tidy")
 endif()
@@ -250,6 +262,7 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_log_defs}
                                              ${vxsdr_compiler_defs}
                                              ${vxsdr_dependency_defs}
+                                             ${vxsdr_transport_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
 

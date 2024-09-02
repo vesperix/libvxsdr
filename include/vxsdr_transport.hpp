@@ -18,11 +18,15 @@
 using namespace std::chrono_literals;
 
 #include "logging.hpp"
-#include "vxsdr_net.hpp"
-#include "vxsdr_pcie.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_queues.hpp"
-#include "vxsdr_threads.hpp"
+#include "thread_utils.hpp"
+#include "socket_utils.hpp"
+#include "vxsdr_net.hpp"
+#include "vxsdr_pcie.hpp"
+
+//#define VXSDR_ENABLE_UDP
+//#define VXSDR_ENABLE_PCIE
 
 #include "vxsdr.hpp"
 
@@ -31,6 +35,11 @@ class packet_transport {
     // descriptions for logging and error messages
     std::string transport_type = "unspecified";
     std::string payload_type = "unknown";
+
+    // threads used for sending and receiving
+    vxsdr_thread sender_thread;
+    vxsdr_thread receiver_thread;
+
     // statistics
     uint64_t send_errors  = 0;
     uint64_t packets_sent = 0;
@@ -69,9 +78,9 @@ class packet_transport {
     std::atomic<transport_state> tx_state {TRANSPORT_UNINITIALIZED};
     std::atomic<transport_state> rx_state {TRANSPORT_UNINITIALIZED};
 
-    virtual size_t packet_send(const packet& packet, int& error_code);
+    size_t packet_send(const packet& packet, int& error_code);
 
-    std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
+    virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
         std::map<std::string, int64_t> config = default_settings;
         for (const auto& s : settings) {
@@ -85,7 +94,7 @@ class packet_transport {
         }
         return config;
     }
-    virtual bool send_packet(packet& packet) {
+    bool send_packet(packet& packet) {
         packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1));
         packet_types_sent.at(packet.hdr.packet_type)++;
 
@@ -102,7 +111,7 @@ class packet_transport {
             return false;
         } else if (bytes != packet.hdr.packet_size) {
             tx_state = TRANSPORT_ERROR;
-            LOG_ERROR("send error in {:s} data tx (size incorrect)", transport_type);
+            LOG_ERROR("send error in {:s} {:s} tx (size incorrect)", transport_type, payload_type);
             send_errors++;
             if(throw_on_tx_error) {
                 throw(std::runtime_error("send error in " + transport_type + " " + payload_type + " tx (size incorrect)"));
@@ -113,7 +122,7 @@ class packet_transport {
 
         return true;
     }
-    void log_stats() {
+    virtual void log_stats() {
         LOG_INFO("{:s} {:s} transport:", transport_type, payload_type);
         LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
         LOG_INFO("   {:15d} packets received", packets_received);
@@ -444,10 +453,6 @@ class udp_command_transport : public command_transport {
     net::ip::udp::socket sender_socket;
     net::ip::udp::socket receiver_socket;
 
-    // threads used for sending and receiving
-    vxsdr_thread sender_thread;
-    vxsdr_thread receiver_thread;
-
   public:
     explicit udp_command_transport(const std::map<std::string, int64_t>& settings);
     ~udp_command_transport() noexcept;
@@ -487,10 +492,6 @@ class udp_data_transport : public data_transport {
     net::ip::udp::socket sender_socket;
     net::ip::udp::socket receiver_socket;
 
-    // threads used for sending and receiving
-    vxsdr_thread sender_thread;
-    vxsdr_thread receiver_thread;
-
     // transmit throttling settings
     static constexpr bool use_tx_throttling = true;
     static constexpr unsigned throttle_hard_percent = 90;
@@ -521,10 +522,6 @@ class pcie_command_transport : public command_transport {
     static constexpr auto pcie_ready_timeout = 100'000us;
     static constexpr auto pcie_ready_wait    =   1'000us;
 
-    // threads used for sending and receiving
-    vxsdr_thread sender_thread;
-    vxsdr_thread receiver_thread;
-
     std::shared_ptr<pcie_dma_interface> pcie_if = nullptr;
 
   public:
@@ -552,10 +549,6 @@ class pcie_data_transport : public data_transport {
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
     static constexpr auto pcie_ready_wait    =   1'000us;
-
-    // threads used for sending and receiving
-    vxsdr_thread sender_thread;
-    vxsdr_thread receiver_thread;
 
     static constexpr bool use_tx_throttling = false;
     static constexpr unsigned throttle_hard_percent = 95;

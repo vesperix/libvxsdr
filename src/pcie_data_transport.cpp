@@ -1,22 +1,9 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <algorithm>
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <complex>
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
-#include <cerrno>
+#ifdef VXSDR_ENABLE_PCIE
 
-#include "logging.hpp"
-#include "thread_utils.hpp"
-#include "vxsdr_imp.hpp"
-#include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
-#include "vxsdr_threads.hpp"
 
 /*! @file pcie_data_transport.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_pcie data transport classes.
@@ -134,3 +121,5 @@ size_t pcie_data_transport::packet_receive(data_queue_element& packet, int& erro
     packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
     return pcie_if->data_receive(&packet, sizeof(packet), error_code);
 }
+
+#endif // #ifdef VXSDR_ENABLE_PCIE

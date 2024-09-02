@@ -37,20 +37,22 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     std::shared_ptr<pcie_dma_interface> pcie_iface = nullptr;
 
     // See if a PCIe interface is needed
-    if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE or config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
-        pcie_iface = std::make_shared<pcie_dma_interface>();
+    if constexpr(pcie_transport_enabled) {
+        if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE or config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
+            pcie_iface = std::make_shared<pcie_dma_interface>();
+        }
     }
 
     // Make the command transport
-    if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_UDP) {
+    if (udp_transport_enabled and config["command_transport"] == vxsdr::TRANSPORT_TYPE_UDP) {
         LOG_DEBUG("making udp command transport");
         command_tport = std::make_unique<udp_command_transport>(config);
-    } else if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
+    } else if (pcie_transport_enabled and config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
         LOG_DEBUG("making pcie command transport");
         command_tport = std::make_unique<pcie_command_transport>(config, pcie_iface);
     } else {
-        LOG_ERROR("the command transport specified is not supported");
-        throw std::invalid_argument("the command transport specified is not supported in vxsdr constructor");
+        LOG_ERROR("the command transport specified is not enabled");
+        throw std::invalid_argument("the command transport specified is not enabled in vxsdr constructor");
     }
 
     auto start_time = std::chrono::steady_clock::now();
@@ -111,15 +113,15 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     // Make the data transport
-    if (config["data_transport"] == vxsdr::TRANSPORT_TYPE_UDP) {
+    if (udp_transport_enabled and config["data_transport"] == vxsdr::TRANSPORT_TYPE_UDP) {
         LOG_DEBUG("making udp data transport with {:d} receive subdevices", num_rx_subdevs);
         data_tport = std::make_unique<udp_data_transport>(config, sample_granularity, num_rx_subdevs, max_samps_per_packet);
-    } else if (config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
+    } else if (pcie_transport_enabled and config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
         LOG_DEBUG("making pcie data transport with {:d} receive subdevices", num_rx_subdevs);
         data_tport = std::make_unique<pcie_data_transport>(config, pcie_iface, sample_granularity, num_rx_subdevs, max_samps_per_packet);
     } else {
-        LOG_ERROR("the data transport specified is not supported");
-        throw std::runtime_error("the data transport specified is not supported in vxsdr constructor");
+        LOG_ERROR("the data transport specified is not enabled");
+        throw std::runtime_error("the data transport specified is not enabled in vxsdr constructor");
     }
 
     start_time = std::chrono::steady_clock::now();

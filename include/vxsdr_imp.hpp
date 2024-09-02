@@ -20,18 +20,41 @@ using namespace std::chrono_literals;
 #include "vxsdr_packets.hpp"
 #include "vxsdr_net.hpp"
 #include "vxsdr_queues.hpp"
-#include "vxsdr_transport.hpp"
 #include "vxsdr_threads.hpp"
+#include "vxsdr_transport.hpp"
+
+#if !defined(VXSDR_ENABLE_UDP) && !defined(VXSDR_ENABLE_PCIE)
+#error "at least one transport must be enabled"
+#endif
 
 #include "vxsdr.hpp"
 
 class vxsdr::imp {
   private:
+#ifdef VXSDR_ENABLE_UDP
+    static constexpr bool udp_transport_enabled{true};
+    // make UDP the default transport if it is enabled
     std::map<std::string, int64_t> default_config = {
         {"command_transport",             vxsdr::TRANSPORT_TYPE_UDP},
         {"data_transport",                vxsdr::TRANSPORT_TYPE_UDP},
         {"async_message_handler",         vxsdr::ASYNC_FULL_LOG}
     };
+#else
+    // make PCIe the default if UDP disabled (since one must be enabled)
+    std::map<std::string, int64_t> default_config = {
+        {"command_transport",             vxsdr::TRANSPORT_TYPE_PCIE},
+        {"data_transport",                vxsdr::TRANSPORT_TYPE_PCIE},
+        {"async_message_handler",         vxsdr::ASYNC_FULL_LOG}
+    };
+    static constexpr bool udp_transport_enabled{false};
+#endif
+
+#ifdef VXSDR_ENABLE_PCIE
+    static constexpr bool pcie_transport_enabled{true};
+#else
+    static constexpr bool pcie_transport_enabled{false};
+#endif
+
     // relative tolerance for frequency settings
     static constexpr double frequency_setting_rtol = 1e-12;
 

@@ -9,8 +9,6 @@
 #define VXSDR_DMA_TX_BUF_CNT_MAX 128
 #define VXSDR_DMA_RX_BUF_CNT_MAX 512
 
-#include <linux/ioctl.h>
-
 #define ALTERA_IOC_MAGIC   0x66
 
 #define IOCTL_MMAP_TX_SEL                 _IO(ALTERA_IOC_MAGIC, 20)

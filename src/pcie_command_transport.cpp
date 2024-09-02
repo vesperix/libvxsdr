@@ -1,22 +1,9 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <algorithm>
-#include <cmath>
-#include <ctime>
-#include <iomanip>
-#include <iterator>
-#include <memory>
-#include <cstring>
-#include <stdexcept>
-#include <type_traits>
+#ifdef VXSDR_ENABLE_PCIE
 
-#include "logging.hpp"
-#include "thread_utils.hpp"
-#include "vxsdr_imp.hpp"
-#include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
-#include "vxsdr_threads.hpp"
 
 /*! @file pcie_command_transport.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_pcie command transport classes.
@@ -77,3 +64,5 @@ size_t pcie_command_transport::packet_receive(command_queue_element& packet, int
     packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
     return pcie_if->command_receive(&packet, sizeof(packet), error_code);
 }
+
+#endif // #ifdef VXSDR_ENABLE_PCIE

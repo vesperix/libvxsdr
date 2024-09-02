@@ -1,21 +1,10 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <algorithm>
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <complex>
-#include <cstddef>
-#include <cstdint>
+#ifdef VXSDR_ENABLE_UDP
 
-#include "logging.hpp"
-#include "socket_utils.hpp"
-#include "thread_utils.hpp"
-#include "vxsdr_imp.hpp"
-#include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
-#include "vxsdr_threads.hpp"
+
 
 /*! @file udp_data_transport.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_udp data transport classes.
@@ -306,3 +295,5 @@ size_t udp_data_transport::packet_receive(data_queue_element& packet, int& error
     error_code = err.value();
     return bytes;
 }
+
+#endif // #ifdef VXSDR_ENABLE_UDP
