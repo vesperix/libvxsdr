@@ -76,7 +76,7 @@ if(VXSDR_FETCH_DEPENDENCIES)
         FetchContent_Declare(
             asio
             GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
-            GIT_TAG        asio-1-30-1
+            GIT_TAG        asio-1-30-2
             GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(asio)
@@ -84,7 +84,7 @@ if(VXSDR_FETCH_DEPENDENCIES)
         FetchContent_Declare(
             Boost
             GIT_REPOSITORY https://github.com/boostorg/boost.git
-            GIT_TAG        boost-1.84.0
+            GIT_TAG        boost-1.85.0
             GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(Boost)
@@ -93,7 +93,7 @@ if(VXSDR_FETCH_DEPENDENCIES)
         FetchContent_Declare(
             Boost
             GIT_REPOSITORY https://github.com/boostorg/boost.git
-            GIT_TAG        boost-1.84.0
+            GIT_TAG        boost-1.85.0
             GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(Boost)
@@ -113,7 +113,7 @@ else()
         FetchContent_Declare(
             spdlog
             GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG        v1.13.0
+            GIT_TAG        v1.14.1
             GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(spdlog)
@@ -247,13 +247,17 @@ set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER "${vxsdr_lib_public_hea
 target_include_directories(vxsdr_lib INTERFACE ${CMAKE_CURRENT_BUILD_DIR})
 
 if(VXSDR_IWYU)
-    find_program(iwyu_path NAMES include-what-you-use iwyu REQUIRED)
-    set_property(TARGET vxsdr_lib PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+    find_program(iwyu NAMES include-what-you-use iwyu REQUIRED)
+    set_target_properties(vxsdr_lib PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu})
+    message(INFO "Running include-what-you-use during build")
 endif()
 
 if(VXSDR_STATIC_ANALYSIS)
-    set_target_properties(vxsdr_lib PROPERTIES CMAKE_CXX_CLANG_TIDY "clang-tidy")
+    find_program(clang_tidy NAMES clang-tidy REQUIRED)
+    set_target_properties(vxsdr_lib PROPERTIES CMAKE_CXX_CLANG_TIDY ${clang_tidy})
+    message(INFO "Running clang-tidy during build")
 endif()
+
 target_compile_options(vxsdr_lib PRIVATE ${vxsdr_optimization_options}
                                          ${vxsdr_warning_options}
                                          ${vxsdr_misc_options})
