@@ -13,10 +13,10 @@ env:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-14
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install Prerequisites
       run:  brew install cmake boost spdlog pybind11
