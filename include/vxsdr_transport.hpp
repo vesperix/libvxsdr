@@ -376,6 +376,8 @@ class data_transport : public packet_transport {
     void data_send();
     void data_receive();
 
+    void log_stats() override;
+
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
             return false;

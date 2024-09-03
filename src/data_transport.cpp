@@ -19,6 +19,39 @@ using namespace std::chrono_literals;
 #include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
 
+void data_transport::log_stats() {
+    // add
+    LOG_INFO("{:s} {:s} transport:", transport_type, payload_type);
+    LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
+    LOG_INFO("   {:15d} packets received", packets_received);
+    for (unsigned i = 0; i < packet_types_received.size(); i++) {
+        if (packet_types_received.at(i) > 0) {
+            LOG_INFO("   {:15d} {:20s} ({:d})", packet_types_received.at(i), packet_type_to_string(i), i);
+        }
+    }
+    LOG_INFO("   {:15d} bytes received", bytes_received);
+    LOG_INFO("   {:15d} samples received", samples_received);
+    if(sequence_errors == 0) {
+        LOG_INFO("   {:15d} sequence errors", sequence_errors);
+    } else {
+        LOG_WARN("   {:15d} sequence errors", sequence_errors);
+    }
+    LOG_INFO("       tx state is {:s}", transport_state_to_string(tx_state));
+    LOG_INFO("   {:15d} packets sent", packets_sent);
+    for (unsigned i = 0; i < packet_types_sent.size(); i++) {
+        if (packet_types_sent.at(i) > 0) {
+            LOG_INFO("   {:15d} {:20s} ({:d})", packet_types_sent.at(i), packet_type_to_string(i), i);
+        }
+    }
+    LOG_INFO("   {:15d} bytes sent", bytes_sent);
+    LOG_INFO("   {:15d} samples sent", samples_sent);
+    if(send_errors == 0) {
+        LOG_INFO("   {:15d} send errors", send_errors);
+    } else {
+        LOG_WARN("   {:15d} send errors", send_errors);
+    }
+}
+
 bool data_transport::send_packet(packet& packet) {
     if (not packet_transport::send_packet(packet)) {
         return false;
