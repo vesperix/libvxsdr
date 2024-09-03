@@ -248,7 +248,7 @@ target_include_directories(vxsdr_lib INTERFACE ${CMAKE_CURRENT_BUILD_DIR})
 
 if(VXSDR_IWYU)
     find_program(iwyu NAMES include-what-you-use iwyu REQUIRED)
-    set_target_properties(vxsdr_lib PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu})
+    set_target_properties(vxsdr_lib PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu})
     message(INFO "Running include-what-you-use during build")
 endif()
 
