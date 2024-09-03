@@ -54,8 +54,6 @@ class vxsdr_py : public vxsdr {
         }
 };
 
-//FIXME: verify argument names, order, and defaults against C++ docs
-
 //FIXME: determine whether library logging to stdout should be mapped to Python stdout
 //       see https://pybind11.readthedocs.io/en/stable/advanced/pycpp/utilities.html#capturing-standard-output-from-ostream
 
