@@ -5,7 +5,6 @@
 
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <complex>
 #include <cstdint>
 #include <cstring>
@@ -13,8 +12,10 @@
 #include <optional>
 #include <ratio>
 #include <string>
+#include <stdexcept>
 #include <thread>
 #include <vector>
+#include <chrono>
 using namespace std::chrono_literals;
 
 #include "logging.hpp"
@@ -24,9 +25,6 @@ using namespace std::chrono_literals;
 #include "socket_utils.hpp"
 #include "vxsdr_net.hpp"
 #include "vxsdr_pcie.hpp"
-
-//#define VXSDR_ENABLE_UDP
-//#define VXSDR_ENABLE_PCIE
 
 #include "vxsdr.hpp"
 

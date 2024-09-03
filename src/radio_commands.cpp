@@ -3,9 +3,11 @@
 
 #include <cstdint>
 #include <cstring>
+#include <bit>
+#include <memory>
 #include <algorithm>
 #include <array>
-#include <atomic>
+//#include <atomic>
 #include <optional>
 #include <string>
 #include <complex>

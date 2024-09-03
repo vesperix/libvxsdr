@@ -1,9 +1,11 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <bit>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <array>
 #include <future>
 #include <optional>

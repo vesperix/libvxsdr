@@ -3,6 +3,18 @@
 
 #ifdef VXSDR_ENABLE_PCIE
 
+#include <array>
+#include <atomic>
+#include <cstring>
+#include <cstdint>
+#include <cstddef>
+#include <map>
+#include <string>
+#include <stdexcept>
+
+#include "logging.hpp"
+#include "vxsdr_packets.hpp"
+#include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
 
 /*! @file pcie_command_transport.cpp

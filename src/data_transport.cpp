@@ -1,3 +1,21 @@
+#include <array>
+#include <atomic>
+#include <bit>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <stdexcept>
+#include <thread>
+#include <vector>
+#include <chrono>
+using namespace std::chrono_literals;
+
+#include <errno.h>
+
+#include "logging.hpp"
+#include "vxsdr_packets.hpp"
+#include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
 
 bool data_transport::send_packet(packet& packet) {

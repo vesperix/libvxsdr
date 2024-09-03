@@ -1,3 +1,14 @@
+#include <array>
+#include <atomic>
+#include <cstring>
+#include <string>
+#include <stdexcept>
+
+#include <errno.h>
+
+#include "logging.hpp"
+#include "vxsdr_packets.hpp"
+#include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
 
 void command_transport::command_send() {
