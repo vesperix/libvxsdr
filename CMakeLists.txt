@@ -16,9 +16,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(VXSDR_ENABLE_LOGGING "Enable logging from within libvxsdr" ON)
 option(VXSDR_PYTHON_BINDINGS "Make Python bindings for libvxsdr" ON)
 option(BUILD_SHARED_LIBS "Build libvxsdr as a shared library" ON)
-
-# only make utilities and test programs when asked
 option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" ON)
+
+option(VXSDR_BUILD_DEPENDENCIES "Download and build external dependencies" OFF)
 option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
@@ -63,12 +63,12 @@ set(vxsdr_test_source testing/test_sleep_resolution.cpp
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-if(VXSDR_FETCH_DEPENDENCIES)
+if(VXSDR_BUILD_DEPENDENCIES)
     find_package(Git REQUIRED)
     include(FetchContent)
 endif()
 
-if(VXSDR_FETCH_DEPENDENCIES)
+if(VXSDR_BUILD_DEPENDENCIES)
     message(STATUS "Downloading and building dependencies; this will take some time...")
     set(BOOST_ENABLE_CMAKE ON)
     if(VXSDR_STANDALONE_ASIO)
@@ -107,7 +107,7 @@ if(NOT VXSDR_ENABLE_LOGGING)
     set(vxsdr_log_defs -DVXSDR_LIB_DISABLE_LOGGING)
 else()
     message(STATUS "Building library with logging")
-    if(VXSDR_FETCH_DEPENDENCIES)
+    if(VXSDR_BUILD_DEPENDENCIES)
         set(SPDLOG_HEADER_ONLY ON)
         set(FMT_HEADER_ONLY ON)
         FetchContent_Declare(
@@ -211,7 +211,7 @@ if(VXSDR_PYTHON_BINDINGS)
         find_package(Python3 COMPONENTS Interpreter Development)
     endif()
 
-    if(VXSDR_FETCH_DEPENDENCIES)
+    if(VXSDR_BUILD_DEPENDENCIES)
         FetchContent_Declare(
             pybind11
             GIT_REPOSITORY https://github.com/pybind/pybind11.git
@@ -270,7 +270,7 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
 
-if(VXSDR_FETCH_DEPENDENCIES)
+if(VXSDR_BUILD_DEPENDENCIES)
     if(VXSDR_STANDALONE_ASIO)
         target_include_directories(vxsdr_lib PRIVATE ${asio_SOURCE_DIR}/asio/include)
         # FIXME: does asio have a better definition?
