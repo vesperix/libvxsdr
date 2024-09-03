@@ -1067,8 +1067,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
-    // this function is virtual because the Python interface derives from it
-    virtual size_t put_tx_data(const std::vector<std::complex<float>>& data,
+    size_t put_tx_data(const std::vector<std::complex<float>>& data,
                        size_t n_requested = 0,
                        const uint8_t subdev   = 0,
                        const double timeout_s = 10);
@@ -1096,8 +1095,7 @@ class VXSDR_LIB_EXPORT vxsdr {
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
-    // this function is virtual because the Python interface derives from it
-    virtual size_t get_rx_data(std::vector<std::complex<float>>& data,
+    size_t get_rx_data(std::vector<std::complex<float>>& data,
                        const size_t n_requested = 0,
                        const uint8_t subdev = 0,
                        const double timeout_s = 10);

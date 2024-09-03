@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(vxsdr_lib_version_major  0)
 set(vxsdr_lib_version_minor 18)
-set(vxsdr_lib_version_patch  3)
+set(vxsdr_lib_version_patch  4)
 
 set(vxsdr_lib_version ${vxsdr_lib_version_major}.${vxsdr_lib_version_minor}.${vxsdr_lib_version_patch})
 
@@ -22,7 +22,6 @@ option(VXSDR_BUILD_DEPENDENCIES "Download and build external dependencies" OFF)
 option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
-option(VXSDR_IWYU "Run include-what-you-use during libvxsdr builds" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type defined -- assuming Release")
@@ -245,12 +244,6 @@ target_sources(vxsdr_lib INTERFACE ${vxsdr_lib_header} ${CMAKE_CURRENT_BINARY_DI
 get_target_property(vxsdr_lib_public_headers vxsdr_lib INTERFACE_SOURCES)
 set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER "${vxsdr_lib_public_headers}")
 target_include_directories(vxsdr_lib INTERFACE ${CMAKE_CURRENT_BUILD_DIR})
-
-if(VXSDR_IWYU)
-    find_program(iwyu NAMES include-what-you-use iwyu REQUIRED)
-    set_target_properties(vxsdr_lib PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu})
-    message(INFO "Running include-what-you-use during build")
-endif()
 
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
