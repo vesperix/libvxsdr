@@ -10,11 +10,16 @@ with information on how the host is configured, and to ensure that the host's
 settings will provide the performance needed for data transfer to and from the VXSDR.
 
 The library constructs a host interface based on information provided by the user, and
-that interface is used to communicate with the VXSDR. The
+that interface provides the user with access to the VXSDR. The first step is telling the library
+what transport is used to communicate with the VXSDR, and providing any necessary settings
+(like IP addresses).
+
+Specifying the Transport
+-----------------------
 
 The default transport is UDP; for this case, the local (host) and device (VXSDR) IPv4
-addresses must be provided to the library at the time the interface is created. Examples
-are provided in C++ and Python below for this process.
+addresses must be provided to the library at the time the interface is created (IPv6
+addressing is not supported.) Examples are provided in C++ and Python below for this process.
 
 .. highlight:: c++
 .. code-block::
