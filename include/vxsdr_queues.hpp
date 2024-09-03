@@ -33,20 +33,6 @@ template<typename Element> class spsc_queue : public boost::lockfree::spsc_queue
             } while(wait_time_us < timeout_us);
             return false;
         }
-        size_t pop_or_timeout(Element* p, const size_t max_num, const unsigned timeout_us, const unsigned check_interval_us) {
-            unsigned wait_time_us = 0;
-            do {
-                auto num = boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>::pop(p, max_num);
-                if (num > 0) {
-                    return num;
-                }
-                if (check_interval_us > 0) {
-                    std::this_thread::sleep_for(std::chrono::microseconds(check_interval_us));
-                    wait_time_us += check_interval_us;
-                }
-            } while(wait_time_us < timeout_us);
-            return 0;
-        }
         bool push_or_timeout(Element& e, const unsigned timeout_us, const unsigned check_interval_us) {
             unsigned wait_time_us = 0;
             do {
