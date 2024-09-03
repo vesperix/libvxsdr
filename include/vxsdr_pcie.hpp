@@ -21,8 +21,8 @@
 
 
 class pcie_dma_interface {
-    protected:
-        std::string dma_path = "/dev/vxsdr_dma";
+    private:
+        std::string dma_path;
         int dma_filedes = 0;
         size_t pcie_buffer_size = 0;
         int rx_ddr_size = 0;
@@ -30,8 +30,10 @@ class pcie_dma_interface {
         std::vector<void *> tx_buffer_ptrs;
         std::vector<void *> rx_buffer_ptrs;
     public:
-        pcie_dma_interface(const int tx_cmd_timeout_ms = 1500, const int rx_cmd_timeout_ms = 1500,
+        pcie_dma_interface(const std::string dev_path = "/dev/vxsdr_dma",
+                           const int tx_cmd_timeout_ms = 1500, const int rx_cmd_timeout_ms = 1500,
                            const int tx_data_timeout_ms = 100, const int rx_data_timeout_ms = 500) {
+            dma_path = dev_path;
             LOG_DEBUG("pcie_dma_interface constructor entered");
             LOG_DEBUG("pcie_dma_interface attempting to open {:s}", dma_path);
 
