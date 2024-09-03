@@ -13,6 +13,7 @@
 #include <thread>
 #include <stdexcept>
 #include <vector>
+#include <utility>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
@@ -34,7 +35,7 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
 
     auto config = packet_transport::apply_transport_settings(settings, default_settings);
 
-    pcie_if = pcie_iface;
+    pcie_if = std::move(pcie_iface);
 
     LOG_DEBUG("using transmit data buffer of {:d} packets", config["pcie_data_transport:tx_data_queue_packets"]);
     tx_data_queue = std::make_unique<spsc_queue<data_queue_element>>(config["pcie_data_transport:tx_data_queue_packets"]);

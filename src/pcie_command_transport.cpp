@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <system_error>
 #include <thread>
+#include <utility>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
@@ -26,7 +27,7 @@ pcie_command_transport::pcie_command_transport(const std::map<std::string, int64
 
     auto config = packet_transport::apply_transport_settings(settings, default_settings);
 
-    pcie_if = pcie_iface;
+    pcie_if = std::move(pcie_iface);
 
     rx_state        = TRANSPORT_STARTING;
     receiver_thread = vxsdr_thread([this] { command_receive(); });
