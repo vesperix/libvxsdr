@@ -1,6 +1,7 @@
 #include <array>
 #include <atomic>
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include <stdexcept>
 

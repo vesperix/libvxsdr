@@ -3,18 +3,19 @@
 
 #ifdef VXSDR_ENABLE_UDP
 
-#include <array>
 #include <atomic>
-#include <cstring>
 #include <cstdint>
 #include <cstddef>
+#include <compare>
 #include <map>
 #include <string>
 #include <stdexcept>
+#include <system_error>
+#include <thread>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
-#include "vxsdr_queues.hpp"
+#include "vxsdr_net.hpp"
 #include "vxsdr_transport.hpp"
 
 /*! @file udp_command_transport.cpp

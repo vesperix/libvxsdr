@@ -10,7 +10,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <system_error>
 #include <thread>
 #include <stdexcept>
 #include <vector>

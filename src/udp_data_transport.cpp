@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstdint>
 #include <cstddef>
+#include <compare>
 #include <map>
 #include <memory>
 #include <string>
@@ -18,6 +19,8 @@
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_queues.hpp"
+#include "vxsdr_net.hpp"
+#include "vxsdr_threads.hpp"
 #include "vxsdr_transport.hpp"
 
 

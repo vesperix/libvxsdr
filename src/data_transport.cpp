@@ -1,5 +1,6 @@
 #include <array>
 #include <atomic>
+#include <algorithm>
 #include <bit>
 #include <cstdint>
 #include <cstring>
