@@ -5,11 +5,71 @@
 Host Settings
 =============
 
-When setting up a new host to use a VXSDR, several changes from the
-default configuration are needed. These are outlined below.
+When setting up a new host to use a VXSDR, it is necessary to provide the library
+with information on how the host is configured, and to ensure that the host's
+settings will provide the performance needed for data transfer to and from the VXSDR.
 
-Increase Network Adapter MTU
-----------------------------
+The library constructs a host interface based on information provided by the user, and
+that interface is used to communicate with the VXSDR. The
+
+The default transport is UDP; for this case, the local (host) and device (VXSDR) IPv4
+addresses must be provided to the library at the time the interface is created. Examples
+are provided in C++ and Python below for this process.
+
+.. highlight:: c++
+.. code-block::
+
+    // C++ setup for UDP transport
+    std::string local_address = "192.168.200.101";
+    std::string device_address = "192.168.200.4";
+    std::map<std::string, int64_t> config;
+    config["udp_transport:local_address"] = ntohl(inet_addr(local_address.c_str()));
+    config["udp_transport:device_address"] = ntohl(inet_addr(device_address.c_str()));
+    radio = std::make_unique<vxsdr>(config);
+
+
+.. highlight:: python
+.. code-block::
+
+    # Python setup for UDP transport
+    import ipaddress
+    local_address = "192.168.200.101"
+    device_address = "192.168.200.4"
+    config = {}
+    config["udp_transport:local_address"] = ipaddress.ip_address(local_address)
+    config["udp_transport:device_address"] = ipaddress.ip_address(device_address)
+    radio = vxsdr_py.vxsdr_py(config)
+
+The PCIe transport is used when a processor is directly attached to the VXSDR; for
+example, some versions of the VXSDR support an attached Nvidia Orin CPU/GPU. In this case,
+the only necessary configuration is to tell the library to use PCIe for both command and
+data transfer. Since the attached processors run Linux, this transport is only supported
+under Linux.
+
+.. highlight:: c++
+.. code-block::
+
+    // C++ setup for PCIe transport
+    std::map<std::string, int64_t> config;
+    config["data_transport"] = vxsdr::transport_type::TRANSPORT_TYPE_PCIE;
+    config["command_transport"] = vxsdr::transport_type::TRANSPORT_TYPE_PCIE;
+    radio = std::make_unique<vxsdr>(config);
+
+.. highlight:: python
+.. code-block::
+
+    # Python setup for PCIe transport
+    config = {}
+    config["data_transport"] = int(vxsdr_py.transport_type.PCIE)
+    config["command_transport"] = int(vxsdr_py.transport_type.PCIE)
+    radio = vxsdr_py.vxsdr_py(config)
+
+In addition to specifying the transport, there are several other settings which may
+improve performance. These settings are summarized in the following sections.
+
+
+Increase Network Adapter MTU (UDP)
+----------------------------------
 
 The maximum packet size allowed by an IP network adapter defaults to 1500 bytes
 in most cases. This severely limits the data rate achievable. By default,
@@ -37,9 +97,13 @@ the configuration map passed to the constructor for the ``vxsdr`` class:
 .. highlight:: c++
 .. code-block::
 
-    {"udp_data_transport:thread_affinity_offset",   0}
-    {"udp_data_transport:sender_thread_affinity",   0}
-    {"udp_data_transport:receiver_thread_affinity", 1}
+    config["udp_data_transport:thread_affinity_offset"]   = 0;
+    config["udp_data_transport:sender_thread_affinity"]   = 0;
+    config["udp_data_transport:receiver_thread_affinity"] = 1;
+    // or, for PCIe transport
+    config["pcie_data_transport:thread_affinity_offset"]   = 0;
+    config["pcie_data_transport:sender_thread_affinity"]   = 0;
+    config["pcie_data_transport:receiver_thread_affinity"] = 1;
 
 The ``thread_affinity_offset`` entry is added to the ``sender_thread_affinity``
 and ``receiver_thread_affinity`` entries to determine the processor number for
@@ -93,8 +157,8 @@ If you are not able to set realtime priority, and would like to try running
 without it, you can set the VXSDR constructor to not use realtime priority;
 see the API reference for details.
 
-Set Network Card Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Network Card Parameters (UDP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Most high speed (10 Gb or over) network cards have a large number of settings
 which can be tuned for higher performance. This section lists af few common
@@ -152,8 +216,8 @@ If adaptive TX and RX are off, they can be turned on with:
    sudo ethtool -C <device> adaptive-tx on adaptive-rx on
 
 
-Increase network buffer size
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Increase network buffer size (UDP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is also necessary to increase the maximum network buffer size. The actual buffer sizes used
 can be chosen at runtime, but the maximum size set by the OS must be large enough to accommodate
@@ -179,8 +243,8 @@ the following lines to the file ``/etc/sysctl.conf``:
 macOS Host Settings
 -------------------
 
-Increase network buffer size
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Increase network buffer size (UDP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On macOS systems, the maximum buffer size is smaller, but the process is similar to Linux.
 You can increase the limit temporarily by running the command:

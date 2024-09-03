@@ -5,8 +5,8 @@
 Building the Library
 ====================
 
-Prerequisites
--------------
+Build Requirements
+------------------
 
 The library currently supports Linux hosts only; macOS and Windows
 support is still under development.
@@ -16,10 +16,14 @@ new host OS, we will update the build settings below and remove the "experimenta
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
 system version 3.16 or higher, are required to build the VXSDR host library. (The C++20
 requirement can currently be satisfied by gcc 11 or later, or by clang 14 or later;
-we do not now require all of the features introduced in C++20.)
+we do not yet require most of the features introduced in C++20.)
 
-The library itself depends on Boost 1.67 or higher; this is because it uses boost::lockfree queues
-and the boost::asio networking interface.
+The library has several dependencies, which may be satisfied either by installing them separately,
+or by downloading and building the dependencies as part of the build process.
+
+The library depends on Boost 1.67 or higher; it uses boost::lockfree queues
+and the boost::asio networking interface. (Use of the standalone ASIO distribution is also possible,
+and is the default when downloading and building dependencies.)
 
 When logging from within the library is enabled (the default) the library also depends on spdlog
 version 1.5 or higher. Logging from within the library may be disabled by running the initial CMake
@@ -32,7 +36,7 @@ interface is built by default; to disable it, run the initial CMake configure st
 (``cmake -B build``) with the option ``-D VXSDR_PYTHON_BINDINGS=OFF``, which
 removes the dependencies on Python and its development files.
 
-Installing prerequisites on Ubuntu 22.04 or later
+Installing dependencies on Ubuntu 22.04 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: text
@@ -41,7 +45,7 @@ Installing prerequisites on Ubuntu 22.04 or later
    sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev
    sudo apt install python3-dev pybind11-dev
 
-Installing prerequisites on Fedora 35 or later
+Installing dependencies on Fedora 35 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. highlight:: text
@@ -50,9 +54,9 @@ Installing prerequisites on Fedora 35 or later
    sudo dnf install gcc-c++ make git cmake boost-devel spdlog-devel
    sudo dnf install python3-devel pybind11-devel
 
-Using CMake to build prerequisites
+Using CMake to build dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-It is also possible to use CMake to download and build Boost, PyBind11, and
+It is also possible to use CMake to download and build Boost, ASIO, PyBind11, and
 spdlog, removing the need to install these dependencies as packages. This is enabled by
 running the initial CMake configure step (``cmake -B build``) with the option
 ``-D VXSDR_BUILD_DEPENDENCIES=ON``.
@@ -67,7 +71,7 @@ are provided by the distribution, and ensures that known versions are used in th
 However, the build takes longer and all the dependencies are downloaded as source, which
 takes up more space than a binary package.
 
-We recommend trying this approach for distributions other than Debian-based
+We recommend downloading and building dependencies for distributions other than Debian-based
 (which should use the method shown for Ubuntu) and Red Hat-based (which should use the
 method shown for Fedora).
 

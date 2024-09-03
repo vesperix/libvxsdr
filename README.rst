@@ -47,42 +47,52 @@ on GitHub's CI system:
 This is updated each time the main branch is changed. Ports for macOS and Windows
 are under development, and their build status will be added when they are released.
 
-Prerequisites
--------------
+Build Requirements
+------------------
 
-The library currently supports Linux hosts only; macOS and Windows support is under development.
+The library currently supports Linux hosts only; macOS and Windows
+support is still under development.
+When the library builds correctly and passes testing with VXSDR devices on a
+new host OS, we will update the build settings below and remove the "experimental" notation.
 
 A C++ compiler and standard library supporting C++20, and the CMake cross-platform build
-system version 3.16 or higher are required to build the VXSDR host library. (The C++20
+system version 3.16 or higher, are required to build the VXSDR host library. (The C++20
 requirement can currently be satisfied by gcc 11 or later, or by clang 14 or later;
-we do not now require all of the features introduced in C++20.)
+we do not yet require most of the features introduced in C++20.)
 
-The library itself depends on Boost 1.67 or higher; this is because it uses boost::lockfree queues
-and the boost::asio networking interface.
+The library has several dependencies, which may be satisfied either by installing them separately,
+or by downloading and building the dependencies as part of the build process. The quickest is to
+install the dependencies separately; see the documentation for how to download and build.
+
+The library depends on Boost 1.67 or higher; it uses boost::lockfree queues
+and the boost::asio networking interface. (Use of the standalone ASIO distribution is also possible,
+and is the default when downloading and building dependencies.)
 
 When logging from within the library is enabled (the default) the library also depends on spdlog
-version 1.5 or higher. Logging from within the library may be disabled by running CMake
-with ``-D VXSDR_ENABLE_LOGGING=OFF``.
+version 1.5 or higher. Logging from within the library may be disabled by running the initial CMake
+configure step (that is, ``cmake -B build``) with the option ``-D VXSDR_ENABLE_LOGGING=OFF``,
+which removes the dependency on spdlog.
 
 To build the Python interface, a Python 3 installation, including the Python include files, and
 PyBind11 are required. If these are not present, the Python interface will not be built. The Python
-interface is built by default; to disable it, run CMake with ``-D VXSDR_PYTHON_BINDINGS=OFF``, which
+interface is built by default; to disable it, run the initial CMake configure step
+(``cmake -B build``) with the option ``-D VXSDR_PYTHON_BINDINGS=OFF``, which
 removes the dependencies on Python and its development files.
 
-
-Installing prerequisites on Ubuntu 22.04 or later
+Installing dependencies on Ubuntu 22.04 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: shell
+.. highlight:: text
+.. code-block::
 
    sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev
    sudo apt install python3-dev pybind11-dev
 
-
-Installing prerequisites on Fedora 35 or later
+Installing dependencies on Fedora 35 or later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: shell
+.. highlight:: text
+.. code-block::
 
    sudo dnf install gcc-c++ make git cmake boost-devel spdlog-devel
    sudo dnf install python3-devel pybind11-devel
