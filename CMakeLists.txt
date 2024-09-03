@@ -69,7 +69,7 @@ if(VXSDR_FETCH_DEPENDENCIES)
 endif()
 
 if(VXSDR_FETCH_DEPENDENCIES)
-    message(STATUS "Downloading and building Boost components; this will take some time...")
+    message(STATUS "Downloading and building dependencies; this will take some time...")
     set(BOOST_ENABLE_CMAKE ON)
     if(VXSDR_STANDALONE_ASIO)
         set(vxsdr_dependency_defs "-DVXSDR_STANDALONE_ASIO")
