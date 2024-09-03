@@ -39,7 +39,7 @@ Building the Library
 Build Status
 ------------
 
-Results of automated builds of the library and Python bindings for Linux (Ubuntu 22.04)
+Results of automated builds of the library and Python bindings for Linux (Ubuntu 24.04)
 on GitHub's CI system:
 
 |linux_build_status|
@@ -62,11 +62,11 @@ and the boost::asio networking interface.
 
 When logging from within the library is enabled (the default) the library also depends on spdlog
 version 1.5 or higher. Logging from within the library may be disabled by running CMake
-with ``-DVXSDR_ENABLE_LOGGING=OFF``.
+with ``-D VXSDR_ENABLE_LOGGING=OFF``.
 
 To build the Python interface, a Python 3 installation, including the Python include files, and
 PyBind11 are required. If these are not present, the Python interface will not be built. The Python
-interface is built by default; to disable it, run CMake with ``-DVXSDR_PYTHON_BINDINGS=OFF``, which
+interface is built by default; to disable it, run CMake with ``-D VXSDR_PYTHON_BINDINGS=OFF``, which
 removes the dependencies on Python and its development files.
 
 

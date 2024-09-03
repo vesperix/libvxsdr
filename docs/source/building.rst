@@ -23,13 +23,13 @@ and the boost::asio networking interface.
 
 When logging from within the library is enabled (the default) the library also depends on spdlog
 version 1.5 or higher. Logging from within the library may be disabled by running the initial CMake
-configure step (that is, ``cmake -B build``) with the option ``-DVXSDR_ENABLE_LOGGING=OFF``,
+configure step (that is, ``cmake -B build``) with the option ``-D VXSDR_ENABLE_LOGGING=OFF``,
 which removes the dependency on spdlog.
 
 To build the Python interface, a Python 3 installation, including the Python include files, and
 PyBind11 are required. If these are not present, the Python interface will not be built. The Python
 interface is built by default; to disable it, run the initial CMake configure step
-(``cmake -B build``) with the option ``-DVXSDR_PYTHON_BINDINGS=OFF``, which
+(``cmake -B build``) with the option ``-D VXSDR_PYTHON_BINDINGS=OFF``, which
 removes the dependencies on Python and its development files.
 
 Installing prerequisites on Ubuntu 22.04 or later
@@ -55,7 +55,7 @@ Using CMake to build prerequisites
 It is also possible to use CMake to download and build Boost, PyBind11, and
 spdlog, removing the need to install these dependencies as packages. This is enabled by
 running the initial CMake configure step (``cmake -B build``) with the option
-``-DVXSDR_FETCH_DEPENDENCIES=ON``.
+``-D VXSDR_BUILD_DEPENDENCIES=ON``.
 
 .. note::
 
@@ -64,8 +64,8 @@ running the initial CMake configure step (``cmake -B build``) with the option
 
 Fetching dependencies allows the build to use newer versions than
 are provided by the distribution, and ensures that known versions are used in the build.
-However, the build takes longer and all the dependencies are downloaded as source, which is
-generally larger than a binary package.
+However, the build takes longer and all the dependencies are downloaded as source, which
+takes up more space than a binary package.
 
 We recommend trying this approach for distributions other than Debian-based
 (which should use the method shown for Ubuntu) and Red Hat-based (which should use the
@@ -132,4 +132,4 @@ Install Git for Windows from https://git-scm.com/download/win
 Install CMake for Windows from https://cmake.org/download
 
 Build using CMake from the command line, using the option
-``-DVXSDR_FETCH_DEPENDENCIES=ON`` as described above.
+``-D VXSDR_BUILD_DEPENDENCIES=ON`` as described above.

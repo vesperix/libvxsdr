@@ -18,10 +18,12 @@ option(VXSDR_PYTHON_BINDINGS "Make Python bindings for libvxsdr" ON)
 option(BUILD_SHARED_LIBS "Build libvxsdr as a shared library" ON)
 option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" ON)
 
-option(VXSDR_BUILD_DEPENDENCIES "Download and build external dependencies" OFF)
-option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
+
+option(VXSDR_BUILD_DEPENDENCIES "Download and build external dependencies" OFF)
+option(VXSDR_STANDALONE_ASIO "When building dependencies, use standalone ASIO instead of Boost::asio" ON)
+option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type defined -- assuming Release")
