@@ -25,7 +25,7 @@
 pcie_command_transport::pcie_command_transport(const std::map<std::string, int64_t>& settings, std::shared_ptr<pcie_dma_interface> pcie_iface) {
     LOG_DEBUG("pcie command transport constructor entered");
 
-    auto config = packet_transport::apply_transport_settings(settings);
+    auto config = apply_transport_settings(settings);
 
     pcie_if = std::move(pcie_iface);
 
@@ -70,12 +70,12 @@ pcie_command_transport::~pcie_command_transport() noexcept {
 }
 
 size_t pcie_command_transport::packet_send(const packet& packet, int& error_code) {
-    return pcie_if->command_send(&packet, packet.hdr.packet_size, error_code);
+    return pcie_if->pcie_dma_command_send(&packet, packet.hdr.packet_size, error_code);
 }
 
 size_t pcie_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
     packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
-    return pcie_if->command_receive(&packet, sizeof(packet), error_code);
+    return pcie_if->pcie_dma_command_receive(&packet, sizeof(packet), error_code);
 }
 
 #endif // #ifdef VXSDR_ENABLE_PCIE

@@ -80,7 +80,7 @@ class packet_transport {
 
     virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
 
-    virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings) const {
+    std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings) const {
         std::map<std::string, int64_t> config = get_default_settings();
         for (const auto& s : settings) {
             if (config.count(s.first) > 0) {
@@ -293,10 +293,10 @@ class command_transport : public packet_transport {
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 
-    virtual void command_send();
-    virtual void command_receive();
+    void command_send();
+    void command_receive();
 
-    bool reset_rx() {
+    bool reset_rx() final {
         if (not packet_transport::reset_rx()) {
             return false;
         }
@@ -304,7 +304,7 @@ class command_transport : public packet_transport {
         async_msg_queue.reset();
         return true;
     }
-    bool reset_tx() {
+    bool reset_tx() final {
         if (not packet_transport::reset_tx()) {
             return false;
         }
@@ -373,12 +373,12 @@ class data_transport : public packet_transport {
     bool send_packet(packet& packet) final;
     virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };
 
-    virtual void data_send();
-    virtual void data_receive();
+    void data_send();
+    void data_receive();
 
-    void log_stats() override;
+    void log_stats() final;
 
-    bool reset_rx() {
+    bool reset_rx() final {
         if (not packet_transport::reset_rx()) {
             return false;
         }
@@ -392,7 +392,7 @@ class data_transport : public packet_transport {
         return true;
     }
 
-    bool reset_tx() {
+    bool reset_tx() final {
         if (not packet_transport::reset_tx()) {
             return false;
         }
@@ -437,7 +437,7 @@ class data_transport : public packet_transport {
 
 class udp_command_transport : public command_transport {
   protected:
-    std::string get_transport_type() const override { return "udp"; };
+    std::string get_transport_type() const final { return "udp"; };
 
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
@@ -464,7 +464,7 @@ class udp_command_transport : public command_transport {
 
 class udp_data_transport : public data_transport {
   protected:
-    std::string get_transport_type() const override { return "udp"; };
+    std::string get_transport_type() const final { return "udp"; };
     std::map<std::string, int64_t> get_default_settings() const override { return
                                                       {{"udp_data_transport:tx_data_queue_packets",              511},
                                                        {"udp_data_transport:rx_data_queue_packets",          262'143},
@@ -512,7 +512,7 @@ class udp_data_transport : public data_transport {
 
 class pcie_command_transport : public command_transport {
   protected:
-    std::string get_transport_type() const override { return "pcie"; };
+    std::string get_transport_type() const final { return "pcie"; };
 
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
@@ -531,7 +531,7 @@ class pcie_command_transport : public command_transport {
 
 class pcie_data_transport : public data_transport {
   protected:
-    std::string get_transport_type() const override { return "pcie"; };
+    std::string get_transport_type() const final { return "pcie"; };
     std::map<std::string, int64_t> get_default_settings() const override { return
                                                       {{"pcie_data_transport:tx_data_queue_packets",              511},
                                                        {"pcie_data_transport:rx_data_queue_packets",          262'143},
