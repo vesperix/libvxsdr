@@ -29,8 +29,8 @@ std::optional<std::array<uint32_t, 8>> vxsdr::imp::hello() {
     if (res) {
         auto q                      = res.value();
         auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
-        std::array<uint32_t, 8> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
-        return res;
+        std::array<uint32_t, 8> ret = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
+        return ret;
     }
     return std::nullopt;
 }
@@ -54,8 +54,8 @@ std::optional<std::array<uint32_t, 8>> vxsdr::imp::get_status(const uint8_t subd
     if (res) {
         auto q                      = res.value();
         auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
-        std::array<uint32_t, 8> res = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
-        return res;
+        std::array<uint32_t, 8> ret = {r->value1, r->value2, r->value3, r->value4, r->value5, r->value6, r->value7, r->value8};
+        return ret;
     }
     return std::nullopt;
 }
@@ -202,7 +202,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     const unsigned destination_port = 1030;
     net::ip::address_v4 local_addr = net::ip::address_v4::from_string(local_addr_str);
     net::ip::address_v4 broadcast_addr = net::ip::address_v4::from_string(broadcast_addr_str);
-    std::vector<std::string> ret;
+    std::vector<std::string> ret_list;
 
     // wait 1 / 1000 of the timeout specified each rx
     unsigned discover_wait_ms = lround(timeout_s);
@@ -224,7 +224,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         if (context_thread.joinable()) {
             context_thread.join();
         }
-        return ret;
+        return ret_list;
     }
 
     discover_socket.set_option(net::ip::udp::socket::reuse_address(true), error);
@@ -233,7 +233,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         if (context_thread.joinable()) {
             context_thread.join();
         }
-        return ret;
+        return ret_list;
     }
     discover_socket.set_option(net::socket_base::broadcast(true), error);
     if (error) {
@@ -241,7 +241,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         if (context_thread.joinable()) {
             context_thread.join();
         }
-        return ret;
+        return ret_list;
     }
 
     header_only_packet p = {};
@@ -252,7 +252,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         if (context_thread.joinable()) {
             context_thread.join();
         }
-        return ret;
+        return ret_list;
     }
 
     auto t_start                    = std::chrono::steady_clock::now();
@@ -270,7 +270,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
                 q.hdr.command == p.hdr.command) {
 
                 auto* r = std::bit_cast<one_uint32_packet*>(&q);
-                ret.push_back(net::ip::address_v4(r->value1).to_string());
+                ret_list.push_back(net::ip::address_v4(r->value1).to_string());
                 LOG_INFO("response received from {:s}", net::ip::address_v4(r->value1).to_string());
             } else {
                 LOG_WARN("extraneous response received in discover_ipv4_addresses()");
@@ -287,7 +287,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         context_thread.join();
     }
 
-    return ret;
+    return ret_list;
 }
 
 bool vxsdr::imp::set_ipv4_address(const std::string& device_address_str) {

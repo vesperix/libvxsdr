@@ -37,7 +37,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
           receiver_socket(context, net::ip::udp::v4()) {
     LOG_DEBUG("udp data transport constructor entered");
 
-    auto config = packet_transport::apply_transport_settings(settings, default_settings);
+    auto config = packet_transport::apply_transport_settings(settings);
 
     // apply the convenience settings if specific settings are absent
     if (config.count("udp_transport:local_address") != 0 and config.count("udp_data_transport:local_address") == 0) {

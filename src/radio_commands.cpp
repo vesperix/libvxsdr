@@ -188,8 +188,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_iq_bias(const uint8_t su
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -201,8 +201,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_iq_bias(const uint8_t su
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -260,8 +260,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_freq_range(const uint8_t
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -273,8 +273,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_freq_range(const uint8_t
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -401,8 +401,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_freq_range_stage(const u
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -415,8 +415,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_freq_range_stage(const u
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -472,8 +472,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_gain_range(const uint8_t
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -485,8 +485,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_gain_range(const uint8_t
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -587,8 +587,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_gain_range_stage(const u
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -601,8 +601,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_gain_range_stage(const u
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -656,8 +656,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_tx_rate_range(const uint8_t
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }
@@ -669,8 +669,8 @@ std::optional<std::array<double, 2>> vxsdr::imp::get_rx_rate_range(const uint8_t
     if (res) {
         auto q                    = res.value();
         auto* r                   = std::bit_cast<two_double_packet*>(&q);
-        std::array<double, 2> res = {r->value1, r->value2};
-        return res;
+        std::array<double, 2> ret = {r->value1, r->value2};
+        return ret;
     }
     return std::nullopt;
 }

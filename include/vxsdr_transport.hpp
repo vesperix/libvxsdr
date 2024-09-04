@@ -55,6 +55,8 @@ class packet_transport {
     std::atomic<bool> throw_on_rx_error  {false};
     std::atomic<bool> log_stats_on_exit  {true};
 
+    std::map<std::string, int64_t> default_settings = {};
+
   public:
     packet_transport() = default;
     packet_transport(const std::string& local_address,
@@ -78,8 +80,7 @@ class packet_transport {
 
     virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
 
-    virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
-                                                            const std::map<std::string, int64_t>& default_settings) const {
+    virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings) const {
         std::map<std::string, int64_t> config = default_settings;
         for (const auto& s : settings) {
             if (config.count(s.first) > 0) {
@@ -213,7 +214,6 @@ class packet_transport {
         }
         return preamble_size;
     };
-    std::map<std::string, int64_t> default_settings = {};
     std::string packet_type_to_string(const uint8_t number) const {
         switch (number) {
             case PACKET_TYPE_TX_SIGNAL_DATA:
