@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 class packet_transport {
   protected:
     // descriptions for logging and error messages
-    std::string transport_type = "unspecified";
+    virtual std::string get_transport_type() { return "unspecified"; };
     std::string payload_type = "unknown";
 
     // threads used for sending and receiving
@@ -102,18 +102,18 @@ class packet_transport {
 
         if (err != 0) {
             tx_state = TRANSPORT_ERROR;
-            LOG_ERROR("send error in {:s} {:s} tx: {:s}", transport_type, payload_type, strerror(err));
+            LOG_ERROR("send error in {:s} {:s} tx: {:s}", get_transport_type(), payload_type, strerror(err));
             send_errors++;
             if(throw_on_tx_error) {
-                throw(std::runtime_error("send error in " + transport_type + " " + payload_type + " tx"));
+                throw(std::runtime_error("send error in " + get_transport_type() + " " + payload_type + " tx"));
             }
             return false;
         } else if (bytes != packet.hdr.packet_size) {
             tx_state = TRANSPORT_ERROR;
-            LOG_ERROR("send error in {:s} {:s} tx (size incorrect)", transport_type, payload_type);
+            LOG_ERROR("send error in {:s} {:s} tx (size incorrect)", get_transport_type(), payload_type);
             send_errors++;
             if(throw_on_tx_error) {
-                throw(std::runtime_error("send error in " + transport_type + " " + payload_type + " tx (size incorrect)"));
+                throw(std::runtime_error("send error in " + get_transport_type() + " " + payload_type + " tx (size incorrect)"));
             }
             return false;
         }
@@ -122,7 +122,7 @@ class packet_transport {
         return true;
     }
     virtual void log_stats() {
-        LOG_INFO("{:s} {:s} transport:", transport_type, payload_type);
+        LOG_INFO("{:s} {:s} transport:", get_transport_type(), payload_type);
         LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
         LOG_INFO("   {:15d} packets received", packets_received);
         for (unsigned i = 0; i < packet_types_received.size(); i++) {
@@ -293,8 +293,8 @@ class command_transport : public packet_transport {
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 
-    void command_send();
-    void command_receive();
+    virtual void command_send();
+    virtual void command_receive();
 
     bool reset_rx() {
         if (not packet_transport::reset_rx()) {
@@ -373,8 +373,8 @@ class data_transport : public packet_transport {
     bool send_packet(packet& packet) final;
     virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };
 
-    void data_send();
-    void data_receive();
+    virtual void data_send();
+    virtual void data_receive();
 
     void log_stats() override;
 
@@ -437,7 +437,7 @@ class data_transport : public packet_transport {
 
 class udp_command_transport : public command_transport {
   protected:
-    std::string transport_type = "udp";
+    std::string get_transport_type() override { return "udp"; };
 
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
@@ -464,7 +464,7 @@ class udp_command_transport : public command_transport {
 
 class udp_data_transport : public data_transport {
   protected:
-    std::string transport_type = "udp";
+    std::string get_transport_type() override { return "udp"; };
     std::map<std::string, int64_t> default_settings = {{"udp_data_transport:tx_data_queue_packets",              511},
                                                        {"udp_data_transport:rx_data_queue_packets",          262'143},
                                                        {"udp_data_transport:mtu_bytes",                        9'000},
@@ -510,7 +510,7 @@ class udp_data_transport : public data_transport {
 
 class pcie_command_transport : public command_transport {
   protected:
-    std::string transport_type = "pcie";
+    std::string get_transport_type() override { return "pcie"; };
 
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
@@ -529,7 +529,7 @@ class pcie_command_transport : public command_transport {
 
 class pcie_data_transport : public data_transport {
   protected:
-    std::string transport_type = "pcie";
+    std::string get_transport_type() override { return "pcie"; };
     std::map<std::string, int64_t> default_settings = {{"pcie_data_transport:tx_data_queue_packets",              511},
                                                        {"pcie_data_transport:rx_data_queue_packets",          262'143},
                                                        {"pcie_data_transport:thread_priority",                      1},
