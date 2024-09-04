@@ -91,7 +91,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INFO("   number of subdevices: {:d}", res->at(6));
     LOG_INFO("   maximum data payload bytes: {:d}", res->at(7));
 
-    // check that the library's wire sample type and the devices are the same
+    // check that the library's wire sample type and the device's are the same
     if (std::is_same<vxsdr::wire_sample, std::complex<int16_t>>::value) {
         if ((res->at(5) & SAMPLE_DATATYPE_MASK) != SAMPLE_TYPE_COMPLEX_I16) {
             LOG_ERROR("library and device wire sample formats incompatible (0x{:x})", (res->at(5) & SAMPLE_DATATYPE_MASK));
@@ -277,6 +277,10 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         // setting rx_data_queue_wait_us = 0 results in a busy wait
         data_queue_element q;
         if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
+            if (q.hdr.packet_size == 0) {
+                LOG_ERROR("zero size packet popped from rx_data_queue (type = 0x{:02x} cmd = 0x{:02x})",
+                            (unsigned)q.hdr.packet_type, (unsigned)q.hdr.command);
+            }
             auto packet_data = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
             int64_t data_samples = packet_data.size();
 
