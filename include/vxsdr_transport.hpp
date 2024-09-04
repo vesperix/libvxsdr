@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 class packet_transport {
   protected:
     // descriptions for logging and error messages
-    virtual std::string get_transport_type() { return "unspecified"; };
+    virtual std::string get_transport_type() const { return "unspecified"; };
     std::string payload_type = "unknown";
 
     // threads used for sending and receiving
@@ -55,7 +55,7 @@ class packet_transport {
     std::atomic<bool> throw_on_rx_error  {false};
     std::atomic<bool> log_stats_on_exit  {true};
 
-    std::map<std::string, int64_t> default_settings = {};
+    virtual std::map<std::string, int64_t> get_default_settings() const { return {}; };
 
   public:
     packet_transport() = default;
@@ -81,7 +81,7 @@ class packet_transport {
     virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
 
     virtual std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings) const {
-        std::map<std::string, int64_t> config = default_settings;
+        std::map<std::string, int64_t> config = get_default_settings();
         for (const auto& s : settings) {
             if (config.count(s.first) > 0) {
                 if (config[s.first] != s.second) {
@@ -437,7 +437,7 @@ class data_transport : public packet_transport {
 
 class udp_command_transport : public command_transport {
   protected:
-    std::string get_transport_type() override { return "udp"; };
+    std::string get_transport_type() const override { return "udp"; };
 
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
@@ -464,8 +464,9 @@ class udp_command_transport : public command_transport {
 
 class udp_data_transport : public data_transport {
   protected:
-    std::string get_transport_type() override { return "udp"; };
-    std::map<std::string, int64_t> default_settings = {{"udp_data_transport:tx_data_queue_packets",              511},
+    std::string get_transport_type() const override { return "udp"; };
+    std::map<std::string, int64_t> get_default_settings() const override { return
+                                                      {{"udp_data_transport:tx_data_queue_packets",              511},
                                                        {"udp_data_transport:rx_data_queue_packets",          262'143},
                                                        {"udp_data_transport:mtu_bytes",                        9'000},
                                                        {"udp_data_transport:network_send_buffer_bytes",      262'144},
@@ -474,6 +475,7 @@ class udp_data_transport : public data_transport {
                                                        {"udp_data_transport:thread_affinity_offset",               0},
                                                        {"udp_data_transport:sender_thread_affinity",               0},
                                                        {"udp_data_transport:receiver_thread_affinity",             1}};
+    };
 
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
@@ -510,7 +512,7 @@ class udp_data_transport : public data_transport {
 
 class pcie_command_transport : public command_transport {
   protected:
-    std::string get_transport_type() override { return "pcie"; };
+    std::string get_transport_type() const override { return "pcie"; };
 
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
@@ -529,13 +531,15 @@ class pcie_command_transport : public command_transport {
 
 class pcie_data_transport : public data_transport {
   protected:
-    std::string get_transport_type() override { return "pcie"; };
-    std::map<std::string, int64_t> default_settings = {{"pcie_data_transport:tx_data_queue_packets",              511},
+    std::string get_transport_type() const override { return "pcie"; };
+    std::map<std::string, int64_t> get_default_settings() const override { return
+                                                      {{"pcie_data_transport:tx_data_queue_packets",              511},
                                                        {"pcie_data_transport:rx_data_queue_packets",          262'143},
                                                        {"pcie_data_transport:thread_priority",                      1},
                                                        {"pcie_data_transport:thread_affinity_offset",               0},
                                                        {"pcie_data_transport:sender_thread_affinity",               0},
                                                        {"pcie_data_transport:receiver_thread_affinity",             1}};
+    };
 
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
