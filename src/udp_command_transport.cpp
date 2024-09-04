@@ -26,7 +26,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     : sender_socket(context, net::ip::udp::v4()), receiver_socket(context, net::ip::udp::v4()) {
     LOG_DEBUG("udp command transport constructor entered");
 
-    auto config = packet_transport::apply_transport_settings(settings, default_settings);
+    auto config = packet_transport::apply_transport_settings(settings);
 
     // apply the convenience settings if specific settings are absent
     if (config.count("udp_transport:local_address") != 0 and config.count("udp_command_transport:local_address") == 0) {
@@ -43,9 +43,6 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
 
     net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_command_transport:local_address"]);
     net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_command_transport:device_address"]);
-    // FIXME: need to add cross-platform method to find local IPs and pick the most likely one
-    //  so that command-line specification is no longer necessary
-    //  e.g. getifaddrs() (Linux/MacOS) GetAdapterAddrs (Windows)
 
     net_error_code err;
 

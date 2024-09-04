@@ -18,8 +18,8 @@
 
 template<typename Element> class spsc_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>> {
     public:
-        explicit spsc_queue<Element>(const size_t capacity)
-                : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>(capacity) {};
+        explicit spsc_queue<Element>(const size_t size)
+                : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>(size) {};
         bool pop_or_timeout(Element& e, const unsigned timeout_us, const unsigned check_interval_us) {
             unsigned wait_time_us = 0;
             do {
@@ -50,7 +50,7 @@ template<typename Element> class spsc_queue : public boost::lockfree::spsc_queue
 
 template<typename Element> class mpmc_queue : public boost::lockfree::queue<Element> {
     public:
-        explicit mpmc_queue<Element>(const size_t capacity) : boost::lockfree::queue<Element>(capacity) {};
+        explicit mpmc_queue<Element>(const size_t size) : boost::lockfree::queue<Element>(size) {};
         bool pop_or_timeout(Element& e, const unsigned timeout_us, const unsigned check_interval_us) {
             unsigned wait_time_us = 0;
             do {

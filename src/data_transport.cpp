@@ -21,7 +21,7 @@ using namespace std::chrono_literals;
 
 void data_transport::log_stats() {
     // add
-    LOG_INFO("{:s} {:s} transport:", transport_type, payload_type);
+    LOG_INFO("{:s} {:s} transport:", get_transport_type(), payload_type);
     LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
     LOG_INFO("   {:15d} packets received", packets_received);
     for (unsigned i = 0; i < packet_types_received.size(); i++) {
@@ -68,7 +68,7 @@ bool data_transport::send_packet(packet& packet) {
 }
 
 void data_transport::data_send() {
-    LOG_DEBUG("{:s} data tx started", transport_type);
+    LOG_DEBUG("{:s} data tx started", get_transport_type());
     enum throttling_state { NO_THROTTLING = 0, NORMAL_THROTTLING = 1, HARD_THROTTLING = 2 };
     static constexpr unsigned data_buffer_size = 256;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
@@ -89,13 +89,13 @@ void data_transport::data_send() {
 
     if (tx_data_queue == nullptr) {
         tx_state = TRANSPORT_SHUTDOWN;
-        LOG_FATAL("queue not initialized in {:s} data tx", transport_type);
-        throw(std::runtime_error("queue not initialized in " + transport_type + " data tx"));
+        LOG_FATAL("queue not initialized in {:s} data tx", get_transport_type());
+        throw(std::runtime_error("queue not initialized in " + get_transport_type() + " data tx"));
         return;
     }
 
     tx_state = TRANSPORT_READY;
-    LOG_DEBUG("{:s} data tx in READY state", transport_type);
+    LOG_DEBUG("{:s} data tx in READY state", get_transport_type());
 
     while (not sender_thread_stop_flag) {
         if constexpr (use_tx_throttling) {
@@ -107,31 +107,31 @@ void data_transport::data_send() {
                 if (tx_buffer_fill_percent >= throttle_hard_percent) {
                     throttling_state = HARD_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state HARD from NONE ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                                get_transport_type(), (int)tx_buffer_fill_percent);
                 } else if (tx_buffer_fill_percent >= throttle_on_percent) {
                     throttling_state = NORMAL_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NRML from NONE ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                                get_transport_type(), (int)tx_buffer_fill_percent);
                 }
             } else if (throttling_state == NORMAL_THROTTLING) {
                 if (tx_buffer_fill_percent >= throttle_hard_percent) {
                     throttling_state = HARD_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state HARD from NRML ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                                get_transport_type(), (int)tx_buffer_fill_percent);
                 } else if (tx_buffer_fill_percent < throttle_off_percent) {
                     throttling_state = NO_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NONE from NRML ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                                get_transport_type(), (int)tx_buffer_fill_percent);
                 }
             } else {  // current_state == HARD_THROTTLING
                 if (tx_buffer_fill_percent < throttle_off_percent) {
                     throttling_state = NO_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NONE from HARD ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                                get_transport_type(), (int)tx_buffer_fill_percent);
                 } else if (tx_buffer_fill_percent < throttle_hard_percent) {
                     throttling_state = NORMAL_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NRML from HARD ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                                get_transport_type(), (int)tx_buffer_fill_percent);
                 }
             }
             // In no throttling and normal throttling, two control variables are set:
@@ -192,16 +192,16 @@ void data_transport::data_send() {
         // wait for the response to be received by the data rx
         std::this_thread::sleep_for(20ms);
     } else {
-        LOG_WARN("{:s} data rx unavailable at tx shutdown: stats will not be updated", transport_type);
+        LOG_WARN("{:s} data rx unavailable at tx shutdown: stats will not be updated", get_transport_type());
     }
 
     tx_state = TRANSPORT_SHUTDOWN;
 
-    LOG_DEBUG("{:s} data tx exiting", transport_type);
+    LOG_DEBUG("{:s} data tx exiting", get_transport_type());
 }
 
 void data_transport::data_receive() {
-    LOG_DEBUG("{:s} data rx started", transport_type);
+    LOG_DEBUG("{:s} data rx started", get_transport_type());
     uint16_t last_seq = 0;
     bytes_received    = 0;
     samples_received  = 0;
@@ -210,13 +210,13 @@ void data_transport::data_receive() {
 
     if (rx_data_queue.empty()) {
         rx_state = TRANSPORT_SHUTDOWN;
-        LOG_FATAL("queues not initialized in {:s} data rx", transport_type);
-        throw(std::runtime_error("queues not initialized in " + transport_type + " data rx"));
+        LOG_FATAL("queues not initialized in {:s} data rx", get_transport_type());
+        throw(std::runtime_error("queues not initialized in " + get_transport_type() + " data rx"));
         return;
     }
 
     rx_state = TRANSPORT_READY;
-    LOG_DEBUG("{:s} data rx in READY state", transport_type);
+    LOG_DEBUG("{:s} data rx in READY state", get_transport_type());
 
     while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
         static data_queue_element recv_buffer;
@@ -229,18 +229,18 @@ void data_transport::data_receive() {
         if (not receiver_thread_stop_flag) {
             if (err != 0 and err != ETIMEDOUT) {
                 rx_state = TRANSPORT_ERROR;
-                LOG_ERROR("{:s} data receive error: {:s}", transport_type, std::strerror(err));
+                LOG_ERROR("{:s} data receive error: {:s}", get_transport_type(), std::strerror(err));
                 if (throw_on_rx_error) {
-                    throw(std::runtime_error(transport_type + " data receive error"));
+                    throw(std::runtime_error(get_transport_type() + " data receive error"));
                 }
             } else if (bytes_in_packet > 0) {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     rx_state = TRANSPORT_ERROR;
                     LOG_ERROR("packet size error in {:s} data rx (header {:d}, packet {:d})",
-                            transport_type, (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
+                            get_transport_type(), (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
                     if (throw_on_rx_error) {
-                        throw(std::runtime_error("packet size error in " + transport_type + " data rx"));
+                        throw(std::runtime_error("packet size error in " + get_transport_type() + " data rx"));
                     }
                 } else {
                     // update stats
@@ -253,11 +253,11 @@ void data_transport::data_receive() {
                         rx_state = TRANSPORT_ERROR;
                         uint16_t received = recv_buffer.hdr.sequence_counter;
                         LOG_ERROR("sequence error in {:s} data rx (expected {:d}, received {:d})",
-                                transport_type, (uint16_t)(last_seq + 1), received);
+                                get_transport_type(), (uint16_t)(last_seq + 1), received);
                         sequence_errors++;
                         sequence_errors_current_stream++;
                         if (throw_on_rx_error) {
-                            throw(std::runtime_error("sequence error in " + transport_type + " data rx"));
+                            throw(std::runtime_error("sequence error in " + get_transport_type() + " data rx"));
                         }
                     }
                     last_seq = recv_buffer.hdr.sequence_counter;
@@ -273,14 +273,14 @@ void data_transport::data_receive() {
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
-                                        transport_type, recv_buffer.hdr.subdevice, samples_received);
+                                        get_transport_type(), recv_buffer.hdr.subdevice, samples_received);
                                 if (throw_on_rx_error) {
-                                    throw(std::runtime_error("error pushing to data queue in " + transport_type + " data rx"));
+                                    throw(std::runtime_error("error pushing to data queue in " + get_transport_type() + " data rx"));
                                 }
                             }
                         } else {
                             LOG_WARN("{:s} data rx discarded rx data packet from unknown subdevice {:d}",
-                                    transport_type, recv_buffer.hdr.subdevice);
+                                    get_transport_type(), recv_buffer.hdr.subdevice);
                         }
                     } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
                         auto* r = std::bit_cast<six_uint32_packet*>(&recv_buffer);
@@ -293,7 +293,7 @@ void data_transport::data_receive() {
                             tx_buffer_fill_percent = 0;
                         }
                     } else {
-                        LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", transport_type, (int)recv_buffer.hdr.packet_type);
+                        LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", get_transport_type(), (int)recv_buffer.hdr.packet_type);
                     }
                 }
             }
@@ -302,5 +302,5 @@ void data_transport::data_receive() {
 
     rx_state = TRANSPORT_SHUTDOWN;
 
-    LOG_DEBUG("{:s} data rx exiting", transport_type);
+    LOG_DEBUG("{:s} data rx exiting", get_transport_type());
 }
