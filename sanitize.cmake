@@ -1,0 +1,10 @@
+set(VXSDR_FLAGS "-Wall -Wpedantic -Wshadow -fsanitize=address,undefined -fno-omit-frame-pointer")
+set(VXSDR_FLAGS_DEBUG "-Wall -Wpedantic -Wshadow -fsanitize=address,undefined -fno-omit-frame-pointer")
+set(CMAKE_C_FLAGS_INIT ${VXSDR_FLAGS})
+set(CMAKE_CXX_FLAGS_INIT ${VXSDR_FLAGS})
+set(CMAKE_C_FLAGS_DEBUG_INIT ${VXSDR_FLAGS_DEBUG})
+set(CMAKE_CXX_FLAGS_DEBUG_INIT ${VXSDR_FLAGS_DEBUG})
+
+include(CheckCXXCompilerFlag)
+include(CMakeToolsHelpers OPTIONAL)
+include(CMakePrintHelpers)
