@@ -26,7 +26,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     : sender_socket(context, net::ip::udp::v4()), receiver_socket(context, net::ip::udp::v4()) {
     LOG_DEBUG("udp command transport constructor entered");
 
-    auto config = packet_transport::apply_transport_settings(settings);
+    auto config = apply_transport_settings(settings);
 
     // apply the convenience settings if specific settings are absent
     if (config.count("udp_transport:local_address") != 0 and config.count("udp_command_transport:local_address") == 0) {

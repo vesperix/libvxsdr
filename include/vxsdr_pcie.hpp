@@ -167,7 +167,7 @@ class pcie_dma_interface {
             close(dma_filedes);
             LOG_DEBUG("pcie_dma_interface destructor complete");
         }
-        size_t command_send(const void *buf_ptr, const size_t buf_size, int &error_code) {
+        size_t pcie_dma_command_send(const void *buf_ptr, const size_t buf_size, int &error_code) {
 	        auto result = write(dma_filedes, buf_ptr, buf_size);
             if (result < 0) {
                 error_code = errno;
@@ -176,7 +176,7 @@ class pcie_dma_interface {
             error_code = 0;
             return result;
         }
-        size_t command_receive(void *buf_ptr, const size_t buf_size, int &error_code) {
+        size_t pcie_dma_command_receive(void *buf_ptr, const size_t buf_size, int &error_code) {
 	        auto result = read(dma_filedes, buf_ptr, buf_size);
             if (result < 0) {
                 error_code = errno;
@@ -189,7 +189,7 @@ class pcie_dma_interface {
             error_code = 0;
             return result;
         }
-        size_t data_send(const void *buf_ptr, const size_t buf_size, int &error_code) {
+        size_t pcie_dma_data_send(const void *buf_ptr, const size_t buf_size, int &error_code) {
             int idx = ioctl(dma_filedes, IOCTL_CHECKOUT_TX_BUFFER, 0);
             if (idx < 0) {
                  error_code = errno;
@@ -208,7 +208,7 @@ class pcie_dma_interface {
             error_code = 0;
             return buf_size;
         }
-        size_t data_receive(void *buf_ptr, const size_t buf_size, int &error_code) {
+        size_t pcie_dma_data_receive(void *buf_ptr, const size_t buf_size, int &error_code) {
 		    int idx = ioctl(dma_filedes, IOCTL_CHECKOUT_RX_BUFFER_BLOCKING, 0);
             if (idx < 0) {
                 error_code = errno;
