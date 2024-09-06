@@ -55,8 +55,8 @@ int set_socket_dontfrag(net::ip::udp::socket& sock) {
 #include <netinet/ip.h>
 
 int get_socket_mtu(net::ip::udp::socket& sock) {
-    // FIXME: is this call available on Mac OS?
-    return -1;
+    // zero return means not available on Mac OS
+    return 0;
 }
 
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
