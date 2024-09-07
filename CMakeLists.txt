@@ -243,12 +243,9 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 include(GenerateExportHeader)
 add_library(vxsdr_lib ${vxsdr_lib_source})
-generate_export_header(vxsdr_lib)
-# the generated export header is in ${CMAKE_CURRENT_BINARY_DIR}
-target_sources(vxsdr_lib INTERFACE ${vxsdr_lib_header} ${CMAKE_CURRENT_BINARY_DIR}/vxsdr_lib_export.h)
-get_target_property(vxsdr_lib_public_headers vxsdr_lib INTERFACE_SOURCES)
-set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER "${vxsdr_lib_public_headers}")
-target_include_directories(vxsdr_lib INTERFACE ${CMAKE_CURRENT_BUILD_DIR})
+set(vxsdr_export_header_name ${CMAKE_CURRENT_BINARY_DIR}/exports/vxsdr_lib_export.h)
+generate_export_header(vxsdr_lib EXPORT_FILE_NAME ${vxsdr_export_header_name})
+set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER ${vxsdr_lib_header})
 
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
@@ -267,6 +264,9 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_transport_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
+target_include_directories(vxsdr_lib PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
+    $<INSTALL_INTERFACE:exports>)
 
 if(VXSDR_BUILD_DEPENDENCIES)
     if(VXSDR_STANDALONE_ASIO)
@@ -352,6 +352,7 @@ endif()
 
 include(GNUInstallDirs)
 install(TARGETS vxsdr_lib
+    EXPORT vxsdrTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT libvxsdr_Runtime
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -359,7 +360,9 @@ install(TARGETS vxsdr_lib
         NAMELINK_COMPONENT libvxsdr_Development
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT libvxsdr_Development
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+install(FILES ${vxsdr_export_header_name} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 if(Make_Python_Bindings)
     install(TARGETS vxsdr_py DESTINATION ${Python3_SITELIB})
@@ -371,7 +374,12 @@ if(VXSDR_BUILD_UTILITIES)
     install(TARGETS vxsdr_save_addr RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
-set(libvxsdr_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libvxsdr)
+set(libvxsdr_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr)
+
+install(EXPORT vxsdrTargets
+  FILE vxsdrTargets.cmake
+  DESTINATION ${libvxsdr_INSTALL_CMAKEDIR}
+)
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(vxsdrConfig.cmake.in
