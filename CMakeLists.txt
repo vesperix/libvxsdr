@@ -264,9 +264,6 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_transport_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
-#target_include_directories(vxsdr_lib PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-#    $<INSTALL_INTERFACE:.>)
 
 if(VXSDR_BUILD_DEPENDENCIES)
     if(VXSDR_STANDALONE_ASIO)
