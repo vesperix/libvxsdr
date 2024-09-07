@@ -243,7 +243,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 include(GenerateExportHeader)
 add_library(vxsdr_lib ${vxsdr_lib_source})
-set(vxsdr_export_header_name ${CMAKE_CURRENT_BINARY_DIR}/exports/vxsdr_lib_export.h)
+set(vxsdr_export_header_name ${CMAKE_CURRENT_BINARY_DIR}/vxsdr_lib_export.h)
 generate_export_header(vxsdr_lib EXPORT_FILE_NAME ${vxsdr_export_header_name})
 set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER ${vxsdr_lib_header})
 
@@ -264,9 +264,9 @@ target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
                                              ${vxsdr_transport_defs}
                                              ${vxsdr_system_defs})
 target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
-target_include_directories(vxsdr_lib PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
-    $<INSTALL_INTERFACE:exports>)
+#target_include_directories(vxsdr_lib PUBLIC
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+#    $<INSTALL_INTERFACE:.>)
 
 if(VXSDR_BUILD_DEPENDENCIES)
     if(VXSDR_STANDALONE_ASIO)
