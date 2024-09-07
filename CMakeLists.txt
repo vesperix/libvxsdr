@@ -163,8 +163,11 @@ else()
     message(FATAL_ERROR "Unable to recognize the target platform")
 endif()
 
-if(NOT APPLE)
-    set(CMAKE_INSTALL_RPATH $ORIGIN) # per Craig Scott cppCon 2019
+if(APPLE)
+    # FIXME: are other Mac OS-specific settings needed?
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+else()
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -348,7 +351,15 @@ if(VXSDR_BUILD_TESTS)
 endif()
 
 include(GNUInstallDirs)
-install(TARGETS vxsdr_lib)
+install(TARGETS vxsdr_lib
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT libvxsdr_Runtime
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT libvxsdr_Runtime
+        NAMELINK_COMPONENT libvxsdr_Development
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT libvxsdr_Development
+)
 
 if(Make_Python_Bindings)
     install(TARGETS vxsdr_py DESTINATION ${Python3_SITELIB})
@@ -360,16 +371,17 @@ if(VXSDR_BUILD_UTILITIES)
     install(TARGETS vxsdr_save_addr RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
+set(libvxsdr_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libvxsdr)
+
 include(CMakePackageConfigHelpers)
 configure_package_config_file(vxsdrConfig.cmake.in
                               ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
-                              INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr)
+                              INSTALL_DESTINATION ${libvxsdr_INSTALL_CMAKEDIR})
 write_basic_package_version_file(vxsdrConfigVersion.cmake
                                  VERSION ${vxsdr_version}
                                  COMPATIBILITY SameMajorVersion)
 set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS WORLD_READ WORLD_EXECUTE)
-# otherwise ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr created below has
-# default permissions for the installer (who can be root)
+# otherwise files created below have default permissions for the installer (who can be root)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr)
+        DESTINATION ${libvxsdr_INSTALL_CMAKEDIR})
