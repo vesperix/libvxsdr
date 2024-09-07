@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.16..3.28)
 
-set(vxsdr_lib_version_major  0)
-set(vxsdr_lib_version_minor 18)
-set(vxsdr_lib_version_patch 10)
+set(libvxsdr_version_major  0)
+set(libvxsdr_version_minor 19)
+set(libvxsdr_version_patch  0)
 
-set(vxsdr_lib_version ${vxsdr_lib_version_major}.${vxsdr_lib_version_minor}.${vxsdr_lib_version_patch})
+set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
-project(vxsdr_lib VERSION ${vxsdr_lib_version} DESCRIPTION "VXSDR host library" LANGUAGES CXX)
+project(libvxsdr VERSION ${libvxsdr_version} DESCRIPTION "VXSDR host library" LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,20 +35,20 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(vxsdr_lib_source src/vxsdr.cpp
-                     src/vxsdr_imp.cpp
-                     src/device_commands.cpp
-                     src/radio_commands.cpp
-                     src/command_transport.cpp
-                     src/data_transport.cpp
-                     src/udp_command_transport.cpp
-                     src/udp_data_transport.cpp
-                     src/pcie_command_transport.cpp
-                     src/pcie_data_transport.cpp
-                     src/socket_utils.cpp
-                     src/thread_utils.cpp
-                     src/logging.cpp)
-set(vxsdr_lib_header include/vxsdr.hpp)
+set(libvxsdr_source src/vxsdr.cpp
+                    src/vxsdr_imp.cpp
+                    src/device_commands.cpp
+                    src/radio_commands.cpp
+                    src/command_transport.cpp
+                    src/data_transport.cpp
+                    src/udp_command_transport.cpp
+                    src/udp_data_transport.cpp
+                    src/pcie_command_transport.cpp
+                    src/pcie_data_transport.cpp
+                    src/socket_utils.cpp
+                    src/thread_utils.cpp
+                    src/logging.cpp)
+set(libvxsdr_header include/vxsdr.hpp)
 set(vxsdr_python_src src/vxsdr_py.cpp)
 
 set(vxsdr_utility_source utilities/vxsdr_find.cpp
@@ -123,10 +123,11 @@ else()
     endif()
 endif()
 
-set(vxsdr_build_defs -DVERSION_STRING="${vxsdr_lib_version}"
-                     -DVERSION_MAJOR=${vxsdr_lib_version_major}
-                     -DVERSION_MINOR=${vxsdr_lib_version_minor}
-                     -DVERSION_PATCH=${vxsdr_lib_version_patch}
+set(vxsdr_build_defs -DVERSION_STRING="${libvxsdr_version}"
+                     -DVERSION_MAJOR=${libvxsdr_version_major}
+                     -DVERSION_MINOR=${libvxsdr_version_minor}
+                     -DVERSION_PATCH=${libvxsdr_version_patch}
+                     -DBUILD_TYPE="${CMAKE_BUILD_TYPE}"
                      -DCOMPILER_INFO="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
                      -DSYSTEM_INFO="${CMAKE_SYSTEM}")
 
@@ -201,8 +202,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     endif()
 endif()
 
-set(vxsdr_lib_defs -DBUILD_TYPE="${CMAKE_BUILD_TYPE}")
-
 if(VXSDR_PYTHON_BINDINGS)
     message(STATUS "Python bindings requested")
     # When multiple Python versions are installed, you may need to
@@ -242,53 +241,55 @@ endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 include(GenerateExportHeader)
-add_library(vxsdr_lib ${vxsdr_lib_source})
-set(vxsdr_export_header_name ${CMAKE_CURRENT_BINARY_DIR}/vxsdr_lib_export.h)
-generate_export_header(vxsdr_lib EXPORT_FILE_NAME ${vxsdr_export_header_name})
-set_target_properties(vxsdr_lib PROPERTIES PUBLIC_HEADER ${vxsdr_lib_header})
+add_library(libvxsdr ${libvxsdr_source})
+set(vxsdr_export_header_name ${CMAKE_CURRENT_BINARY_DIR}/vxsdr_export.h)
+generate_export_header(libvxsdr EXPORT_FILE_NAME ${vxsdr_export_header_name})
+set_target_properties(libvxsdr PROPERTIES PUBLIC_HEADER ${libvxsdr_header})
 
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
-    set_target_properties(vxsdr_lib PROPERTIES CMAKE_CXX_CLANG_TIDY ${clang_tidy})
+    set_target_properties(libvxsdr PROPERTIES CMAKE_CXX_CLANG_TIDY ${clang_tidy})
     message(INFO "Running clang-tidy during build")
 endif()
 
-target_compile_options(vxsdr_lib PRIVATE ${vxsdr_optimization_options}
-                                         ${vxsdr_warning_options}
-                                         ${vxsdr_misc_options})
-target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_lib_defs}
-                                             ${vxsdr_build_defs}
-                                             ${vxsdr_log_defs}
-                                             ${vxsdr_compiler_defs}
-                                             ${vxsdr_dependency_defs}
-                                             ${vxsdr_transport_defs}
-                                             ${vxsdr_system_defs})
-target_include_directories(vxsdr_lib PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
+target_compile_options(libvxsdr PRIVATE ${vxsdr_optimization_options}
+                                        ${vxsdr_warning_options}
+                                        ${vxsdr_misc_options})
+target_compile_definitions(libvxsdr PRIVATE ${vxsdr_build_defs}
+                                            ${vxsdr_log_defs}
+                                            ${vxsdr_compiler_defs}
+                                            ${vxsdr_dependency_defs}
+                                            ${vxsdr_transport_defs}
+                                            ${vxsdr_system_defs})
+target_include_directories(libvxsdr PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+                                            ${Boost_INCLUDE_DIRS}
+                                     PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+                                            $<INSTALL_INTERFACE:include>)
 
 if(VXSDR_BUILD_DEPENDENCIES)
     if(VXSDR_STANDALONE_ASIO)
-        target_include_directories(vxsdr_lib PRIVATE ${asio_SOURCE_DIR}/asio/include)
+        target_include_directories(libvxsdr PRIVATE ${asio_SOURCE_DIR}/asio/include)
         # FIXME: does asio have a better definition?
-        # target_link_libraries(vxsdr_lib INTERFACE asio::asio_header_only)
+        # target_link_libraries(libvxsdr INTERFACE asio::asio_header_only)
     else()
-        target_link_libraries(vxsdr_lib PRIVATE Boost::asio)
+        target_link_libraries(libvxsdr PRIVATE Boost::asio)
     endif()
-    target_link_libraries(vxsdr_lib PRIVATE Boost::lockfree)
+    target_link_libraries(libvxsdr PRIVATE Boost::lockfree)
 endif()
 
 if(Make_Python_Bindings)
-    target_compile_definitions(vxsdr_lib PRIVATE ${vxsdr_build_python})
-    target_include_directories(vxsdr_lib PRIVATE ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
+    target_compile_definitions(libvxsdr PRIVATE ${vxsdr_build_python})
+    target_include_directories(libvxsdr PRIVATE ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
 endif()
 
 if(VXSDR_ENABLE_LOGGING)
-    target_include_directories(vxsdr_lib PRIVATE ${spdlog_INCLUDE_DIRS})
-    target_link_libraries(vxsdr_lib PRIVATE spdlog::spdlog_header_only)
+    target_include_directories(libvxsdr PRIVATE ${spdlog_INCLUDE_DIRS})
+    target_link_libraries(libvxsdr PRIVATE spdlog::spdlog_header_only)
 endif()
 
-set_target_properties(vxsdr_lib PROPERTIES SOVERSION ${vxsdr_lib_version_major})
-set_target_properties(vxsdr_lib PROPERTIES VERSION ${vxsdr_lib_version})
-set_target_properties(vxsdr_lib PROPERTIES OUTPUT_NAME vxsdr)
+set_target_properties(libvxsdr PROPERTIES SOVERSION ${libvxsdr_version_major})
+set_target_properties(libvxsdr PROPERTIES VERSION ${libvxsdr_version})
+set_target_properties(libvxsdr PROPERTIES OUTPUT_NAME vxsdr)
 
 if(Make_Python_Bindings)
     pybind11_add_module(vxsdr_py ${vxsdr_python_src})
@@ -297,7 +298,7 @@ if(Make_Python_Bindings)
                                             ${vxsdr_misc_options})
     target_compile_definitions(vxsdr_py PRIVATE ${vxsdr_build_python})
     target_include_directories(vxsdr_py PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
-    target_link_libraries(vxsdr_py PRIVATE vxsdr_lib ${pybind11_LIBRARIES})
+    target_link_libraries(vxsdr_py PRIVATE libvxsdr ${pybind11_LIBRARIES})
     if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
         target_include_directories(vxsdr_py PRIVATE ${spdlog_INCLUDE_DIRS})
         target_link_libraries(vxsdr_py PRIVATE spdlog::spdlog_header_only)
@@ -333,8 +334,7 @@ if(VXSDR_BUILD_TESTS)
         target_compile_options(${target_name} PRIVATE ${vxsdr_optimization_options}
                                                       ${vxsdr_warning_options}
                                                       ${vxsdr_misc_options})
-        target_compile_definitions(${target_name} PRIVATE ${vxsdr_lib_defs}
-                                                          ${vxsdr_build_defs}
+        target_compile_definitions(${target_name} PRIVATE ${vxsdr_build_defs}
                                                           ${vxsdr_log_defs}
                                                           ${vxsdr_compiler_defs}
                                                           ${vxsdr_system_defs})
@@ -348,7 +348,7 @@ if(VXSDR_BUILD_TESTS)
 endif()
 
 include(GNUInstallDirs)
-install(TARGETS vxsdr_lib
+install(TARGETS libvxsdr
     EXPORT vxsdrTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT libvxsdr_Runtime
@@ -357,7 +357,10 @@ install(TARGETS vxsdr_lib
         NAMELINK_COMPONENT libvxsdr_Development
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT libvxsdr_Development
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT libvxsdr_Development
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT libvxsdr_Development
 )
 install(FILES ${vxsdr_export_header_name} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
@@ -372,6 +375,17 @@ if(VXSDR_BUILD_UTILITIES)
 endif()
 
 set(libvxsdr_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr)
+
+install(EXPORT vxsdrTargets
+    FILE vxsdrTargets.cmake
+    NAMESPACE vxsdr::
+    DESTINATION ${libvxsdr_INSTALL_CMAKEDIR}
+)
+
+export(EXPORT vxsdrTargets
+    FILE ${libvxsdr_INSTALL_CMAKEDIR}/vxsdrTargets.cmake
+    NAMESPACE vxsdr::
+)
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(vxsdrConfig.cmake.in

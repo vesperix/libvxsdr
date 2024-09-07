@@ -17,14 +17,14 @@
 #include <chrono>
 using namespace std::chrono_literals;
 
-#include "vxsdr_lib_export.h"
+#include "vxsdr_export.h"
 
 /*! @file vxsdr.hpp
     @class vxsdr
     @brief The vxsdr class contains the host interface for the VXSDR
 */
 
-class VXSDR_LIB_EXPORT vxsdr {
+class LIBVXSDR_EXPORT vxsdr {
   public:
   /*!
     @enum transport_type
