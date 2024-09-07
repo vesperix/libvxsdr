@@ -373,11 +373,6 @@ endif()
 
 set(libvxsdr_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr)
 
-install(EXPORT vxsdrTargets
-  FILE vxsdrTargets.cmake
-  DESTINATION ${libvxsdr_INSTALL_CMAKEDIR}
-)
-
 include(CMakePackageConfigHelpers)
 configure_package_config_file(vxsdrConfig.cmake.in
                               ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
@@ -385,6 +380,7 @@ configure_package_config_file(vxsdrConfig.cmake.in
 write_basic_package_version_file(vxsdrConfigVersion.cmake
                                  VERSION ${vxsdr_version}
                                  COMPATIBILITY SameMajorVersion)
+
 set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS WORLD_READ WORLD_EXECUTE)
 # otherwise files created below have default permissions for the installer (who can be root)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
