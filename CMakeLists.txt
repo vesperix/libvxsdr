@@ -351,16 +351,10 @@ include(GNUInstallDirs)
 install(TARGETS libvxsdr
     EXPORT vxsdrTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT libvxsdr_Runtime
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT libvxsdr_Runtime
-        NAMELINK_COMPONENT libvxsdr_Development
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT libvxsdr_Development
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        COMPONENT libvxsdr_Development
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        COMPONENT libvxsdr_Development
 )
 install(FILES ${vxsdr_export_header_name} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 

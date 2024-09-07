@@ -1,5 +1,5 @@
 @PACKAGE_INIT@
 
-if(NOT TARGET vxsdr::vxsdr_lib)
+if(NOT TARGET vxsdr::libvxsdr)
     include(${CMAKE_CURRENT_LIST_DIR}/vxsdrTargets.cmake)
 endif()
