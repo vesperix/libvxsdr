@@ -3,3 +3,8 @@
 if(NOT TARGET vxsdr::libvxsdr)
     include(${CMAKE_CURRENT_LIST_DIR}/vxsdrTargets.cmake)
 endif()
+
+set(VXSDR_FOUND TRUE)
+set(VXSDR_INCLUDE_DIR "@VXSDR_INCLUDE_DIR@")
+set(VXSDR_LIBRARY_DIR "@VXSDR_LIBRARY_DIR@")
+set(VXSDR_BINARY_DIR  "@VXSDR_BINARY_DIR@")

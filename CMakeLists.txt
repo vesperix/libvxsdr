@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 19)
-set(libvxsdr_version_patch  0)
+set(libvxsdr_version_patch  1)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -380,6 +380,10 @@ export(EXPORT vxsdrTargets
     FILE ${libvxsdr_INSTALL_CMAKEDIR}/vxsdrTargets.cmake
     NAMESPACE vxsdr::
 )
+
+set(VXSDR_INCLUDE_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
+set(VXSDR_LIBRARY_DIR "${CMAKE_INSTALL_FULL_LIBDIR}")
+set(VXSDR_BINARY_DIR  "${CMAKE_INSTALL_FULL_BINDIR}")
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(vxsdrConfig.cmake.in
