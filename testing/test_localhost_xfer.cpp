@@ -17,8 +17,8 @@ using namespace std::chrono_literals;
 #include "thread_utils.hpp"
 #include "vxsdr_threads.hpp"
 
-static constexpr size_t tx_queue_length =     512;
-static constexpr size_t rx_queue_length = 262'144;
+static constexpr size_t tx_queue_length =     511;
+static constexpr size_t rx_queue_length = 262'143;
 
 const unsigned network_send_buffer_size     =   262'144;
 const unsigned network_receive_buffer_size  = 8'388'608;

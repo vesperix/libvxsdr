@@ -157,29 +157,25 @@ void data_transport::data_send() {
         } else {
             // when not hard throttling, send at most max_packets_to_send packets and update buffer fills
             // by requesting an ack every buffer_check_interval packets
-            unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
-            if (n_popped == 0) {
-                std::this_thread::sleep_for(std::chrono::microseconds(send_thread_wait_us));
-            } else {
-                for (unsigned i = 0; i < n_popped; i++) {
-                    if (use_tx_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
-                        // request ack to update buffer use
-                        data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
-                        last_check = data_packets_processed;
+            unsigned n_popped = tx_data_queue->pop_or_timeout(&data_buffer.front(), max_packets_to_send, send_thread_wait_us, send_thread_sleep_us);
+            for (unsigned i = 0; i < n_popped; i++) {
+                if (use_tx_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
+                    // request ack to update buffer use
+                    data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
+                    last_check = data_packets_processed;
+                }
+                // FIXME: tracking possible error in tx_data_queue
+                if (data_buffer[i].hdr.packet_size == 0) {
+                    LOG_ERROR("zero size packet popped from tx_data_queue (i = {:d} n_popped = {:d}, type = 0x{:02x} cmd = 0x{:02x})",
+                                i, n_popped, (unsigned)data_buffer[i].hdr.packet_type, (unsigned)data_buffer[i].hdr.command);
+                } else {
+                    if (send_packet(data_buffer[i])) {
+                        data_packets_processed++;
                     }
-                    // FIXME: tracking possible error in tx_data_queue
-                    if (data_buffer[i].hdr.packet_size == 0) {
-                        LOG_ERROR("zero size packet popped from tx_data_queue (i = {:d} n_popped = {:d}, type = 0x{:02x} cmd = 0x{:02x})",
-                                 i, n_popped, (unsigned)data_buffer[i].hdr.packet_type, (unsigned)data_buffer[i].hdr.command);
-                    } else {
-                        if (send_packet(data_buffer[i])) {
-                            data_packets_processed++;
-                        }
-                    }
-                    if (use_tx_throttling and throttling_state != NO_THROTTLING) {
-                        // if we are throttling, pause between each packet
-                        std::this_thread::sleep_for(std::chrono::microseconds(throttle_amount_us));
-                    }
+                }
+                if (use_tx_throttling and throttling_state != NO_THROTTLING) {
+                    // if we are throttling, pause between each packet
+                    std::this_thread::sleep_for(std::chrono::microseconds(throttle_amount_us));
                 }
             }
         }
