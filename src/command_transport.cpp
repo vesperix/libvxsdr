@@ -89,7 +89,7 @@ void command_transport::command_receive() {
                         case PACKET_TYPE_ASYNC_MSG:
                         {
                             unsigned n_tries = 0;
-                            if (not async_msg_queue.push(recv_buffer) and n_tries < queue_push_tries) {
+                            while (not async_msg_queue.push(recv_buffer) and n_tries < queue_push_tries) {
                                 std::this_thread::sleep_for(std::chrono::microseconds(queue_push_wait_us));
                                 n_tries++;
                             }
@@ -110,7 +110,7 @@ void command_transport::command_receive() {
                         case PACKET_TYPE_RX_RADIO_CMD_ERR:
                         {
                             unsigned n_tries = 0;
-                            if (not response_queue.push(recv_buffer) and n_tries < queue_push_tries) {
+                            while (not response_queue.push(recv_buffer) and n_tries < queue_push_tries) {
                                 std::this_thread::sleep_for(std::chrono::microseconds(queue_push_wait_us));
                                 n_tries++;
                             }
