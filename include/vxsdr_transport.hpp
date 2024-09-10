@@ -271,8 +271,6 @@ class command_transport : public packet_transport {
     std::string payload_type = "command";
 
     static constexpr unsigned send_thread_wait_us   = 10'000;
-    static constexpr unsigned send_thread_sleep_us  =    200;
-    static constexpr unsigned queue_push_timeout_us = 10'000;
     static constexpr unsigned queue_push_wait_us    =  1'000;
 
     // because every command has a response, the command and
@@ -330,6 +328,9 @@ class data_transport : public packet_transport {
 
     static constexpr unsigned send_thread_wait_us   = 10'000;
     static constexpr unsigned send_thread_sleep_us  =    100;
+
+    // how long to wait for a command response with stats at shutdown
+    static constexpr vxsdr::duration final_stats_wait{20ms};
 
     // parameters used to monitor status of the radio's internal buffers
     // (on the other end of the network connection) for throttling

@@ -20,7 +20,7 @@ void command_transport::command_send() {
     LOG_DEBUG("{:s} command tx in READY state", get_transport_type());
 
     while (not sender_thread_stop_flag) {
-        if (command_queue.pop_or_timeout(packet_buffer, send_thread_wait_us, send_thread_sleep_us)) {
+        if (command_queue.pop_or_timeout(packet_buffer, send_thread_wait_us)) {
             send_packet(packet_buffer);
         }
     }
@@ -85,7 +85,7 @@ void command_transport::command_receive() {
 
                     switch (recv_buffer.hdr.packet_type) {
                         case PACKET_TYPE_ASYNC_MSG:
-                            if (not async_msg_queue.push_or_timeout(recv_buffer, queue_push_timeout_us, queue_push_wait_us)) {
+                            if (not async_msg_queue.push_or_timeout(recv_buffer, queue_push_wait_us)) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("timeout pushing to async message queue in {:s} command rx", get_transport_type());
                                 if (throw_on_rx_error) {
@@ -100,7 +100,7 @@ void command_transport::command_receive() {
                         case PACKET_TYPE_DEVICE_CMD_ERR:
                         case PACKET_TYPE_TX_RADIO_CMD_ERR:
                         case PACKET_TYPE_RX_RADIO_CMD_ERR:
-                            if (not response_queue.push_or_timeout(recv_buffer, queue_push_timeout_us, queue_push_wait_us)) {
+                            if (not response_queue.push_or_timeout(recv_buffer, queue_push_wait_us)) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("timeout pushing to command response queue in {:s} command rx", get_transport_type());
                                 if (throw_on_rx_error) {

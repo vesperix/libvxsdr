@@ -157,7 +157,7 @@ void data_transport::data_send() {
         } else {
             // when not hard throttling, send at most max_packets_to_send packets and update buffer fills
             // by requesting an ack every buffer_check_interval packets
-            unsigned n_popped = tx_data_queue->pop_or_timeout(&data_buffer.front(), max_packets_to_send, send_thread_wait_us, send_thread_sleep_us);
+            unsigned n_popped = tx_data_queue->pop_or_timeout(&data_buffer.front(), max_packets_to_send, send_thread_wait_us);
             for (unsigned i = 0; i < n_popped; i++) {
                 if (use_tx_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
                     // request ack to update buffer use
@@ -186,7 +186,7 @@ void data_transport::data_send() {
         data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
         send_packet(data_buffer[0]);
         // wait for the response to be received by the data rx
-        std::this_thread::sleep_for(20ms);
+        std::this_thread::sleep_for(final_stats_wait);
     } else {
         LOG_WARN("{:s} data rx unavailable at tx shutdown: stats will not be updated", get_transport_type());
     }

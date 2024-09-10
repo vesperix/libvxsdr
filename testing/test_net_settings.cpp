@@ -33,11 +33,9 @@ const unsigned network_receive_buffer_size  = 8'388'608;
 static constexpr unsigned udp_host_receive_port =  1030;
 static constexpr unsigned udp_host_send_port    = 55123;
 
-static constexpr unsigned push_queue_timeout_us = 1000000;
-static constexpr unsigned pop_queue_timeout_us  = 1000000;
-
-static constexpr unsigned push_queue_sleep_us = 100;
-static constexpr unsigned pop_queue_sleep_us  = 100;
+static constexpr unsigned push_queue_wait_us = 100;
+static constexpr unsigned pop_queue_wait_us  = 100;
+static constexpr unsigned n_tries = 10'000; // ~1s timeout
 
 static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
@@ -65,7 +63,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
         p.hdr.sequence_counter = i % (UINT16_MAX + 1UL);
         p.hdr.packet_size = sizeof(largest_data_packet);
 
-        if (not tx_queue.push_or_timeout(p, push_queue_timeout_us, push_queue_sleep_us)) {
+        if (not tx_queue.push_or_timeout(p, push_queue_wait_us, n_tries)) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "producer: timeout waiting for push" << std::endl;
             break;
@@ -191,7 +189,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
     while (i < n_items) {
         static std::array<data_queue_element, buffer_size> p;
 
-        size_t n_popped = rx_queue.pop_or_timeout(&p.front(), buffer_size, pop_queue_timeout_us, pop_queue_sleep_us);
+        size_t n_popped = rx_queue.pop_or_timeout(&p.front(), buffer_size, pop_queue_wait_us, n_tries);
 
         if (n_popped == 0) {
             std::lock_guard<std::mutex> guard(console_mutex);

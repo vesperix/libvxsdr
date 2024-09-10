@@ -16,11 +16,9 @@
 
 static constexpr size_t queue_length = 262'143;
 
-static constexpr unsigned push_queue_timeout_us = 1000000;
-static constexpr unsigned pop_queue_timeout_us  = 1000000;
-
-static constexpr unsigned push_queue_sleep_us = 100;
-static constexpr unsigned pop_queue_sleep_us  = 100;
+static constexpr unsigned push_queue_wait_us = 100;
+static constexpr unsigned pop_queue_wait_us  = 100;
+static constexpr unsigned n_tries = 10'000; // ~1s timeout
 
 static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
@@ -38,7 +36,7 @@ void producer(const size_t n_items, double& push_rate) {
         data_queue_element p;
         p.hdr.sequence_counter = i % (UINT16_MAX + 1);
 
-        if (not queue.push_or_timeout(p, push_queue_timeout_us, push_queue_sleep_us)) {
+        if (not queue.push_or_timeout(p, push_queue_wait_us, n_tries)) {
             std::cout << "producer: timeout waiting for push" << std::endl;
             exit(-1);
         }
@@ -64,7 +62,7 @@ void consumer(const size_t n_items, double& pop_rate) {
     while (i < n_items) {
         static std::array<data_queue_element, buffer_size> p;
 
-        size_t n_popped = queue.pop_or_timeout(&p.front(), buffer_size, pop_queue_timeout_us, pop_queue_sleep_us);
+        size_t n_popped = queue.pop_or_timeout(&p.front(), buffer_size, pop_queue_wait_us, n_tries);
 
         if (n_popped == 0) {
             std::cout << "consumer: timeout waiting for pop" << std::endl;

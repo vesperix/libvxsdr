@@ -59,21 +59,20 @@ class vxsdr::imp {
     static constexpr double frequency_setting_rtol = 1e-12;
 
     // waits between tries for data queue push/pop
-    static constexpr unsigned tx_data_queue_wait_us   = 200;
-    static constexpr unsigned rx_data_queue_wait_us   = 200;
+    static constexpr unsigned tx_data_queue_wait_us   = 100;
+    static constexpr unsigned rx_data_queue_wait_us   = 100;
 
-
-    // timeout and wait between checks for responses from device
-    unsigned device_response_timeout_us               = 1'000'000;
-    static constexpr unsigned device_response_wait_us =     1'000;
+    // timeout and wait for command responses from device
+    vxsdr::duration command_response_timeout                 = 1s;  // not static since user can set
+    static constexpr vxsdr::duration command_response_wait   = 1ms;
 
     // timeout and wait between checks for transport to become ready
     static constexpr vxsdr::duration transport_ready_timeout = 1s;
     static constexpr vxsdr::duration transport_ready_wait    = 1ms;
 
     // timeout and wait between checks for rf (tx and rx) to become ready
-    static constexpr vxsdr::duration rf_ready_timeout = 5s;
-    static constexpr vxsdr::duration rf_ready_wait    = 5ms;
+    static constexpr vxsdr::duration rf_ready_timeout        = 5s;
+    static constexpr vxsdr::duration rf_ready_wait           = 5ms;
 
     // how often to check the async queue
     static constexpr vxsdr::duration async_queue_wait        = 1ms;
@@ -235,8 +234,8 @@ class vxsdr::imp {
     std::string radio_cmd_to_name(const uint8_t cmd) const;
     std::string async_msg_to_name(const uint8_t msg) const;
   private:
-    bool send_packet_and_check_response(packet& p, const std::string& cmd_name = "unknown");
-    std::optional<command_queue_element> send_packet_and_return_response(packet& p, const std::string& cmd_name = "unknown");
+    bool send_command_and_check_response(packet& p, const std::string& cmd_name = "unknown");
+    std::optional<command_queue_element> send_command_and_return_response(packet& p, const std::string& cmd_name = "unknown");
     [[nodiscard]] bool cmd_queue_push_check(packet& p, const std::string& cmd_name = "unknown");
     void async_handler(const vxsdr::async_message_handler output_type);
     void time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) const;

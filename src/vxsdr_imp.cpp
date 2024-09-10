@@ -275,8 +275,12 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
     while (n_received < n_requested) {
         int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
         // setting rx_data_queue_wait_us = 0 results in a busy wait
+        unsigned n_tries = 1;
+        if (rx_data_queue_wait_us > 0) {
+            n_tries = timeout_duration_us / rx_data_queue_wait_us;
+        }
         data_queue_element q;
-        if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, timeout_duration_us, rx_data_queue_wait_us)) {
+        if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, rx_data_queue_wait_us, n_tries)) {
             if (q.hdr.packet_size == 0) {
                 LOG_ERROR("zero size packet popped from rx_data_queue (type = 0x{:02x} cmd = 0x{:02x})",
                             (unsigned)q.hdr.packet_type, (unsigned)q.hdr.command);
@@ -403,7 +407,11 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
             }
         }
         // setting tx_data_queue_wait_us = 0 results in a busy wait
-        if (data_tport->tx_data_queue->push_or_timeout(q, timeout_duration_us, tx_data_queue_wait_us)) {
+        unsigned n_tries = 1;
+        if (tx_data_queue_wait_us > 0) {
+            n_tries = timeout_duration_us / tx_data_queue_wait_us;
+        }
+        if (data_tport->tx_data_queue->push_or_timeout(q, tx_data_queue_wait_us, n_tries)) {
             n_put += n_samples;
         } else {
             LOG_ERROR("timeout pushing to tx data queue");
@@ -422,75 +430,84 @@ bool vxsdr::imp::set_host_command_timeout(const double timeout_s) {
     if (timeout_s > 3600 or timeout_s < 1e-3) {
         return false;
     }
-    vxsdr::imp::device_response_timeout_us = std::llround(timeout_s * 1e6);
+    vxsdr::imp::command_response_timeout= std::chrono::milliseconds(std::llround(1e3 * timeout_s));
     return true;
 }
 
 double vxsdr::imp::get_host_command_timeout() const {
-    return 1e-6 * device_response_timeout_us;
+    return std::chrono::duration<double>(command_response_timeout).count();
 }
 
 // private functions
 
-[[nodiscard]] bool vxsdr::imp::send_packet_and_check_response(packet& p, const std::string& cmd_name) {
+[[nodiscard]] bool vxsdr::imp::send_command_and_check_response(packet& p, const std::string& cmd_name) {
     if (not command_tport->tx_rx_usable()) {
-        LOG_ERROR("send_packet_and_check_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
+        LOG_ERROR("send_command_and_check_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
         return false;
     }
     if (not vxsdr::imp::cmd_queue_push_check(p)) {
-        LOG_ERROR("send_packet_and_check_response failed sending {:s}: cmd queue push failed", cmd_name);
+        LOG_ERROR("send_command_and_check_response failed sending {:s}: cmd queue push failed", cmd_name);
         return false;
     }
+
     command_queue_element q;
-    if (command_tport->response_queue.pop_or_timeout(q, vxsdr::imp::device_response_timeout_us, device_response_wait_us)) {
-        if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
-             (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
-             (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
-            q.hdr.command == p.hdr.command) {
-            return true;
-        }
-        if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
-             (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
-             (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
-            q.hdr.command == p.hdr.command) {
-            LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
+    auto start_time = std::chrono::steady_clock::now();
+    while (not command_tport->response_queue.pop(q)) {
+        std::this_thread::sleep_for(command_response_wait);
+        if ((std::chrono::steady_clock::now() - start_time) > command_response_timeout) {
+            LOG_ERROR("timeout waiting for response in {:s}", cmd_name);
             return false;
         }
-        LOG_ERROR("invalid response received in {:s}", cmd_name);
+    }
+    if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
+            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
+            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
+        q.hdr.command == p.hdr.command) {
+        return true;
+    }
+    if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
+            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
+            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
+        q.hdr.command == p.hdr.command) {
+        LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return false;
     }
-    LOG_ERROR("timeout waiting for response in {:s}", cmd_name);
+    LOG_ERROR("invalid response received in {:s}", cmd_name);
     return false;
 }
 
-[[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_packet_and_return_response(packet& p, const std::string& cmd_name) {
+[[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_command_and_return_response(packet& p, const std::string& cmd_name) {
     if (not command_tport->tx_rx_usable()) {
-        LOG_ERROR("send_packet_and_return_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
+        LOG_ERROR("send_command_and_return_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
         return std::nullopt;
     }
     if (not vxsdr::imp::cmd_queue_push_check(p)) {
-        LOG_ERROR("send_packet_and_return_response failed sending {:s}: cmd queue push failed", cmd_name);
+        LOG_ERROR("send_command_and_return_response failed sending {:s}: cmd queue push failed", cmd_name);
         return std::nullopt;
     }
     command_queue_element q;
-    if (command_tport->response_queue.pop_or_timeout(q, vxsdr::imp::device_response_timeout_us, device_response_wait_us)) {
-        if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
-             (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
-             (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
-            q.hdr.command == p.hdr.command) {
-            return q;
-        }
-        if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
-             (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
-             (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
-            q.hdr.command == p.hdr.command) {
-            LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
+    auto start_time = std::chrono::steady_clock::now();
+    while (not command_tport->response_queue.pop(q)) {
+        std::this_thread::sleep_for(command_response_wait);
+        if ((std::chrono::steady_clock::now() - start_time) > command_response_timeout) {
+            LOG_ERROR("timeout waiting for response in {:s}", cmd_name);
             return std::nullopt;
         }
-        LOG_ERROR("invalid response received in {:s}", cmd_name);
+    }
+    if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
+            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
+            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
+        q.hdr.command == p.hdr.command) {
+        return q;
+    }
+    if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
+            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
+            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
+        q.hdr.command == p.hdr.command) {
+        LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return std::nullopt;
     }
-    LOG_ERROR("timeout waiting for response in {:s}", cmd_name);
+    LOG_ERROR("invalid response received in {:s}", cmd_name);
     return std::nullopt;
 }
 
