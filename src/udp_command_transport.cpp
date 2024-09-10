@@ -146,26 +146,10 @@ udp_command_transport::~udp_command_transport() noexcept {
     LOG_DEBUG("udp command transport destructor complete");
 }
 
-#ifdef VXSDR_TARGET_MACOS
-#define UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
-#endif
-
 size_t udp_command_transport::packet_send(const packet& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code err;
-#ifdef UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
-    size_t bytes = 0;
-    while (true) {
-        bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
-        if (bytes == 0 and err == std::errc::no_buffer_space) {
-            std::this_thread::sleep_for(std::chrono::microseconds(send_thread_sleep_us));
-        } else {
-            break;
-        }
-    }
-#else
     size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
-#endif
     error_code = err.value();
     return bytes;
 }
