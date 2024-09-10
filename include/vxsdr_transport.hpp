@@ -270,8 +270,9 @@ class command_transport : public packet_transport {
   protected:
     std::string payload_type = "command";
 
-    static constexpr unsigned send_thread_wait_us   = 10'000;
-    static constexpr unsigned queue_push_wait_us    =  1'000;
+    static constexpr unsigned command_send_wait_us  =   500;
+    static constexpr unsigned queue_push_wait_us    =   500;
+    static constexpr unsigned queue_push_tries      =    10;
 
     // because every command has a response, the command and
     // response queues are just used as interprocess comms mechanisms;
@@ -324,10 +325,10 @@ class data_transport : public packet_transport {
     static constexpr unsigned throttle_hard_percent = 100;
     static constexpr unsigned throttle_on_percent   = 100;
     static constexpr unsigned throttle_off_percent  = 100;
-    static constexpr unsigned throttle_amount_us    = 0;  // minimum is 60 us on most Linux systems
 
-    static constexpr unsigned send_thread_wait_us   = 10'000;
-    static constexpr unsigned send_thread_sleep_us  =    100;
+    static constexpr unsigned data_throttle_wait_us = 100;
+    static constexpr unsigned data_send_wait_us     = 100;
+
 
     // how long to wait for a command response with stats at shutdown
     static constexpr vxsdr::duration final_stats_wait{20ms};

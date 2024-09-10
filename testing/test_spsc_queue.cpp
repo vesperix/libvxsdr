@@ -36,10 +36,18 @@ void producer(const size_t n_items, double& push_rate) {
         data_queue_element p;
         p.hdr.sequence_counter = i % (UINT16_MAX + 1);
 
-        if (not queue.push_or_timeout(p, push_queue_wait_us, n_tries)) {
+        unsigned n_try = 0;
+
+        while (not queue.push(p) and n_try < n_tries) {
+            std::this_thread::sleep_for(std::chrono::microseconds(push_queue_wait_us));
+            n_try++;
+        }
+        if (n_try >= n_tries) {
+            std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "producer: timeout waiting for push" << std::endl;
             exit(-1);
         }
+
         if constexpr (push_queue_interval_us > 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(push_queue_interval_us));
         }
@@ -62,15 +70,25 @@ void consumer(const size_t n_items, double& pop_rate) {
     while (i < n_items) {
         static std::array<data_queue_element, buffer_size> p;
 
-        size_t n_popped = queue.pop_or_timeout(&p.front(), buffer_size, pop_queue_wait_us, n_tries);
+        unsigned n_try = 0;
+        size_t n_popped = 0;
 
-        if (n_popped == 0) {
+        while (n_popped == 0 and n_try < n_tries) {
+            n_popped = queue.pop(&p.front(), buffer_size);
+            if (n_popped == 0) {
+                std::this_thread::sleep_for(std::chrono::microseconds(pop_queue_wait_us));
+                n_try++;
+            }
+        }
+        if (n_try >= n_tries) {
+            std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "consumer: timeout waiting for pop" << std::endl;
-            exit(-1);
+            break;
         }
 
         for (size_t j = 0; j < n_popped; j++) {
             if (p[j].hdr.sequence_counter != i++ % (UINT16_MAX + 1)) {
+                std::lock_guard<std::mutex> guard(console_mutex);
                 std::cout << "consumer: data error" << std::endl;
                 exit(-1);
             }

@@ -20,8 +20,10 @@ void command_transport::command_send() {
     LOG_DEBUG("{:s} command tx in READY state", get_transport_type());
 
     while (not sender_thread_stop_flag) {
-        if (command_queue.pop_or_timeout(packet_buffer, send_thread_wait_us)) {
+        if (command_queue.pop(packet_buffer)) {
             send_packet(packet_buffer);
+        } else {
+            std::this_thread::sleep_for(std::chrono::microseconds(command_send_wait_us));
         }
     }
 
@@ -85,7 +87,13 @@ void command_transport::command_receive() {
 
                     switch (recv_buffer.hdr.packet_type) {
                         case PACKET_TYPE_ASYNC_MSG:
-                            if (not async_msg_queue.push_or_timeout(recv_buffer, queue_push_wait_us)) {
+                        {
+                            unsigned n_tries = 0;
+                            if (not async_msg_queue.push(recv_buffer) and n_tries < queue_push_tries) {
+                                std::this_thread::sleep_for(std::chrono::microseconds(queue_push_wait_us));
+                                n_tries++;
+                            }
+                            if (n_tries >= queue_push_tries) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("timeout pushing to async message queue in {:s} command rx", get_transport_type());
                                 if (throw_on_rx_error) {
@@ -93,14 +101,20 @@ void command_transport::command_receive() {
                                 }
                             }
                             break;
-
+                        }
                         case PACKET_TYPE_DEVICE_CMD_RSP:
                         case PACKET_TYPE_TX_RADIO_CMD_RSP:
                         case PACKET_TYPE_RX_RADIO_CMD_RSP:
                         case PACKET_TYPE_DEVICE_CMD_ERR:
                         case PACKET_TYPE_TX_RADIO_CMD_ERR:
                         case PACKET_TYPE_RX_RADIO_CMD_ERR:
-                            if (not response_queue.push_or_timeout(recv_buffer, queue_push_wait_us)) {
+                        {
+                            unsigned n_tries = 0;
+                            if (not response_queue.push(recv_buffer) and n_tries < queue_push_tries) {
+                                std::this_thread::sleep_for(std::chrono::microseconds(queue_push_wait_us));
+                                n_tries++;
+                            }
+                            if (n_tries >= queue_push_tries) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("timeout pushing to command response queue in {:s} command rx", get_transport_type());
                                 if (throw_on_rx_error) {
@@ -108,7 +122,7 @@ void command_transport::command_receive() {
                                 }
                             }
                             break;
-
+                        }
                         default:
                             LOG_WARN("{:s} command rx discarded incorrect packet (type {:d})", get_transport_type(), (int)recv_buffer.hdr.packet_type);
                             break;
