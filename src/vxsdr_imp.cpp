@@ -223,7 +223,8 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         LOG_ERROR("timeout_s must 3600 or less in get_rx_data()");
         return 0;
     }
-    const unsigned timeout_duration_us = std::llround(timeout_s * 1e6);
+    const vxsdr::duration data_rx_timeout = std::chrono::microseconds(std::llround(timeout_s * 1e6));
+    const vxsdr::duration data_rx_wait = 100us;
 
     if (not data_tport->rx_usable()) {
         LOG_ERROR("data transport rx is not usable in get_rx_data()");
@@ -274,45 +275,45 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
     // now get samples from new packets
     while (n_received < n_requested) {
         int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
-        // setting rx_data_queue_wait_us = 0 results in a busy wait
-        unsigned n_tries = 1;
-        if (rx_data_queue_wait_us > 0) {
-            n_tries = timeout_duration_us / rx_data_queue_wait_us;
-        }
-        data_queue_element q;
-        if (data_tport->rx_data_queue[subdev]->pop_or_timeout(q, rx_data_queue_wait_us, n_tries)) {
-            if (q.hdr.packet_size == 0) {
-                LOG_ERROR("zero size packet popped from rx_data_queue (type = 0x{:02x} cmd = 0x{:02x})",
-                            (unsigned)q.hdr.packet_type, (unsigned)q.hdr.command);
-            }
-            auto packet_data = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
-            int64_t data_samples = packet_data.size();
 
-            if (data_samples > 0) {
-                int64_t n_to_copy = std::min(n_remaining, data_samples);
-                if constexpr(std::is_same<T, int16_t>()) {
-                    for(int64_t i = 0; i < n_to_copy; i++) {
-                        data[n_received + i] = packet_data[i];
-                    }
-                } else if constexpr(std::is_floating_point<T>()) {
-                    constexpr T scale = 1.0 / 32'768.0;
-                    for(int64_t i = 0; i < n_to_copy; i++) {
-                        data[n_received + i] = std::complex<T>(scale * (T)packet_data[i].real(), scale * (T)packet_data[i].imag());
-                    }
-                }
-                n_received += n_to_copy;
+        data_queue_element q;
+        auto start_time = std::chrono::steady_clock::now();
+        while (not data_tport->rx_data_queue[subdev]->pop(q)) {
+            std::this_thread::sleep_for(data_rx_wait);
+            if ((std::chrono::steady_clock::now() - start_time) > data_rx_timeout) {
+                LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received, n_requested);
+                return n_received;
             }
-            // if there are leftover samples, push them to the sample queue
-            if (data_samples > n_remaining) {
-                int64_t n_pushed = data_tport->rx_sample_queue[subdev]->push(&packet_data[n_remaining], data_samples - n_remaining);
-                if (n_pushed != data_samples - n_remaining) {
-                    LOG_ERROR("error pushing data to rx sample queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_pushed, data_samples - n_remaining);
-                    return n_received;
+        }
+
+        if (q.hdr.packet_size == 0) {
+            LOG_ERROR("zero size packet popped from rx_data_queue (type = 0x{:02x} cmd = 0x{:02x})",
+                        (unsigned)q.hdr.packet_type, (unsigned)q.hdr.command);
+        }
+        auto packet_data = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
+        int64_t data_samples = packet_data.size();
+
+        if (data_samples > 0) {
+            int64_t n_to_copy = std::min(n_remaining, data_samples);
+            if constexpr(std::is_same<T, int16_t>()) {
+                for(int64_t i = 0; i < n_to_copy; i++) {
+                    data[n_received + i] = packet_data[i];
+                }
+            } else if constexpr(std::is_floating_point<T>()) {
+                constexpr T scale = 1.0 / 32'768.0;
+                for(int64_t i = 0; i < n_to_copy; i++) {
+                    data[n_received + i] = std::complex<T>(scale * (T)packet_data[i].real(), scale * (T)packet_data[i].imag());
                 }
             }
-        } else {
-            LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received, n_requested);
-            return n_received;
+            n_received += n_to_copy;
+        }
+        // if there are leftover samples, push them to the sample queue
+        if (data_samples > n_remaining) {
+            int64_t n_pushed = data_tport->rx_sample_queue[subdev]->push(&packet_data[n_remaining], data_samples - n_remaining);
+            if (n_pushed != data_samples - n_remaining) {
+                LOG_ERROR("error pushing data to rx sample queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_pushed, data_samples - n_remaining);
+                return n_received;
+            }
         }
     }
     LOG_DEBUG("get_rx_data complete from subdevice {:d} ({:d} samples)", subdev, n_received);
@@ -334,7 +335,8 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         LOG_ERROR("timeout_s must 3600 or less in put_tx_data()");
         return 0;
     }
-    const unsigned timeout_duration_us = std::llround(timeout_s * 1e6);
+    const vxsdr::duration data_tx_timeout = std::chrono::microseconds(std::llround(timeout_s * 1e6));
+    const vxsdr::duration data_tx_wait = 100us;
 
     if (not data_tport->tx_rx_usable()) {
         // need both available since acks must be received
@@ -406,17 +408,16 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
 #endif // #ifndef VXSDR_LIB_TRUNCATE_FLOAT_CONVERSION
             }
         }
-        // setting tx_data_queue_wait_us = 0 results in a busy wait
-        unsigned n_tries = 1;
-        if (tx_data_queue_wait_us > 0) {
-            n_tries = timeout_duration_us / tx_data_queue_wait_us;
+
+        auto start_time = std::chrono::steady_clock::now();
+        while (not data_tport->tx_data_queue->push(q)) {
+            std::this_thread::sleep_for(data_tx_wait);
+            if ((std::chrono::steady_clock::now() - start_time) > data_tx_timeout) {
+                LOG_ERROR("timeout pushing to tx data queue");
+                return n_put;
+            }
         }
-        if (data_tport->tx_data_queue->push_or_timeout(q, tx_data_queue_wait_us, n_tries)) {
-            n_put += n_samples;
-        } else {
-            LOG_ERROR("timeout pushing to tx data queue");
-            return n_put;
-        }
+        n_put += n_samples;
     }
     LOG_DEBUG("put_tx_data complete ({:d} samples)", n_put);
     return n_put;
