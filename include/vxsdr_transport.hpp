@@ -279,9 +279,9 @@ class command_transport : public packet_transport {
     command_transport() = default;
     virtual ~command_transport() = default;
 
-    mpmc_queue<command_queue_element> command_queue{command_queue_length};
-    mpmc_queue<command_queue_element> response_queue{response_queue_length};
-    mpmc_queue<command_queue_element> async_msg_queue{async_msg_queue_length};
+    cmd_queue<command_queue_element> command_queue{command_queue_length};
+    cmd_queue<command_queue_element> response_queue{response_queue_length};
+    cmd_queue<command_queue_element> async_msg_queue{async_msg_queue_length};
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 
@@ -356,14 +356,14 @@ class data_transport : public packet_transport {
 
     virtual ~data_transport() = default;
 
-    // single SPSC data queue for TX (since the device handles sending to the right subdevice)
-    std::unique_ptr<spsc_queue<data_queue_element>> tx_data_queue;
-    // vector of unique_ptrs to SPSC rx data queues, one for each subdevice
-    // (required since SPSC queue is not moveable)
-    std::vector<std::unique_ptr<spsc_queue<data_queue_element>>> rx_data_queue;
+    // single data queue for TX (since the device handles sending to the right subdevice)
+    std::unique_ptr<data_queue<data_queue_element>> tx_data_queue;
+    // vector of unique_ptrs to rx data queues, one for each subdevice
+    // (required since queue may not be moveable)
+    std::vector<std::unique_ptr<data_queue<data_queue_element>>> rx_data_queue;
     // sample queues for each device hold samples left over when the requested data
     // size is less than a full packet
-    std::vector<std::unique_ptr<spsc_queue<vxsdr::wire_sample>>> rx_sample_queue;
+    std::vector<std::unique_ptr<data_queue<vxsdr::wire_sample>>> rx_sample_queue;
 
     bool send_packet(packet& packet) final;
     virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };

@@ -37,8 +37,8 @@ static constexpr unsigned tx_net_wait_us = 100;
 
 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-static spsc_queue<data_queue_element> tx_queue{tx_queue_length};
-static spsc_queue<data_queue_element> rx_queue{rx_queue_length};
+static data_queue<data_queue_element> tx_queue{tx_queue_length};
+static data_queue<data_queue_element> rx_queue{rx_queue_length};
 
 std::mutex console_mutex;
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 19)
-set(libvxsdr_version_patch  7)
+set(libvxsdr_version_patch  8)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -57,7 +57,7 @@ set(vxsdr_utility_source utilities/vxsdr_find.cpp
 
 set(vxsdr_test_source testing/test_sleep_resolution.cpp
                       testing/test_float_convert.cpp
-                      testing/test_spsc_queue.cpp
+                      testing/test_data_queue.cpp
                       testing/test_net_settings.cpp
                       testing/test_localhost_xfer.cpp)
 

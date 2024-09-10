@@ -38,13 +38,13 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
     pcie_if = std::move(pcie_iface);
 
     LOG_DEBUG("using transmit data buffer of {:d} packets", config["pcie_data_transport:tx_data_queue_packets"]);
-    tx_data_queue = std::make_unique<spsc_queue<data_queue_element>>(config["pcie_data_transport:tx_data_queue_packets"]);
+    tx_data_queue = std::make_unique<data_queue<data_queue_element>>(config["pcie_data_transport:tx_data_queue_packets"]);
 
     for (unsigned i = 0; i < num_rx_subdevs; i++) {
         rx_data_queue.push_back(
-            std::make_unique<spsc_queue<data_queue_element>>(config["pcie_data_transport:rx_data_queue_packets"]));
+            std::make_unique<data_queue<data_queue_element>>(config["pcie_data_transport:rx_data_queue_packets"]));
         rx_sample_queue.push_back(
-            std::make_unique<spsc_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
+            std::make_unique<data_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
     }
 
     LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["pcie_data_transport:rx_data_queue_packets"]);

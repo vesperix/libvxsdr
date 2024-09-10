@@ -25,7 +25,7 @@ static constexpr unsigned pop_queue_interval_us  = 0;
 
 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-static spsc_queue<data_queue_element> queue{queue_length};
+static data_queue<data_queue_element> queue{queue_length};
 
 std::mutex console_mutex;
 
