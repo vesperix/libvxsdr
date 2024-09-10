@@ -23,7 +23,6 @@ template<typename Element> class data_queue : public boost::lockfree::spsc_queue
 
 template<typename Element> class cmd_queue : public boost::lockfree::queue<Element> {
     public:
-        explicit cmd_queue<Element>(const size_t size) : boost::lockfree::queue<Element>{size} {};
         void reset() {
             Element e;
             while(boost::lockfree::queue<Element>::pop(e)) {};

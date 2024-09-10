@@ -267,21 +267,16 @@ class command_transport : public packet_transport {
     static constexpr unsigned queue_push_wait_us    =   500;
     static constexpr unsigned queue_push_tries      =    10;
 
-    // because every command has a response, the command and
-    // response queues are just used as interprocess comms mechanisms;
-    // there will never be more than one command or response in flight
-    static constexpr size_t command_queue_length  = 1;
-    static constexpr size_t response_queue_length = 1;
-    // async messages, however, can come fast
-    static constexpr size_t async_msg_queue_length = 1024;
-
   public:
     command_transport() = default;
     virtual ~command_transport() = default;
 
-    cmd_queue<command_queue_element> command_queue{command_queue_length};
-    cmd_queue<command_queue_element> response_queue{response_queue_length};
-    cmd_queue<command_queue_element> async_msg_queue{async_msg_queue_length};
+    // because every command has a response, the command and
+    // response queues are just used as interprocess comms mechanisms;
+    // there will never be more than one command or response in flight
+    cmd_queue<command_queue_element> command_queue;
+    cmd_queue<command_queue_element> response_queue;
+    cmd_queue<command_queue_element> async_msg_queue;
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 

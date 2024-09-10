@@ -8,8 +8,6 @@
 
 #include "packet_header.h"
 
-using stream_state_t = enum { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
-
 // The remainder is entirely C++ class definitions
 
 #pragma pack(push, 1)
@@ -198,16 +196,19 @@ VXSDR_CHECK_SIZE_EQUALS(error_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(two_uint32_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(four_uint32_packet, 24);
 VXSDR_CHECK_SIZE_EQUALS(six_uint32_packet, 32);
+VXSDR_CHECK_SIZE_EQUALS(eight_uint32_packet, 40);
+VXSDR_CHECK_SIZE_LESS_EQUAL(eight_uint32_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(one_double_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(two_double_packet, 24);
 VXSDR_CHECK_SIZE_EQUALS(four_double_packet, 40);
+VXSDR_CHECK_SIZE_LESS_EQUAL(four_double_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(uint32_double_packet, 24);
 VXSDR_CHECK_SIZE_EQUALS(uint32_two_double_packet, 32);
 VXSDR_CHECK_SIZE_EQUALS(one_uint64_packet, 16);
 VXSDR_CHECK_SIZE_EQUALS(name_packet, (MAX_NAME_LENGTH_BYTES + 8));
-VXSDR_CHECK_SIZE_LESS_EQUAL(name_packet, sizeof(largest_cmd_or_rsp_packet));
+VXSDR_CHECK_SIZE_LESS_EQUAL(name_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(filter_coeff_packet, (4 * MAX_FRONTEND_FILTER_LENGTH + 16));
-VXSDR_CHECK_SIZE_LESS_EQUAL(filter_coeff_packet, sizeof(largest_cmd_or_rsp_packet));
+VXSDR_CHECK_SIZE_LESS_EQUAL(filter_coeff_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(largest_cmd_or_rsp_packet, MAX_CMD_RSP_PACKET_BYTES);
 VXSDR_CHECK_SIZE_EQUALS(async_msg_packet, 8);
 VXSDR_CHECK_SIZE_EQUALS(largest_data_packet, MAX_DATA_PACKET_BYTES);
