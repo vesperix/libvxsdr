@@ -25,7 +25,7 @@
 pcie_command_transport::pcie_command_transport(const std::map<std::string, int64_t>& settings, std::shared_ptr<pcie_dma_interface> pcie_iface) {
     LOG_DEBUG("pcie command transport constructor entered");
 
-    auto config = apply_transport_settings(settings);
+    auto config = apply_transport_settings(settings, get_default_settings());
 
     pcie_if = std::move(pcie_iface);
 

@@ -33,7 +33,7 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
     LOG_DEBUG("pcie data transport constructor entered");
     num_rx_subdevs = n_rx_subdevs;
 
-    auto config = apply_transport_settings(settings);
+    auto config = apply_transport_settings(settings, get_default_settings());
 
     pcie_if = std::move(pcie_iface);
 
