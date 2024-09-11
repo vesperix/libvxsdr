@@ -274,9 +274,9 @@ class command_transport : public packet_transport {
     // because every command has a response, the command and
     // response queues are just used as interprocess comms mechanisms;
     // there will never be more than one command or response in flight
-    cmd_queue<command_queue_element> command_queue;
-    cmd_queue<command_queue_element> response_queue;
-    cmd_queue<command_queue_element> async_msg_queue;
+    cmd_queue<command_queue_element> command_queue{2};
+    cmd_queue<command_queue_element> response_queue{2};
+    cmd_queue<command_queue_element> async_msg_queue{1024};
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 
@@ -287,15 +287,17 @@ class command_transport : public packet_transport {
         if (not packet_transport::reset_rx()) {
             return false;
         }
-        response_queue.reset();
-        async_msg_queue.reset();
+        command_queue_element tmp;
+        while(response_queue.pop(tmp));
+        while(async_msg_queue.pop(tmp));
         return true;
     }
     bool reset_tx() final {
         if (not packet_transport::reset_tx()) {
             return false;
         }
-        command_queue.reset();
+        command_queue_element tmp;
+        while(command_queue.pop(tmp));
         return true;
     }
 };
