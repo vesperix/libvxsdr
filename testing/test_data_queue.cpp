@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     size_t n_items = std::ceil(n_seconds * minimum_rate / MAX_DATA_LENGTH_SAMPLES);
 
-    queue.reset();
+    queue->reset();
 
     double pop_rate = 0;
     double push_rate = 0;
