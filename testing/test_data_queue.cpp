@@ -25,7 +25,7 @@ static constexpr unsigned pop_queue_interval_us  = 0;
 
 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-static data_queue<data_queue_element> queue{queue_length};
+auto queue = std::make_unique<data_queue<data_queue_element>>(queue_length);
 
 std::mutex console_mutex;
 
@@ -38,7 +38,7 @@ void producer(const size_t n_items, double& push_rate) {
 
         unsigned n_try = 0;
 
-        while (not queue.push(p) and n_try < n_tries) {
+        while (not queue->push(p) and n_try < n_tries) {
             std::this_thread::sleep_for(std::chrono::microseconds(push_queue_wait_us));
             n_try++;
         }
@@ -74,7 +74,7 @@ void consumer(const size_t n_items, double& pop_rate) {
         size_t n_popped = 0;
 
         while (n_popped == 0 and n_try < n_tries) {
-            n_popped = queue.pop(&p.front(), buffer_size);
+            n_popped = queue->pop(&p.front(), buffer_size);
             if (n_popped == 0) {
                 std::this_thread::sleep_for(std::chrono::microseconds(pop_queue_wait_us));
                 n_try++;

@@ -518,7 +518,7 @@ double vxsdr::imp::get_host_command_timeout() const {
 
 [[nodiscard]] bool vxsdr::imp::cmd_queue_push_check(packet& p, const std::string& cmd_name) {
     command_queue_element q;
-    std::memcpy(&q, &p, std::min((size_t)p.hdr.packet_size, sizeof(q)));
+    std::memcpy((void *)&q, &p, std::min((size_t)p.hdr.packet_size, sizeof(q)));
     if (not command_tport->command_queue.push(q)) {
         LOG_ERROR("error pushing to command queue in {:s}", cmd_name);
         return false;
