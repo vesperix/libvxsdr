@@ -34,7 +34,10 @@ void producer(const size_t n_items, double& push_rate) {
 
     for (size_t i = 0; i < n_items; i++) {
         data_queue_element p;
+        p.hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, MAX_DATA_PACKET_BYTES, 0};
         p.hdr.sequence_counter = i % (UINT16_MAX + 1);
+
+        std::memset((void *)&p.data, 0xFF, MAX_DATA_PAYLOAD_BYTES);
 
         unsigned n_try = 0;
 
@@ -87,9 +90,14 @@ void consumer(const size_t n_items, double& pop_rate) {
         }
 
         for (size_t j = 0; j < n_popped; j++) {
+            if (p[j].hdr.packet_size == 0) {
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "consumer: zero size packet" << std::endl;
+                exit(-1);
+            }
             if (p[j].hdr.sequence_counter != i++ % (UINT16_MAX + 1)) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "consumer: data error" << std::endl;
+                std::cout << "consumer: sequence error" << std::endl;
                 exit(-1);
             }
         }
