@@ -18,7 +18,7 @@ using namespace std::chrono_literals;
 #include "vxsdr_threads.hpp"
 
 static constexpr size_t tx_queue_length =     511;
-static constexpr size_t rx_queue_length = 262'143;
+static constexpr size_t rx_queue_length =  65'534;
 
 const unsigned network_send_buffer_size     =   262'144;
 const unsigned network_receive_buffer_size  = 8'388'608;
@@ -103,12 +103,17 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
         return;
     }
 
-    static constexpr unsigned data_buffer_size = 64;
+    static constexpr unsigned data_buffer_size = 256;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
     net::socket_base::message_flags flags = 0;
     while (not sender_thread_stop_flag) {
-        unsigned n_popped = tx_queue.pop(&data_buffer.front(), data_buffer_size);
+        unsigned n_popped = tx_queue.pop(data_buffer.data(), data_buffer_size);
         for (unsigned i = 0; i < n_popped; i++) {
+            if (data_buffer[i].hdr.packet_size == 0) {
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "tx queue error: zero size packet popped" << std::endl;
+                return;
+            }
             size_t bytes = sender_socket.send(net::buffer(&data_buffer[i], data_buffer[i].hdr.packet_size), flags, err);
             if (err) {
                 std::lock_guard<std::mutex> guard(console_mutex);
@@ -211,6 +216,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
             if (p[j].hdr.sequence_counter != expected_seq) {
                 std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
                 expected_seq = p[j].hdr.sequence_counter;
+                seq_errors++;
             }
             i++;
             expected_seq++;
@@ -225,7 +231,8 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
     std::chrono::duration<double> d = t1 - t0;
     pop_rate = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
     std::lock_guard<std::mutex> guard(console_mutex);
-    std::cout << "consumer: " << i << " packets popped in " << d.count() << " sec: " << pop_rate << " samples/s" << std::endl;
+    std::cout << "consumer: " << i << " packets popped in " << d.count() << " sec: " << pop_rate << " samples/s with "
+              << seq_errors << " sequence_errors" << std::endl;
 }
 
 int main(int argc, char* argv[]) {

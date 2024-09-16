@@ -139,11 +139,11 @@ void data_transport::data_send() {
             //    max_packets_to_send           = the maximum number of packets to send in a burst
             if (throttling_state == NORMAL_THROTTLING) {
                 buffer_check_interval = buffer_check_throttling_packets;
-                max_packets_to_send   = buffer_normal_packets_to_send;
+                max_packets_to_send   = std::min(data_buffer_size, buffer_normal_packets_to_send);
 
             } else if (throttling_state == NO_THROTTLING) {
                 buffer_check_interval = buffer_check_default_packets;
-                max_packets_to_send   = buffer_low_packets_to_send;
+                max_packets_to_send   = std::min(data_buffer_size, buffer_low_packets_to_send);
             }
         } else {
             throttling_state = NO_THROTTLING;
@@ -157,7 +157,7 @@ void data_transport::data_send() {
         } else {
             // when not hard throttling, send at most max_packets_to_send packets and update buffer fills
             // by requesting an ack every buffer_check_interval packets
-            unsigned n_popped = tx_data_queue->pop(&data_buffer.front(), max_packets_to_send);
+            unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
             if (n_popped == 0) {
                 std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us));
             }

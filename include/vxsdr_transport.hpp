@@ -459,7 +459,7 @@ class udp_data_transport : public data_transport {
     std::string get_transport_type() const final { return "udp"; };
     std::map<std::string, int64_t> get_default_settings() const { return
                                                       {{"udp_data_transport:tx_data_queue_packets",              511},
-                                                       {"udp_data_transport:rx_data_queue_packets",          262'143},
+                                                       {"udp_data_transport:rx_data_queue_packets",           65'534},
                                                        {"udp_data_transport:mtu_bytes",                        9'000},
                                                        {"udp_data_transport:network_send_buffer_bytes",      262'144},
                                                        {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
@@ -526,7 +526,7 @@ class pcie_data_transport : public data_transport {
     std::string get_transport_type() const final { return "pcie"; };
     std::map<std::string, int64_t> get_default_settings() const { return
                                                       {{"pcie_data_transport:tx_data_queue_packets",              511},
-                                                       {"pcie_data_transport:rx_data_queue_packets",          262'143},
+                                                       {"pcie_data_transport:rx_data_queue_packets",           65'534},
                                                        {"pcie_data_transport:thread_priority",                      1},
                                                        {"pcie_data_transport:thread_affinity_offset",               0},
                                                        {"pcie_data_transport:sender_thread_affinity",               0},

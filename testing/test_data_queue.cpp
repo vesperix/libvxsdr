@@ -14,7 +14,7 @@
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-static constexpr size_t queue_length = 262'143;
+static constexpr size_t queue_length = 65'534;
 
 static constexpr unsigned push_queue_wait_us = 100;
 static constexpr unsigned pop_queue_wait_us  = 100;
@@ -77,7 +77,7 @@ void consumer(const size_t n_items, double& pop_rate) {
         size_t n_popped = 0;
 
         while (n_popped == 0 and n_try < n_tries) {
-            n_popped = queue->pop(&p.front(), buffer_size);
+            n_popped = queue->pop(p.data(), buffer_size);
             if (n_popped == 0) {
                 std::this_thread::sleep_for(std::chrono::microseconds(pop_queue_wait_us));
                 n_try++;
