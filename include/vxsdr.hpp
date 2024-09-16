@@ -758,6 +758,9 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Enable or disable the transmit external LO input.
+      Note that when switching from external to internal LO inputs, you may need to set the transmit
+      frequency again so that the internal LO is properly configured. The radio does not necessarily
+      retain previously tuned internal frequencies when the LO is switched from internal to external and back.
       @returns @b true if the command succeeds, @b false otherwise
       @param enabled the desired state
       @param subdev the subdevice number
@@ -766,6 +769,9 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Enable or disable the receive external LO input.
+      Note that when switching from external to internal LO inputs, you may need to set the transmit
+      frequency again so that the internal LO is properly configured. The radio does not necessarily
+      retain previously tuned internal frequencies when the LO is switched from internal to external and back.
       @returns @b true if the command succeeds, @b false otherwise
       @param enabled the desired state
       @param subdev the subdevice number
