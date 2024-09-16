@@ -273,30 +273,30 @@ int main(int argc, char* argv[]) {
     auto tx_thread = vxsdr_thread(&tx_net_sender, std::ref(sender_socket));
     auto rx_thread = vxsdr_thread(&rx_net_receiver, std::ref(receiver_socket));
 
-    if (thread_affinity[1] >= 0) {
-        if (set_thread_affinity(tx_thread, thread_affinity[0]) != 0) {
+    if (thread_affinity.at(0) >= 0) {
+        if (set_thread_affinity(tx_thread, thread_affinity.at(0)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting tx thread affinity" << std::endl;
             exit(-1);
         }
     }
-    if (thread_priority[1] >= 0) {
-        if (set_thread_priority_realtime(tx_thread, thread_priority[0]) != 0) {
+    if (thread_priority.at(0) >= 0) {
+        if (set_thread_priority_realtime(tx_thread, thread_priority.at(0)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting tx thread priority" << std::endl;
             exit(-1);
         }
     }
 
-    if (thread_affinity[2] >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity[1]) != 0) {
+    if (thread_affinity.at(1) >= 0) {
+        if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting rx thread affinity" << std::endl;
             exit(-1);
         }
     }
-    if (thread_affinity[2] >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity[1]) != 0) {
+    if (thread_affinity.at(1) >= 0) {
+        if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting ex thread affinity" << std::endl;
             exit(-1);
