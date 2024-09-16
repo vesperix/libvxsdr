@@ -4,6 +4,7 @@
 #include <array>
 #include <complex>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <mutex>
 #include <vector>
@@ -52,8 +53,10 @@ void tx_producer(const size_t n_items, double& push_rate) {
     size_t i = 0;
 
     for (i = 0; i < n_items; i++) {
-        p.hdr.sequence_counter = i % (UINT16_MAX + 1UL);
-        p.hdr.packet_size = sizeof(largest_data_packet);
+        p.hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, MAX_DATA_PACKET_BYTES, 0};
+        p.hdr.sequence_counter = i % (UINT16_MAX + 1);
+
+        std::memset((void *)&p.data, 0xFF, MAX_DATA_PAYLOAD_BYTES);
 
         unsigned n_try = 0;
 

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <complex>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <mutex>
 #include <vector>
