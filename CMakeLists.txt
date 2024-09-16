@@ -81,7 +81,11 @@ if(VXSDR_BUILD_DEPENDENCIES)
             GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(asio)
-        set(BOOST_INCLUDE_LIBRARIES lockfree)
+        if(VXSDR_BUILD_UTILITIES)
+            set(BOOST_INCLUDE_LIBRARIES lockfree;program_options)
+        else()
+            set(BOOST_INCLUDE_LIBRARIES lockfree)
+        endif()
         FetchContent_Declare(
             Boost
             GIT_REPOSITORY https://github.com/boostorg/boost.git
@@ -90,7 +94,11 @@ if(VXSDR_BUILD_DEPENDENCIES)
         )
         FetchContent_MakeAvailable(Boost)
     else()
-        set(BOOST_INCLUDE_LIBRARIES lockfree asio)
+        if(VXSDR_BUILD_UTILITIES)
+            set(BOOST_INCLUDE_LIBRARIES lockfree;asio;program_options)
+        else()
+            set(BOOST_INCLUDE_LIBRARIES lockfree;asio)
+        endif()
         FetchContent_Declare(
             Boost
             GIT_REPOSITORY https://github.com/boostorg/boost.git
@@ -317,9 +325,13 @@ if(VXSDR_BUILD_UTILITIES)
                                                       ${vxsdr_warning_options}
                                                       ${vxsdr_misc_options})
         target_compile_definitions(${target_name} PRIVATE ${vxsdr_build_defs}
+                                                          ${vxsdr_dependency_defs}
                                                           ${vxsdr_compiler_defs}
                                                           ${vxsdr_system_defs})
         target_include_directories(${target_name} PRIVATE include)
+        if(VXSDR_STANDALONE_ASIO)
+            target_include_directories(${target_name} PRIVATE ${asio_SOURCE_DIR}/asio/include)
+        endif()
         target_include_directories(${target_name} PRIVATE ${Boost_INCLUDE_DIRS})
         target_link_libraries(${target_name} PRIVATE Boost::program_options Threads::Threads)
     endforeach()
@@ -336,9 +348,13 @@ if(VXSDR_BUILD_TESTS)
                                                       ${vxsdr_misc_options})
         target_compile_definitions(${target_name} PRIVATE ${vxsdr_build_defs}
                                                           ${vxsdr_log_defs}
+                                                          ${vxsdr_dependency_defs}
                                                           ${vxsdr_compiler_defs}
                                                           ${vxsdr_system_defs})
         target_include_directories(${target_name} PRIVATE include)
+        if(VXSDR_STANDALONE_ASIO)
+            target_include_directories(${target_name} PRIVATE ${asio_SOURCE_DIR}/asio/include)
+        endif()
         target_include_directories(${target_name} PRIVATE ${Boost_INCLUDE_DIRS})
         target_link_libraries(${target_name} PRIVATE Threads::Threads)
     endforeach()
