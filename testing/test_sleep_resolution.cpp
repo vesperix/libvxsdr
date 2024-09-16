@@ -20,12 +20,16 @@ int main(int argc, char* argv[]) {
     double desired_delay = std::strtod(argv[1], nullptr);
     auto delay_ns = std::chrono::nanoseconds(std::llround(1e9 * desired_delay));
 
-    unsigned n_reps = atoi(argv[2]);
+    int n_reps = atoi(argv[2]);
+    if (n_reps < 1) {
+        std::cerr << "number of repetitions must be positive" << std::endl;
+        return -2;
+    }
 
     std::vector<double> delay(n_reps);
     std::vector<double> error(n_reps);
 
-    for (unsigned n = 0; n < n_reps; n++) {
+    for (int n = 0; n < n_reps; n++) {
         auto t0 = std::chrono::high_resolution_clock::now();
         std::this_thread::sleep_for(delay_ns);
         auto t1 = std::chrono::high_resolution_clock::now();

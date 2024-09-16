@@ -352,10 +352,16 @@ int main(int argc, char *argv[]) {
 
     double push_rate = 0, pop_rate = 0;
     unsigned seq_errors = 0;
+    bool pass = true;
+    try {
+        run_test(n_seconds, min_rate, delay_us, chunk_size, push_rate, pop_rate, seq_errors);
+        std::cout << fmt::format(" {:10.1f} {:10d} {:10d} {:12.2e} {:12.2e} {:12.2e} {:10d}",
+                                n_seconds, delay_us, chunk_size, min_rate, push_rate, pop_rate, seq_errors) << std::endl;
 
-    run_test(n_seconds, min_rate, delay_us, chunk_size, push_rate, pop_rate, seq_errors);
-    std::cout << fmt::format(" {:10.1f} {:10d} {:10d} {:12.2e} {:12.2e} {:12.2e} {:10d}",
-                             n_seconds, delay_us, chunk_size, min_rate, push_rate, pop_rate, seq_errors) << std::endl;
-
-    return (seq_errors > 0) || (push_rate < min_rate) || (pop_rate < min_rate);
+        pass = (seq_errors > 0) || (push_rate < min_rate) || (pop_rate < min_rate);
+    } catch (std::exception& e) {
+        std::cerr << "exception caught: " << e.what() << std::endl;
+        return 2;
+    }
+    return (pass ? 0 : 1);
 }

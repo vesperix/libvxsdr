@@ -256,90 +256,95 @@ int main(int argc, char* argv[]) {
 
     size_t n_items = std::ceil(n_seconds * minimum_rate / MAX_DATA_LENGTH_SAMPLES);
 
-    auto localhost_addr = net::ip::address_v4::from_string("127.0.0.1");
+    bool pass = true;
+    try {
+        auto localhost_addr = net::ip::address_v4::from_string("127.0.0.1");
 
-    net::ip::udp::endpoint local_send_endpoint(localhost_addr, udp_host_send_port);
-    net::ip::udp::endpoint local_receive_endpoint(localhost_addr, udp_host_receive_port);
+        net::ip::udp::endpoint local_send_endpoint(localhost_addr, udp_host_send_port);
+        net::ip::udp::endpoint local_receive_endpoint(localhost_addr, udp_host_receive_port);
 
-    net::io_context ctx;
-    net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
-    net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
+        net::io_context ctx;
+        net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
+        net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
 
-    auto context_thread = vxsdr_thread([&ctx]() { ctx.run(); });
+        auto context_thread = vxsdr_thread([&ctx]() { ctx.run(); });
 
-    sender_socket.connect(local_receive_endpoint);
-    receiver_socket.connect(local_send_endpoint);
+        sender_socket.connect(local_receive_endpoint);
+        receiver_socket.connect(local_send_endpoint);
 
-    auto tx_thread = vxsdr_thread(&tx_net_sender, std::ref(sender_socket));
-    auto rx_thread = vxsdr_thread(&rx_net_receiver, std::ref(receiver_socket));
+        auto tx_thread = vxsdr_thread(&tx_net_sender, std::ref(sender_socket));
+        auto rx_thread = vxsdr_thread(&rx_net_receiver, std::ref(receiver_socket));
 
-    if (thread_affinity.at(0) >= 0) {
-        if (set_thread_affinity(tx_thread, thread_affinity.at(0)) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting tx thread affinity" << std::endl;
-            exit(-1);
+        if (thread_affinity.at(0) >= 0) {
+            if (set_thread_affinity(tx_thread, thread_affinity.at(0)) != 0) {
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "error setting tx thread affinity" << std::endl;
+                exit(-1);
+            }
         }
-    }
-    if (thread_priority.at(0) >= 0) {
-        if (set_thread_priority_realtime(tx_thread, thread_priority.at(0)) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting tx thread priority" << std::endl;
-            exit(-1);
+        if (thread_priority.at(0) >= 0) {
+            if (set_thread_priority_realtime(tx_thread, thread_priority.at(0)) != 0) {
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "error setting tx thread priority" << std::endl;
+                exit(-1);
+            }
         }
-    }
 
-    if (thread_affinity.at(1) >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting rx thread affinity" << std::endl;
-            exit(-1);
+        if (thread_affinity.at(1) >= 0) {
+            if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "error setting rx thread affinity" << std::endl;
+                exit(-1);
+            }
         }
-    }
-    if (thread_affinity.at(1) >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting ex thread affinity" << std::endl;
-            exit(-1);
+        if (thread_affinity.at(1) >= 0) {
+            if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "error setting ex thread affinity" << std::endl;
+                exit(-1);
+            }
         }
+
+        double pop_rate = 0;
+        double push_rate = 0;
+        unsigned seq_errors = 0;
+
+        auto consumer_thread = vxsdr_thread(&rx_consumer, n_items, std::ref(pop_rate), std::ref(seq_errors));
+        // brief wait to ensure consumer thread is ready before starting producer
+        std::this_thread::sleep_for(10ms);
+        auto producer_thread = vxsdr_thread(&tx_producer, n_items, std::ref(push_rate));
+
+        producer_thread.join();
+        consumer_thread.join();
+
+        sender_thread_stop_flag = true;
+        receiver_thread_stop_flag = true;
+
+        net_error_code err;
+        receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
+        if (err and err != std::errc::not_connected) {
+            // the not connected error is expected since it's a UDP socket
+            std::cout << "receiver socket shutdown: " << err.message() << std::endl;
+        }
+
+        if(tx_thread.joinable()) {
+            tx_thread.join();
+        }
+        if(rx_thread.joinable()) {
+            rx_thread.join();
+        }
+        ctx.stop();
+        if(context_thread.joinable()) {
+            context_thread.join();
+        }
+
+        pass = (pop_rate > minimum_rate) and (push_rate > minimum_rate) and seq_errors == 0;
+
+        std::lock_guard<std::mutex> guard(console_mutex);
+        std::cout << (pass ? "passed" : "failed") << std::endl;
+    } catch (std::exception& e) {
+        std::cerr << "exception caught: " << e.what() << std::endl;
+        return 2;
     }
-
-    double pop_rate = 0;
-    double push_rate = 0;
-    unsigned seq_errors = 0;
-
-    auto consumer_thread = vxsdr_thread(&rx_consumer, n_items, std::ref(pop_rate), std::ref(seq_errors));
-    // brief wait to ensure consumer thread is ready before starting producer
-    std::this_thread::sleep_for(10ms);
-    auto producer_thread = vxsdr_thread(&tx_producer, n_items, std::ref(push_rate));
-
-    producer_thread.join();
-    consumer_thread.join();
-
-    sender_thread_stop_flag = true;
-    receiver_thread_stop_flag = true;
-
-    net_error_code err;
-    receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
-    if (err and err != std::errc::not_connected) {
-        // the not connected error is expected since it's a UDP socket
-        std::cout << "receiver socket shutdown: " << err.message() << std::endl;
-    }
-
-    if(tx_thread.joinable()) {
-        tx_thread.join();
-    }
-    if(rx_thread.joinable()) {
-        rx_thread.join();
-    }
-    ctx.stop();
-    if(context_thread.joinable()) {
-        context_thread.join();
-    }
-
-    bool pass = (pop_rate > minimum_rate) and (push_rate > minimum_rate) and seq_errors == 0;
-
-    std::lock_guard<std::mutex> guard(console_mutex);
-    std::cout << (pass ? "passed" : "failed") << std::endl;
-
     return (pass ? 0 : 1);
 }
