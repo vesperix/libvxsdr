@@ -191,14 +191,14 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket)
 
 void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
     constexpr size_t buffer_size = 512;
+    static std::array<data_queue_element, buffer_size> p;
+
     auto t0 = std::chrono::steady_clock::now();
 
     size_t i = 0;
     uint16_t expected_seq = 0;
 
     while (i < n_items) {
-        static std::array<data_queue_element, buffer_size> p;
-
         unsigned n_try = 0;
         size_t n_popped = 0;
 
@@ -244,8 +244,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::vector<int> thread_priority = { 1, 1, 1};
-    std::vector<int> thread_affinity = { 1, 2, 3};
+    std::vector<int> thread_priority = { 1, 1};
+    std::vector<int> thread_affinity = { 0, 1};
 
     std::cout << "testing speed of data transfer through localhost" << std::endl;
 
@@ -266,20 +266,6 @@ int main(int argc, char* argv[]) {
     net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
 
     auto context_thread = vxsdr_thread([&ctx]() { ctx.run(); });
-    if (thread_affinity[0] >= 0) {
-        if (set_thread_affinity(context_thread, thread_affinity[0]) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting context thread affinity" << std::endl;
-            exit(-1);
-        }
-    }
-    if (thread_priority[0] >= 0) {
-        if (set_thread_priority_realtime(context_thread, thread_priority[0]) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting context thread priority" << std::endl;
-            exit(-1);
-        }
-    }
 
     sender_socket.connect(local_receive_endpoint);
     receiver_socket.connect(local_send_endpoint);
@@ -288,14 +274,14 @@ int main(int argc, char* argv[]) {
     auto rx_thread = vxsdr_thread(&rx_net_receiver, std::ref(receiver_socket));
 
     if (thread_affinity[1] >= 0) {
-        if (set_thread_affinity(tx_thread, thread_affinity[1]) != 0) {
+        if (set_thread_affinity(tx_thread, thread_affinity[0]) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting tx thread affinity" << std::endl;
             exit(-1);
         }
     }
     if (thread_priority[1] >= 0) {
-        if (set_thread_priority_realtime(tx_thread, thread_priority[1]) != 0) {
+        if (set_thread_priority_realtime(tx_thread, thread_priority[0]) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting tx thread priority" << std::endl;
             exit(-1);
@@ -303,14 +289,14 @@ int main(int argc, char* argv[]) {
     }
 
     if (thread_affinity[2] >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity[2]) != 0) {
+        if (set_thread_affinity(rx_thread, thread_affinity[1]) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting rx thread affinity" << std::endl;
             exit(-1);
         }
     }
     if (thread_affinity[2] >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity[2]) != 0) {
+        if (set_thread_affinity(rx_thread, thread_affinity[1]) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting ex thread affinity" << std::endl;
             exit(-1);
