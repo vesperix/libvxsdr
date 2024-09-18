@@ -285,7 +285,7 @@ size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
     while (true) {
         bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
         if (bytes == 0 and err == std::errc::no_buffer_space) {
-            std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us));
+            std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us()));
         } else {
             break;
         }
