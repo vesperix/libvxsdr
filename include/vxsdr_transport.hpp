@@ -30,10 +30,6 @@ using namespace std::chrono_literals;
 
 class packet_transport {
   protected:
-    // descriptions for logging and error messages
-    virtual std::string get_transport_type() const { return "unspecified"; };
-    std::string payload_type = "unknown";
-
     // threads used for sending and receiving
     vxsdr_thread sender_thread;
     vxsdr_thread receiver_thread;
@@ -67,6 +63,9 @@ class packet_transport {
     packet_transport(packet_transport&&)                 = delete;
     packet_transport& operator=(packet_transport&&)      = delete;
 
+    virtual std::string get_transport_type() const noexcept { return "unspecified"; };
+    virtual std::string get_payload_type() const noexcept { return "unknown"; };
+
     // flags used for orderly shutdown
     std::atomic<bool> sender_thread_stop_flag   {false};
     std::atomic<bool> receiver_thread_stop_flag {false};
@@ -95,18 +94,18 @@ class packet_transport {
 
         if (err != 0) {
             tx_state = TRANSPORT_ERROR;
-            LOG_ERROR("send error in {:s} {:s} tx: {:s}", get_transport_type(), payload_type, strerror(err));
+            LOG_ERROR("send error in {:s} {:s} tx: {:s}", get_transport_type(), get_payload_type(), strerror(err));
             send_errors++;
             if(throw_on_tx_error) {
-                throw(std::runtime_error("send error in " + get_transport_type() + " " + payload_type + " tx"));
+                throw(std::runtime_error("send error in " + get_transport_type() + " " + get_payload_type() + " tx"));
             }
             return false;
         } else if (bytes != packet.hdr.packet_size) {
             tx_state = TRANSPORT_ERROR;
-            LOG_ERROR("send error in {:s} {:s} tx (size incorrect)", get_transport_type(), payload_type);
+            LOG_ERROR("send error in {:s} {:s} tx (size incorrect)", get_transport_type(), get_payload_type());
             send_errors++;
             if(throw_on_tx_error) {
-                throw(std::runtime_error("send error in " + get_transport_type() + " " + payload_type + " tx (size incorrect)"));
+                throw(std::runtime_error("send error in " + get_transport_type() + " " + get_payload_type() + " tx (size incorrect)"));
             }
             return false;
         }
@@ -114,8 +113,8 @@ class packet_transport {
 
         return true;
     }
-    virtual void log_stats() {
-        LOG_INFO("{:s} {:s} transport:", get_transport_type(), payload_type);
+    virtual void log_stats() const {
+        LOG_INFO("{:s} {:s} transport:", get_transport_type(), get_payload_type());
         LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
         LOG_INFO("   {:15d} packets received", packets_received);
         for (unsigned i = 0; i < packet_types_received.size(); i++) {
@@ -143,28 +142,28 @@ class packet_transport {
             LOG_WARN("   {:15d} send errors", send_errors);
         }
     }
-    void set_log_stats_on_exit(const bool value) {
+    void set_log_stats_on_exit(const bool value) noexcept {
         log_stats_on_exit = value;
     }
-    void set_throw_on_error(const bool value) {
+    void set_throw_on_error(const bool value) noexcept {
         throw_on_tx_error = value;
         throw_on_rx_error = value;
     }
-    bool rx_usable() {
+    bool rx_usable() const noexcept {
         if (rx_state != TRANSPORT_READY and
             rx_state != TRANSPORT_ERROR) {
             return false;
         }
         return true;
     }
-    bool tx_usable() {
+    bool tx_usable() const noexcept {
         if (tx_state != TRANSPORT_READY and
             tx_state != TRANSPORT_ERROR) {
             return false;
         }
         return true;
     }
-    bool tx_rx_usable() {
+    bool tx_rx_usable() const noexcept {
         return tx_usable() and rx_usable();
     }
     virtual bool reset_rx() {
@@ -197,7 +196,7 @@ class packet_transport {
         }
         return true;
     }
-    size_t get_packet_preamble_size(const packet_header& hdr) const {
+    size_t get_packet_preamble_size(const packet_header& hdr) const noexcept {
         size_t preamble_size = sizeof(packet_header);
         if ((bool)(hdr.flags & FLAGS_TIME_PRESENT)) {
             preamble_size += sizeof(time_spec_t);
@@ -207,7 +206,7 @@ class packet_transport {
         }
         return preamble_size;
     };
-    std::string packet_type_to_string(const uint8_t number) const {
+    std::string packet_type_to_string(const uint8_t number) const noexcept {
         switch (number) {
             case PACKET_TYPE_TX_SIGNAL_DATA:
                 return "TX_SIGNAL_DATA";
@@ -241,7 +240,7 @@ class packet_transport {
                 return "UNKNOWN_PACKET_TYPE";
         }
     }
-    std::string transport_state_to_string(const transport_state state) const {
+    std::string transport_state_to_string(const transport_state state) const noexcept {
         switch (state) {
             case TRANSPORT_UNINITIALIZED:
                 return "UNINITIALIZED";
@@ -261,8 +260,6 @@ class packet_transport {
 
 class command_transport : public packet_transport {
   protected:
-    std::string payload_type = "command";
-
     static constexpr unsigned command_send_wait_us  =   500;
     static constexpr unsigned queue_push_wait_us    =   500;
     static constexpr unsigned queue_push_tries      =    10;
@@ -277,6 +274,8 @@ class command_transport : public packet_transport {
     cmd_queue<command_queue_element> command_queue{2};
     cmd_queue<command_queue_element> response_queue{2};
     cmd_queue<command_queue_element> async_msg_queue{1024};
+
+    std::string get_payload_type() const noexcept final { return "command"; };
 
     virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
 
@@ -304,20 +303,18 @@ class command_transport : public packet_transport {
 
 class data_transport : public packet_transport {
   protected:
-    std::string payload_type = "data";
-
     unsigned sample_granularity;
     unsigned num_rx_subdevs;
     unsigned max_samples_per_packet;
 
     // control over throttling for transports that use it
-    static constexpr bool use_tx_throttling = false;
-    static constexpr unsigned throttle_hard_percent = 100;
-    static constexpr unsigned throttle_on_percent   = 100;
-    static constexpr unsigned throttle_off_percent  = 100;
+    virtual bool use_tx_throttling() const noexcept         { return false; };
+    virtual unsigned throttle_hard_percent() const noexcept { return 100; };
+    virtual unsigned throttle_on_percent() const noexcept   { return 100; };
+    virtual unsigned throttle_off_percent() const noexcept  { return 100; };
 
-    static constexpr unsigned data_throttle_wait_us = 100;
-    static constexpr unsigned data_send_wait_us     = 100;
+    virtual unsigned data_throttle_wait_us() const noexcept { return 100; };
+    virtual unsigned data_send_wait_us() const noexcept     { return 100; };
 
 
     // how long to wait for a command response with stats at shutdown
@@ -362,13 +359,15 @@ class data_transport : public packet_transport {
     // size is less than a full packet
     std::vector<std::unique_ptr<data_queue<vxsdr::wire_sample>>> rx_sample_queue;
 
+    std::string get_payload_type() const noexcept final { return "data"; };
+
     bool send_packet(packet& packet) final;
     virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };
 
     void data_send();
     void data_receive();
 
-    void log_stats() final;
+    void log_stats() const final;
 
     bool reset_rx() final {
         if (not packet_transport::reset_rx()) {
@@ -414,11 +413,11 @@ class data_transport : public packet_transport {
         return true;
     }
 
-    unsigned get_max_samples_per_packet() {
+    unsigned get_max_samples_per_packet() const noexcept {
         return max_samples_per_packet;
     }
 
-    bool set_max_samples_per_packet(const unsigned n_samples) {
+    bool set_max_samples_per_packet(const unsigned n_samples) noexcept {
         if (n_samples > 0 and n_samples <= MAX_DATA_LENGTH_SAMPLES) {
             max_samples_per_packet = sample_granularity * (n_samples / sample_granularity);
             return true;
@@ -429,7 +428,7 @@ class data_transport : public packet_transport {
 
 class udp_command_transport : public command_transport {
   protected:
-    std::string get_transport_type() const final { return "udp"; };
+    std::string get_transport_type() const noexcept final { return "udp"; };
     std::map<std::string, int64_t> get_default_settings() const { return {}; };
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
@@ -456,8 +455,8 @@ class udp_command_transport : public command_transport {
 
 class udp_data_transport : public data_transport {
   protected:
-    std::string get_transport_type() const final { return "udp"; };
-    std::map<std::string, int64_t> get_default_settings() const { return
+    std::string get_transport_type() const noexcept final { return "udp"; };
+    std::map<std::string, int64_t> get_default_settings() const noexcept { return
                                                       {{"udp_data_transport:tx_data_queue_packets",              511},
                                                        {"udp_data_transport:rx_data_queue_packets",           65'534},
                                                        {"udp_data_transport:mtu_bytes",                        9'000},
@@ -484,11 +483,13 @@ class udp_data_transport : public data_transport {
     net::ip::udp::socket receiver_socket;
 
     // transmit throttling settings
-    static constexpr bool use_tx_throttling = true;
-    static constexpr unsigned throttle_hard_percent = 90;
-    static constexpr unsigned throttle_on_percent   = 80;
-    static constexpr unsigned throttle_off_percent  = 60;
-    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
+    bool use_tx_throttling() const noexcept final { return true; };
+    unsigned throttle_hard_percent() const noexcept final { return  90; };
+    unsigned throttle_on_percent() const noexcept final   { return  80; };
+    unsigned throttle_off_percent() const noexcept final  { return  60; };
+
+    unsigned data_send_wait_us() const noexcept final     { return 100; };
+    unsigned data_throttle_wait_us() const noexcept final { return  50; };
 
   public:
     explicit udp_data_transport(const std::map<std::string, int64_t>& settings,
@@ -504,8 +505,8 @@ class udp_data_transport : public data_transport {
 
 class pcie_command_transport : public command_transport {
   protected:
-    std::string get_transport_type() const final { return "pcie"; };
-    std::map<std::string, int64_t> get_default_settings() const { return {}; };
+    std::string get_transport_type() const noexcept final { return "pcie"; };
+    std::map<std::string, int64_t> get_default_settings() const noexcept { return {}; };
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
     static constexpr auto pcie_ready_wait    =   1'000us;
@@ -523,8 +524,8 @@ class pcie_command_transport : public command_transport {
 
 class pcie_data_transport : public data_transport {
   protected:
-    std::string get_transport_type() const final { return "pcie"; };
-    std::map<std::string, int64_t> get_default_settings() const { return
+    std::string get_transport_type() const noexcept final { return "pcie"; };
+    std::map<std::string, int64_t> get_default_settings() const noexcept { return
                                                       {{"pcie_data_transport:tx_data_queue_packets",              511},
                                                        {"pcie_data_transport:rx_data_queue_packets",           65'534},
                                                        {"pcie_data_transport:thread_priority",                      1},
@@ -537,11 +538,7 @@ class pcie_data_transport : public data_transport {
     static constexpr auto pcie_ready_timeout = 100'000us;
     static constexpr auto pcie_ready_wait    =   1'000us;
 
-    static constexpr bool use_tx_throttling = false;
-    static constexpr unsigned throttle_hard_percent = 95;
-    static constexpr unsigned throttle_on_percent   = 90;
-    static constexpr unsigned throttle_off_percent  = 85;
-    static constexpr unsigned throttle_amount_us    = 50;  // will actually be around 60 us on most Linux systems
+    bool use_tx_throttling() const noexcept final { return false; };
 
     std::shared_ptr<pcie_dma_interface> pcie_if = nullptr;
 

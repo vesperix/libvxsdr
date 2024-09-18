@@ -19,9 +19,9 @@ using namespace std::chrono_literals;
 #include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
 
-void data_transport::log_stats() {
+void data_transport::log_stats() const {
     // add
-    LOG_INFO("{:s} {:s} transport:", get_transport_type(), payload_type);
+    LOG_INFO("{:s} {:s} transport:", get_transport_type(), get_payload_type());
     LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
     LOG_INFO("   {:15d} packets received", packets_received);
     for (unsigned i = 0; i < packet_types_received.size(); i++) {
@@ -95,40 +95,44 @@ void data_transport::data_send() {
     }
 
     tx_state = TRANSPORT_READY;
-    LOG_DEBUG("{:s} data tx in READY state", get_transport_type());
+    if (use_tx_throttling()) {
+        LOG_DEBUG("{:s} data tx in READY state (throttling enabled)", get_transport_type());
+    } else {
+        LOG_DEBUG("{:s} data tx in READY state (throttling disabled)", get_transport_type());
+    }
 
     while (not sender_thread_stop_flag) {
-        if constexpr (use_tx_throttling) {
+        if (use_tx_throttling()) {
             // There are 3 throttling states: no throttling, normal throttling, and hard throttling;
             // transitions are shown in the state machine below.
             // Note the hysteresis in entering and exiting normal throttling (throttle_off_percent < throttle_on_percent),
             // which reduces bouncing between states.
             if (throttling_state == NO_THROTTLING) {
-                if (tx_buffer_fill_percent >= throttle_hard_percent) {
+                if (tx_buffer_fill_percent >= throttle_hard_percent()) {
                     throttling_state = HARD_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state HARD from NONE ({:2d}% full)",
                                 get_transport_type(), (int)tx_buffer_fill_percent);
-                } else if (tx_buffer_fill_percent >= throttle_on_percent) {
+                } else if (tx_buffer_fill_percent >= throttle_on_percent()) {
                     throttling_state = NORMAL_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NRML from NONE ({:2d}% full)",
                                 get_transport_type(), (int)tx_buffer_fill_percent);
                 }
             } else if (throttling_state == NORMAL_THROTTLING) {
-                if (tx_buffer_fill_percent >= throttle_hard_percent) {
+                if (tx_buffer_fill_percent >= throttle_hard_percent()) {
                     throttling_state = HARD_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state HARD from NRML ({:2d}% full)",
                                 get_transport_type(), (int)tx_buffer_fill_percent);
-                } else if (tx_buffer_fill_percent < throttle_off_percent) {
+                } else if (tx_buffer_fill_percent < throttle_off_percent()) {
                     throttling_state = NO_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NONE from NRML ({:2d}% full)",
                                 get_transport_type(), (int)tx_buffer_fill_percent);
                 }
             } else {  // current_state == HARD_THROTTLING
-                if (tx_buffer_fill_percent < throttle_off_percent) {
+                if (tx_buffer_fill_percent < throttle_off_percent()) {
                     throttling_state = NO_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NONE from HARD ({:2d}% full)",
                                 get_transport_type(), (int)tx_buffer_fill_percent);
-                } else if (tx_buffer_fill_percent < throttle_hard_percent) {
+                } else if (tx_buffer_fill_percent < throttle_hard_percent()) {
                     throttling_state = NORMAL_THROTTLING;
                     LOG_TRACE("{:s} data tx entering throttling state NRML from HARD ({:2d}% full)",
                                 get_transport_type(), (int)tx_buffer_fill_percent);
@@ -148,21 +152,21 @@ void data_transport::data_send() {
         } else {
             throttling_state = NO_THROTTLING;
         }
-        if (use_tx_throttling and throttling_state == HARD_THROTTLING) {
+        if (use_tx_throttling() and throttling_state == HARD_THROTTLING) {
             // when hard throttling, send one empty data packet and request ack to update buffer use
             data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
             send_packet(data_buffer[0]);
             last_check = data_packets_processed;
-            std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us));
+            std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us()));
         } else {
             // when not hard throttling, send at most max_packets_to_send packets and update buffer fills
             // by requesting an ack every buffer_check_interval packets
             unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
             if (n_popped == 0) {
-                std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us));
+                std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us()));
             }
             for (unsigned i = 0; i < n_popped; i++) {
-                if (use_tx_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
+                if (use_tx_throttling() and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
                     // request ack to update buffer use
                     data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
                     last_check = data_packets_processed;
@@ -176,9 +180,9 @@ void data_transport::data_send() {
                         data_packets_processed++;
                     }
                 }
-                if (use_tx_throttling and throttling_state != NO_THROTTLING) {
+                if (use_tx_throttling() and throttling_state != NO_THROTTLING) {
                     // if we are throttling, pause between each packet
-                    std::this_thread::sleep_for(std::chrono::microseconds(data_throttle_wait_us));
+                    std::this_thread::sleep_for(std::chrono::microseconds(data_throttle_wait_us()));
                 }
             }
         }
