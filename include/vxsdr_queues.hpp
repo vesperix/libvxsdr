@@ -31,18 +31,26 @@ template<typename Element> class vxsdr_queue : public folly::ProducerConsumerQue
         explicit vxsdr_queue<Element>(const uint32_t size) : folly::ProducerConsumerQueue<Element>(size) {};
 
         bool push(Element& e) { return folly::ProducerConsumerQueue<Element>::write(e); };
-        size_t push(Element* p, size_t max = 1) {
+        size_t push(Element* p, size_t n_max) {
             size_t n_pushed = 0;
-            while(folly::ProducerConsumerQueue<Element>::write(*(p + n_pushed)) and n_pushed < max) {
-                n_pushed++;
+            while (n_pushed < n_max) {
+                if (folly::ProducerConsumerQueue<Element>::write(*(p + n_pushed))) {
+                    n_pushed++;
+                } else {
+                    break;
+                }
             }
             return n_pushed;
         };
         bool pop(Element& e) { return folly::ProducerConsumerQueue<Element>::read(e); };
-        size_t pop(Element* p, size_t max = 1) {
+        size_t pop(Element* p, size_t n_max) {
             size_t n_popped = 0;
-            while(folly::ProducerConsumerQueue<Element>::read(*(p + n_popped)) and n_popped < max) {
-                n_popped++;
+            while (n_popped < n_max) {
+                if (folly::ProducerConsumerQueue<Element>::read(*(p + n_popped))) {
+                    n_popped++;
+                } else {
+                    break;
+                }
             }
             return n_popped;
         };
