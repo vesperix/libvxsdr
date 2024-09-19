@@ -64,9 +64,13 @@ The library has several dependencies, which may be satisfied either by installin
 or by downloading and building the dependencies as part of the build process. The quickest is to
 install the dependencies separately; see the documentation for how to download and build.
 
-The library depends on Boost 1.67 or higher; it uses boost::lockfree queues
-and the boost::asio networking interface. (Use of the standalone ASIO distribution is also possible,
-and is the default when downloading and building dependencies.)
+The library requires an implementation of the Asio networking interface; the most common way to
+satisfy this is by using the boost::asio networking interface. Use of the standalone Asio distribution
+is also possible, and is the default when downloading and building dependencies.
+
+A single-producer-single-consumer queue is also required; the default is Meta's folly::ProducerConsumerQueue,
+which is included with the library distribution. It is also possible to use boost::spsc_queue, using
+the option ``-D VXSDR_USE_BOOST_QUEUE=ON``.
 
 When logging from within the library is enabled (the default) the library also depends on spdlog
 version 1.5 or higher. Logging from within the library may be disabled by running the initial CMake
