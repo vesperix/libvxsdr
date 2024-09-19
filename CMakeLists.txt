@@ -24,6 +24,7 @@ option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
 option(VXSDR_BUILD_DEPENDENCIES "Download and build external dependencies" OFF)
 option(VXSDR_STANDALONE_ASIO "When building dependencies, use standalone ASIO instead of Boost::asio" ON)
 option(VXSDR_BUILD_TESTS "Build VXSDR test programs and enable testing" OFF)
+option(VXSDR_USE_BOOST_QUEUE "Use Boost::spsc_queue instead of folly::ProducerConsumerQueue" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type defined -- assuming Release")
@@ -69,11 +70,24 @@ if(VXSDR_BUILD_DEPENDENCIES)
     include(FetchContent)
 endif()
 
+if(VXSDR_STANDALONE_ASIO)
+    list(APPEND vxsdr_dependency_defs "-DVXSDR_STANDALONE_ASIO")
+    message(STATUS "Using standalone asio for networking")
+else()
+    message(STATUS "Using Boost::asio for networking")
+endif()
+
+if(VXSDR_USE_BOOST_QUEUE)
+    list(APPEND vxsdr_dependency_defs "-DVXSDR_USE_BOOST_QUEUE")
+    message(STATUS "using Boost::spsc_queue for data and command queues")
+else()
+    message(STATUS "using folly::ProducerConsumerQueue for data and command queues")
+endif()
+
 if(VXSDR_BUILD_DEPENDENCIES)
     message(STATUS "Downloading and building dependencies; this will take some time...")
     set(BOOST_ENABLE_CMAKE ON)
     if(VXSDR_STANDALONE_ASIO)
-        set(vxsdr_dependency_defs "-DVXSDR_STANDALONE_ASIO")
         FetchContent_Declare(
             asio
             GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
@@ -81,23 +95,21 @@ if(VXSDR_BUILD_DEPENDENCIES)
             GIT_SHALLOW TRUE
         )
         FetchContent_MakeAvailable(asio)
-        if(VXSDR_BUILD_UTILITIES)
+        if(VXSDR_USE_BOOST_QUEUE)
             set(BOOST_INCLUDE_LIBRARIES lockfree)
-        else()
-            set(BOOST_INCLUDE_LIBRARIES lockfree)
+            FetchContent_Declare(
+                Boost
+                GIT_REPOSITORY https://github.com/boostorg/boost.git
+                GIT_TAG        boost-1.85.0
+                GIT_SHALLOW TRUE
+            )
+            FetchContent_MakeAvailable(Boost)
         endif()
-        FetchContent_Declare(
-            Boost
-            GIT_REPOSITORY https://github.com/boostorg/boost.git
-            GIT_TAG        boost-1.85.0
-            GIT_SHALLOW TRUE
-        )
-        FetchContent_MakeAvailable(Boost)
     else()
-        if(VXSDR_BUILD_UTILITIES)
+        if(VXSDR_USE_BOOST_QUEUE)
             set(BOOST_INCLUDE_LIBRARIES lockfree;asio)
         else()
-            set(BOOST_INCLUDE_LIBRARIES lockfree;asio)
+            set(BOOST_INCLUDE_LIBRARIES asio)
         endif()
         FetchContent_Declare(
             Boost
@@ -257,7 +269,7 @@ set_target_properties(libvxsdr PROPERTIES PUBLIC_HEADER ${libvxsdr_header})
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
     set_target_properties(libvxsdr PROPERTIES CMAKE_CXX_CLANG_TIDY ${clang_tidy})
-    message(INFO "Running clang-tidy during build")
+    message(STATUS "Running clang-tidy during build")
 endif()
 
 target_compile_options(libvxsdr PRIVATE ${vxsdr_optimization_options}
@@ -282,7 +294,9 @@ if(VXSDR_BUILD_DEPENDENCIES)
     else()
         target_link_libraries(libvxsdr PRIVATE Boost::asio)
     endif()
-    target_link_libraries(libvxsdr PRIVATE Boost::lockfree)
+    if(VXSDR_USE_BOOST_QUEUE)
+        target_link_libraries(libvxsdr PRIVATE Boost::lockfree)
+    endif()
 endif()
 
 if(Make_Python_Bindings)
