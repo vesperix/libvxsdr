@@ -410,10 +410,7 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         }
 
         auto start_time = std::chrono::steady_clock::now();
-        // FIXME: tracking possible error in tx_data_queue
-        if (q.hdr.packet_size == 0) {
-            LOG_ERROR("zero size packet pushed to tx_data_queue (type = 0x{:02x} cmd = 0x{:02x} seq = {:6d})", (unsigned)q.hdr.packet_type, (unsigned)q.hdr.command, q.hdr.sequence_counter);
-        }
+
         while (not data_tport->tx_data_queue->push(q)) {
             std::this_thread::sleep_for(data_tx_wait);
             if ((std::chrono::steady_clock::now() - start_time) > data_tx_timeout) {
