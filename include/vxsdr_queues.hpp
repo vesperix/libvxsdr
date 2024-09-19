@@ -24,7 +24,7 @@ template<typename Element> class vxsdr_queue : public boost::lockfree::spsc_queu
 
 #else
 
-#include "ProducerConsumerQueue.h"
+#include "third_party/ProducerConsumerQueue.h"
 
 template<typename Element> class vxsdr_queue : public folly::ProducerConsumerQueue<Element> {
     public:
