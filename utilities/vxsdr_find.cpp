@@ -14,43 +14,20 @@
 #include <exception>
 #include <vector>
 
-#include <boost/program_options.hpp>
+#include "third_party/cxxopts.hpp"
 
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-void add_setup_options(boost::program_options::options_description& desc) {
+void add_setup_options(cxxopts::Options& desc) {
     // clang-format off
     desc.add_options()
-        ("help", "help message")
-        ("local_address", boost::program_options::value<std::string>()->required(), "IPv4 address of local interface")
-        ("netmask", boost::program_options::value<std::string>()->default_value("255.255.255.0"), "IPv4 netmask of local interface")
+        ("L,local_address", "IPv4 address of local interface", cxxopts::value<std::string>())
+        ("M,netmask", "IPv4 netmask of local interface", cxxopts::value<std::string>()->default_value("255.255.255.0"))
+        ("h,help", "Print usage")
         ;
     // clang-format on
-}
-
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
-void init_vm(boost::program_options::options_description& desc, boost::program_options::variables_map& vm, int argc, char* argv[]) {
-    // setup the program options
-    try {
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-    } catch (std::exception& e) {
-        std::cerr << "error parsing command line options (store): " << e.what() << std::endl;
-        exit(-1);
-    }
-
-    if (vm.count("help") > 0) {
-        std::cerr << desc << std::endl;
-        exit(0);
-    }
-
-    try {
-        boost::program_options::notify(vm);
-    } catch (std::exception& e) {
-        std::cerr << "error parsing command line options (notify): " << e.what() << std::endl;
-        exit(-1);
-    }
 }
 
 bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
@@ -131,18 +108,27 @@ void output_hello_response(eight_uint32_packet& response) {
 
 int main(int argc, char* argv[]) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    std::cout << "Starting " << argv[0] << " " << BANNER_STRING << std::endl;
+    std::cout << "vxsdr_find " << BANNER_STRING << std::endl;
     const unsigned udp_host_receive_port   = 1030;
     const unsigned udp_host_send_port      = 55123;
     const unsigned udp_device_receive_port = 1030;
     const double timeout_s                 = 2; // maximum delay in discover response is 1024 ms
     try {
-        boost::program_options::options_description desc("Command line options");
-        boost::program_options::variables_map vm;
+        cxxopts::Options desc("vxsdr_find", "Finds VXSDR devices on the local network");
 
         add_setup_options(desc);
 
-        init_vm(desc, vm, argc, argv);
+        auto vm = desc.parse(argc, argv);
+
+        if (vm.count("help")) {
+            std::cout << desc.help() << std::endl;
+            exit(0);
+        }
+
+        if (vm.count("local_address") == 0) {
+            std::cerr << "local_address must be specified on the command line" << std::endl;
+            exit(1);
+        }
 
         auto local_addr = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
         auto netmask    = net::ip::address_v4::from_string(vm["netmask"].as<std::string>());

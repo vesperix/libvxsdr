@@ -8,47 +8,22 @@
 #include <exception>
 #include <future>
 
-#include <boost/program_options.hpp>
+#include "third_party/cxxopts.hpp"
 
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-void add_setup_options(boost::program_options::options_description& desc) {
+void add_setup_options(cxxopts::Options& desc) {
     // clang-format off
     desc.add_options()
-        ("help", "help message")
-        ("local_address", boost::program_options::value<std::string>()->required(), "IPv4 address of local interface")
-        ("current_device_address", boost::program_options::value<std::string>()->required(),
-                "current IPv4 address of destination")
-        ("new_device_address", boost::program_options::value<std::string>()->required(),
-                "new IPv4 address to set for destination")
-        ("netmask", boost::program_options::value<std::string>()->default_value("255.255.255.0"), "IPv4 netmask of local interface")
+        ("L,local_address", "IPv4 address of local interface", cxxopts::value<std::string>())
+        ("D,device_address", "current IPv4 address of device", cxxopts::value<std::string>())
+        ("N,new_device_address", "new IPv4 address of device", cxxopts::value<std::string>())
+        ("M,netmask", "IPv4 netmask of local interface", cxxopts::value<std::string>()->default_value("255.255.255.0"))
+        ("h,help", "Print usage")
         ;
     // clang-format on
-}
-
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
-void init_vm(boost::program_options::options_description& desc, boost::program_options::variables_map& vm, int argc, char* argv[]) {
-    // setup the program options
-    try {
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-    } catch (std::exception& e) {
-        std::cerr << "error parsing command line options (store): " << e.what() << std::endl;
-        exit(-1);
-    }
-
-    if (vm.count("help") > 0) {
-        std::cerr << desc << std::endl;
-        exit(0);
-    }
-
-    try {
-        boost::program_options::notify(vm);
-    } catch (std::exception& e) {
-        std::cerr << "error parsing command line options (notify): " << e.what() << std::endl;
-        exit(-1);
-    }
 }
 
 bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
@@ -103,12 +78,29 @@ int main(int argc, char* argv[]) {
     const unsigned udp_device_receive_port = 1030;
 
     try {
-        boost::program_options::options_description desc("Command line options");
-        boost::program_options::variables_map vm;
+        cxxopts::Options desc("vxsdr_set_addr", "Sets a new IPv4 address for a VXSDR device; use vxsdr_save_addr to make the change permanent");
 
         add_setup_options(desc);
 
-        init_vm(desc, vm, argc, argv);
+        auto vm = desc.parse(argc, argv);
+
+        if (vm.count("help")) {
+            std::cout << desc.help() << std::endl;
+            exit(0);
+        }
+
+        if (vm.count("local_address") == 0) {
+            std::cerr << "local_address must be specified on the command line" << std::endl;
+            exit(1);
+        }
+        if (vm.count("device_address") == 0) {
+            std::cerr << "device_address must be specified on the command line" << std::endl;
+            exit(1);
+        }
+        if (vm.count("new_device_address") == 0) {
+            std::cerr << "new_device_address must be specified on the command line" << std::endl;
+            exit(1);
+        }
 
         auto local_addr               = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
         auto current_destination_addr = net::ip::address_v4::from_string(vm["current_device_address"].as<std::string>());
