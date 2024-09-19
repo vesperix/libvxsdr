@@ -6,8 +6,6 @@
 #include <thread>
 #include <chrono>
 
-#ifdef VXSDR_USE_BOOST_SPSC_QUEUE
-
 // Confines the boost specifics to this file
 
 // use std::atomic so queues are header-only
@@ -15,22 +13,19 @@
 #define BOOST_LOCKFREE_FORCE_STD_ATOMIC  (1)
 #endif
 
-#include <boost/lockfree/spsc_queue.hpp>
 #include <boost/lockfree/queue.hpp>
+
+#ifdef VXSDR_USE_BOOST_SPSC_QUEUE
+
+#include <boost/lockfree/spsc_queue.hpp>
 
 template<typename Element> class data_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>> {
     public:
         explicit data_queue<Element>(const size_t size) : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>{size} {};
 };
 
-template<typename Element> class cmd_queue : public boost::lockfree::queue<Element, boost::lockfree::fixed_sized<true>> {
-    public:
-        explicit cmd_queue<Element>(const size_t size) : boost::lockfree::queue<Element, boost::lockfree::fixed_sized<true>>{size} {};
-};
-
 #else
 
-#include <queue>
 #include "ProducerConsumerQueue.h"
 
 template<typename Element> class data_queue : public folly::ProducerConsumerQueue<Element> {
@@ -57,12 +52,11 @@ template<typename Element> class data_queue : public folly::ProducerConsumerQueu
         void reset() { Element e; while(folly::ProducerConsumerQueue<Element>::read(e)); }
 };
 
-template<typename Element> class cmd_queue : public std::queue<Element> {
-    public:
-        explicit cmd_queue<Element>(const size_t size) : std::queue<Element>{} {};
-        bool push(Element& e) { std::queue<Element>::push(e); return true; };
-        bool pop(Element& e) { e = std::queue<Element>::front(); std::queue<Element>::pop(); return true; };
-};
-
 #endif
 
+// use Boost MPMC queue for commands
+
+template<typename Element> class cmd_queue : public boost::lockfree::queue<Element, boost::lockfree::fixed_sized<true>> {
+    public:
+        explicit cmd_queue<Element>(const size_t size) : boost::lockfree::queue<Element, boost::lockfree::fixed_sized<true>>{size} {};
+};
