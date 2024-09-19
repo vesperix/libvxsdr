@@ -271,9 +271,9 @@ class command_transport : public packet_transport {
     // because every command has a response, the command and
     // response queues are just used as interprocess comms mechanisms;
     // there will never be more than one command or response in flight
-    cmd_queue<command_queue_element> command_queue{2};
-    cmd_queue<command_queue_element> response_queue{2};
-    cmd_queue<command_queue_element> async_msg_queue{1024};
+    vxsdr_queue<command_queue_element> command_queue{2};
+    vxsdr_queue<command_queue_element> response_queue{2};
+    vxsdr_queue<command_queue_element> async_msg_queue{1024};
 
     std::string get_payload_type() const noexcept final { return "command"; };
 
@@ -286,17 +286,15 @@ class command_transport : public packet_transport {
         if (not packet_transport::reset_rx()) {
             return false;
         }
-        command_queue_element tmp;
-        while(response_queue.pop(tmp));
-        while(async_msg_queue.pop(tmp));
+        response_queue.reset();
+        async_msg_queue.reset();
         return true;
     }
     bool reset_tx() final {
         if (not packet_transport::reset_tx()) {
             return false;
         }
-        command_queue_element tmp;
-        while(command_queue.pop(tmp));
+        command_queue.reset();
         return true;
     }
 };
@@ -351,13 +349,13 @@ class data_transport : public packet_transport {
     virtual ~data_transport() = default;
 
     // single data queue for TX (since the device handles sending to the right subdevice)
-    std::unique_ptr<data_queue<data_queue_element>> tx_data_queue;
+    std::unique_ptr<vxsdr_queue<data_queue_element>> tx_data_queue;
     // vector of unique_ptrs to rx data queues, one for each subdevice
     // (required since queue may not be moveable)
-    std::vector<std::unique_ptr<data_queue<data_queue_element>>> rx_data_queue;
+    std::vector<std::unique_ptr<vxsdr_queue<data_queue_element>>> rx_data_queue;
     // sample queues for each device hold samples left over when the requested data
     // size is less than a full packet
-    std::vector<std::unique_ptr<data_queue<vxsdr::wire_sample>>> rx_sample_queue;
+    std::vector<std::unique_ptr<vxsdr_queue<vxsdr::wire_sample>>> rx_sample_queue;
 
     std::string get_payload_type() const noexcept final { return "data"; };
 
