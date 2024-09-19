@@ -88,12 +88,13 @@ void data_transport::data_send() {
     // make sure the buffer doesn't overflow
     unsigned max_packets_to_send   = std::min(data_buffer_size, buffer_normal_packets_to_send);
 
+    // get class-specific values
+    const bool use_throttling        = use_tx_throttling();
     const unsigned throttle_hard_pct = throttle_hard_percent();
     const unsigned throttle_on_pct   = throttle_on_percent();
     const unsigned throttle_off_pct  = throttle_off_percent();
-
-    const auto data_send_wait     = std::chrono::microseconds(data_send_wait_us());
-    const auto data_throttle_wait = std::chrono::microseconds(data_throttle_wait_us());
+    const auto data_send_wait        = std::chrono::microseconds(data_send_wait_us());
+    const auto data_throttle_wait    = std::chrono::microseconds(data_throttle_wait_us());
 
     if (tx_data_queue == nullptr) {
         tx_state = TRANSPORT_SHUTDOWN;
@@ -103,14 +104,14 @@ void data_transport::data_send() {
     }
 
     tx_state = TRANSPORT_READY;
-    if (use_tx_throttling()) {
+    if (use_throttling) {
         LOG_DEBUG("{:s} data tx in READY state (throttling enabled)", transport_type);
     } else {
         LOG_DEBUG("{:s} data tx in READY state (throttling disabled)", transport_type);
     }
 
     while (not sender_thread_stop_flag) {
-        if (use_tx_throttling()) {
+        if (use_throttling) {
             // There are 3 throttling states: no throttling, normal throttling, and hard throttling;
             // transitions are shown in the state machine below.
             // Note the hysteresis in entering and exiting normal throttling (throttle_off_percent < throttle_on_percent),
@@ -160,7 +161,7 @@ void data_transport::data_send() {
         } else {
             throttling_state = NO_THROTTLING;
         }
-        if (use_tx_throttling() and throttling_state == HARD_THROTTLING) {
+        if (use_throttling and throttling_state == HARD_THROTTLING) {
             // when hard throttling, send one empty data packet and request ack to update buffer use
             data_buffer[0].hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, FLAGS_REQUEST_ACK, 0, 0, sizeof(header_only_packet), 0};
             send_packet(data_buffer[0]);
@@ -174,7 +175,7 @@ void data_transport::data_send() {
                 std::this_thread::sleep_for(data_send_wait);
             }
             for (unsigned i = 0; i < n_popped; i++) {
-                if (use_tx_throttling() and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
+                if (use_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
                     // request ack to update buffer use
                     data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
                     last_check = data_packets_processed;
@@ -189,7 +190,7 @@ void data_transport::data_send() {
                 } else {
                     LOG_ERROR("zero size packet popped from tx_data_queue in {:s} data tx", transport_type);
                 }
-                if (use_tx_throttling() and throttling_state != NO_THROTTLING) {
+                if (use_throttling and throttling_state != NO_THROTTLING) {
                     // if we are throttling, pause between each packet
                     std::this_thread::sleep_for(data_throttle_wait);
                 }
