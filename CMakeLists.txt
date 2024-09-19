@@ -364,6 +364,9 @@ if(VXSDR_BUILD_TESTS)
                                                           ${vxsdr_compiler_defs}
                                                           ${vxsdr_system_defs})
         target_include_directories(${target_name} PRIVATE include)
+        # include spdlog only to allow use of its included fmtlib
+        target_include_directories(${target_name} PRIVATE ${spdlog_INCLUDE_DIRS})
+        target_link_libraries(${target_name} PRIVATE spdlog::spdlog_header_only)
         if(VXSDR_STANDALONE_ASIO)
             target_include_directories(${target_name} PRIVATE ${asio_SOURCE_DIR}/asio/include)
         endif()
