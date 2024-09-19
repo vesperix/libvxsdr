@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 19)
-set(libvxsdr_version_patch 16)
+set(libvxsdr_version_patch 17)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -69,8 +69,7 @@ if(VXSDR_BUILD_DEPENDENCIES)
     find_package(Git REQUIRED)
     include(FetchContent)
 endif()
-
-if(VXSDR_STANDALONE_ASIO)
+if(VXSDR_STANDALONE_ASIO AND VXSDR_BUILD_DEPENDENCIES)
     list(APPEND vxsdr_dependency_defs "-DVXSDR_STANDALONE_ASIO")
     message(STATUS "Using standalone asio for networking")
 else()

@@ -26,7 +26,7 @@ static constexpr unsigned pop_queue_interval_us  = 0;
 
 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-auto queue = std::make_unique<data_queue<data_queue_element>>(queue_length);
+auto queue = std::make_unique<vxsdr_queue<data_queue_element>>(queue_length);
 
 std::mutex console_mutex;
 
