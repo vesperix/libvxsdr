@@ -19,7 +19,7 @@
 
 template<typename Element> class vxsdr_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>> {
     public:
-        explicit vxsdr_queue<Element>(const size_t size) : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>{size} {};
+        explicit vxsdr_queue<Element>(const size_t size) : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>{size - 1} {};
 };
 
 #else
