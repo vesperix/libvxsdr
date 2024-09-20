@@ -207,7 +207,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     // wait 1 / 1000 of the timeout specified each rx
     unsigned discover_wait_ms = lround(timeout_s);
 
-    net_error_code error;
+    net_error_code::error_code error;
     net::io_context discover_context;
 
     auto work           = net::make_work_guard(discover_context);

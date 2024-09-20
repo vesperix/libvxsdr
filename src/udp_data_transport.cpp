@@ -55,7 +55,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_data_transport:local_address"]);
     net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_data_transport:device_address"]);
 
-    net_error_code err;
+    net_error_code::error_code err;
 
     LOG_DEBUG("setting udp data sender socket to non-blocking");
     sender_socket.non_blocking(false, err);
@@ -245,11 +245,11 @@ udp_data_transport::~udp_data_transport() noexcept {
     LOG_DEBUG("joining udp data receiver thread");
     rx_state = TRANSPORT_SHUTDOWN;
     receiver_thread_stop_flag = true;
-    net_error_code err;
+    net_error_code::error_code err;
     // use shutdown() to terminate the blocking read
     LOG_DEBUG("shutting down udp data receiver socket");
     receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
-    if (err and err != std::errc::not_connected) {
+    if (err and err != net_error_code_types::not_connected) {
         // the not connected error is expected since it's a UDP socket
         // (even though it's been connected)
         LOG_ERROR("udp data receiver socket shutdown: {:s}", err.message());
@@ -279,12 +279,12 @@ udp_data_transport::~udp_data_transport() noexcept {
 
 size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
-    net_error_code err;
+    net_error_code::error_code err;
 #ifdef UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
     size_t bytes = 0;
     while (true) {
         bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
-        if (bytes == 0 and err == std::errc::no_buffer_space) {
+        if (bytes == 0 and err == net_error_code_types::no_buffer_space) {
             std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us()));
         } else {
             break;
@@ -299,7 +299,7 @@ size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
 
 size_t udp_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
-    net_error_code err;
+    net_error_code::error_code err;
     packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
     size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
     error_code = err.value();

@@ -10,7 +10,8 @@
 #include <boost/asio/ts/socket.hpp>
 #include <boost/asio/ts/net.hpp>
 namespace net = boost::asio;
-using net_error_code = boost::system::error_code;
+namespace net_error_code = boost::system;
+namespace net_error_code_types = boost::system::errc;
 #else
 // use standalone asio
 #include <asio/ts/buffer.hpp>
@@ -18,5 +19,6 @@ using net_error_code = boost::system::error_code;
 #include <asio/ts/socket.hpp>
 #include <asio/ts/net.hpp>
 namespace net = asio;
-using net_error_code = asio::error_code;
+namespace net_error_code = asio;
+namespace net_error_code_types = asio::error;
 #endif

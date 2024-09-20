@@ -87,7 +87,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
 
 void tx_net_sender(net::ip::udp::socket& sender_socket)
 {
-    net_error_code err;
+    net_error_code::error_code err;
     sender_socket.set_option(net::socket_base::send_buffer_size((int)network_send_buffer_size), err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
@@ -135,7 +135,7 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
 void rx_net_receiver(net::ip::udp::socket& receiver_socket)
 {
 
-    net_error_code err;
+    net_error_code::error_code err;
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
@@ -320,9 +320,9 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
     sender_thread_stop_flag = true;
     receiver_thread_stop_flag = true;
 
-    net_error_code err;
+    net_error_code::error_code err;
     receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
-    if (err and err != std::errc::not_connected) {
+    if (err and err != net_error_code_types::not_connected) {
         // the not connected error is expected since it's a UDP socket
         std::cout << "receiver socket shutdown: " << err.message() << std::endl;
     }
