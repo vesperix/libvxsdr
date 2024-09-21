@@ -239,8 +239,8 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
     data_buffer_chunk = chunk_size;
     tx_net_wait_us = wait_us;
 
-    std::vector<int> thread_priority = { 1, 1, 1};
-    std::vector<int> thread_affinity = { 1, 2, 3};
+    std::vector<int> thread_priority = { 1, 1};
+    std::vector<int> thread_affinity = { 0, 1};
 
     size_t n_items = std::ceil(n_seconds * minimum_rate / MAX_DATA_LENGTH_SAMPLES);
 
@@ -253,54 +253,38 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
     net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
     net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
 
-    auto context_thread = vxsdr_thread([&ctx]() { ctx.run(); });
-    if (thread_affinity[0] >= 0) {
-        if (set_thread_affinity(context_thread, thread_affinity[0]) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting context thread affinity" << std::endl;
-            exit(-1);
-        }
-    }
-    if (thread_priority[0] >= 0) {
-        if (set_thread_priority_realtime(context_thread, thread_priority[0]) != 0) {
-            std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting context thread priority" << std::endl;
-            exit(-1);
-        }
-    }
-
     sender_socket.connect(local_receive_endpoint);
     receiver_socket.connect(local_send_endpoint);
 
     auto tx_thread = vxsdr_thread(&tx_net_sender, std::ref(sender_socket));
     auto rx_thread = vxsdr_thread(&rx_net_receiver, std::ref(receiver_socket));
 
-    if (thread_affinity[1] >= 0) {
-        if (set_thread_affinity(tx_thread, thread_affinity[1]) != 0) {
+    if (thread_affinity.at(0) >= 0) {
+        if (set_thread_affinity(tx_thread, thread_affinity.at(0)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting tx thread affinity" << std::endl;
             exit(-1);
         }
     }
-    if (thread_priority[1] >= 0) {
-        if (set_thread_priority_realtime(tx_thread, thread_priority[1]) != 0) {
+    if (thread_priority.at(0) >= 0) {
+        if (set_thread_priority_realtime(tx_thread, thread_priority.at(0)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting tx thread priority" << std::endl;
             exit(-1);
         }
     }
 
-    if (thread_affinity[2] >= 0) {
-        if (set_thread_affinity(rx_thread, thread_affinity[2]) != 0) {
+    if (thread_affinity.at(1) >= 0) {
+        if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "error setting rx thread affinity" << std::endl;
             exit(-1);
         }
     }
-    if (thread_priority[2] >= 0) {
-        if (set_thread_priority_realtime(rx_thread, thread_priority[2]) != 0) {
+    if (thread_affinity.at(1) >= 0) {
+        if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
             std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "error setting rx thread priority" << std::endl;
+            std::cout << "error setting ex thread affinity" << std::endl;
             exit(-1);
         }
     }
@@ -334,9 +318,6 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
         rx_thread.join();
     }
     ctx.stop();
-    if(context_thread.joinable()) {
-        context_thread.join();
-    }
 }
 
 
