@@ -113,7 +113,7 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
 
     if (data_buffer_chunk > data_buffer_size) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "data buffer chunk size must be less than " << data_buffer_size << std::endl;
+        std::cout << "packet pop chunk size must be less than " << data_buffer_size << std::endl;
         exit(4);
     }
 
@@ -141,7 +141,6 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
 
 void rx_net_receiver(net::ip::udp::socket& receiver_socket)
 {
-
     net_error_code::error_code err;
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
@@ -222,8 +221,9 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
 
         for (size_t j = 0; j < n_popped; j++) {
             if (p[j].hdr.sequence_counter != expected_seq) {
-                //std::lock_guard<std::mutex> guard(console_mutex);
-                //std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
+                std::lock_guard<std::mutex> guard(console_mutex);
+                std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq
+                          << " " << (p[j].hdr.sequence_counter - expected_seq) << std::endl;
                 seq_errors++;
                 expected_seq = p[j].hdr.sequence_counter;
             }
