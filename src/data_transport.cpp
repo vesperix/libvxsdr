@@ -180,12 +180,9 @@ void data_transport::data_send() {
                     data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
                     last_check = data_packets_processed;
                 }
-                // FIXME: tracking possible error in tx_data_queue
                 if (data_buffer[i].hdr.packet_size > 0) {
                     if (send_packet(data_buffer[i])) {
                         data_packets_processed++;
-                    } else {
-                        LOG_ERROR("error sending packet in {:s} data tx", transport_type);
                     }
                 } else {
                     LOG_ERROR("zero size packet popped from tx_data_queue in {:s} data tx", transport_type);
