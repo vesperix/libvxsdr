@@ -92,24 +92,31 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot set network send buffer size: " << err.message() << std::endl;
-        return;
+        exit(1);
     }
     net::socket_base::send_buffer_size option;
     sender_socket.get_option(option, err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot get network send buffer size: " << err.message() << std::endl;
-        return;
+        exit(2);
     }
     auto network_buffer_size = option.value();
     if (network_buffer_size != network_send_buffer_size) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot set network send buffer size: got " << network_buffer_size << std::endl;
-        return;
+        exit(3);
     }
 
     static constexpr unsigned data_buffer_size = 256;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
+
+    if (data_buffer_chunk > data_buffer_size) {
+        std::lock_guard<std::mutex> guard(console_mutex);
+        std::cout << "data buffer chunk size must be less than " << data_buffer_size << std::endl;
+        exit(4);
+    }
+
     net::socket_base::message_flags flags = 0;
     while (not sender_thread_stop_flag) {
         unsigned n_popped = tx_queue.pop(&data_buffer.front(), data_buffer_chunk);
@@ -140,25 +147,26 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket)
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot set reuse address option on receive socket: " << err.message() << std::endl;
+        exit(5);
     }
     receiver_socket.set_option(net::socket_base::receive_buffer_size((int)network_receive_buffer_size), err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot set network receive buffer size: " << err.message() << std::endl;
-        return;
+        exit(6);
     }
     net::socket_base::receive_buffer_size option;
     receiver_socket.get_option(option, err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot get network receive buffer size: " << err.message() << std::endl;
-        return;
+        exit(7);
     }
     auto network_buffer_size = option.value();
     if (network_buffer_size != network_receive_buffer_size) {
         std::lock_guard<std::mutex> guard(console_mutex);
         std::cout << "cannot set network receive buffer size: got " << network_buffer_size << std::endl;
-        return;
+        exit(8);
     }
 
     static data_queue_element recv_buffer;
