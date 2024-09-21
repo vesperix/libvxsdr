@@ -14,20 +14,16 @@
 #include <exception>
 #include <vector>
 
-#include "third_party/cxxopts.hpp"
+#include "option_utils.hpp"
 
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-void add_setup_options(cxxopts::Options& desc) {
-    // clang-format off
-    desc.add_options()
-        ("L,local_address", "IPv4 address of local interface", cxxopts::value<std::string>())
-        ("M,netmask", "IPv4 netmask of local interface", cxxopts::value<std::string>()->default_value("255.255.255.0"))
-        ("h,help", "Print usage")
-        ;
-    // clang-format on
+void add_setup_options(option_utils::program_options& desc) {
+    desc.add_option("local_address", "IPv4 address of local interface", option_utils::supported_types::STRING);
+    desc.add_option("netmask", "IPv4 netmask of local interface", option_utils::supported_types::STRING, "255.255.255.0");
+    desc.add_flag("help", "print usage", false);
 }
 
 bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
@@ -114,13 +110,13 @@ int main(int argc, char* argv[]) {
     const unsigned udp_device_receive_port = 1030;
     const double timeout_s                 = 2; // maximum delay in discover response is 1024 ms
     try {
-        cxxopts::Options desc("vxsdr_find", "Finds VXSDR devices on the local network");
+        option_utils::program_options desc("vxsdr_find", "Finds VXSDR devices on the local network");
 
         add_setup_options(desc);
 
         auto vm = desc.parse(argc, argv);
 
-        if (vm.count("help")) {
+        if (vm.help_requested()) {
             std::cout << desc.help() << std::endl;
             exit(0);
         }

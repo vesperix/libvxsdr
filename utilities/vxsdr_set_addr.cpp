@@ -8,22 +8,18 @@
 #include <exception>
 #include <future>
 
-#include "third_party/cxxopts.hpp"
+#include "option_utils.hpp"
 
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-void add_setup_options(cxxopts::Options& desc) {
-    // clang-format off
-    desc.add_options()
-        ("L,local_address", "IPv4 address of local interface", cxxopts::value<std::string>())
-        ("D,device_address", "current IPv4 address of device", cxxopts::value<std::string>())
-        ("N,new_device_address", "new IPv4 address of device", cxxopts::value<std::string>())
-        ("M,netmask", "IPv4 netmask of local interface", cxxopts::value<std::string>()->default_value("255.255.255.0"))
-        ("h,help", "Print usage")
-        ;
-    // clang-format on
+void add_setup_options(option_utils::program_options& desc) {
+    desc.add_option("local_address", "IPv4 address of local interface", option_utils::supported_types::STRING);
+    desc.add_option("device_address", "current IPv4 address of device", option_utils::supported_types::STRING);
+    desc.add_option("new_device_address", "new IPv4 address of device", option_utils::supported_types::STRING);
+    desc.add_option("netmask", "IPv4 netmask of local interface", option_utils::supported_types::STRING, "255.255.255.0");
+    desc.add_flag("help", "print usage", false);
 }
 
 bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
@@ -78,13 +74,13 @@ int main(int argc, char* argv[]) {
     const unsigned udp_device_receive_port = 1030;
 
     try {
-        cxxopts::Options desc("vxsdr_set_addr", "Sets a new IPv4 address for a VXSDR device; use vxsdr_save_addr to make the change permanent");
+        option_utils::program_options desc("vxsdr_set_addr", "Sets a new IPv4 address for a VXSDR device; use vxsdr_save_addr to make the change permanent");
 
         add_setup_options(desc);
 
         auto vm = desc.parse(argc, argv);
 
-        if (vm.count("help")) {
+        if (vm.help_requested()) {
             std::cout << desc.help() << std::endl;
             exit(0);
         }

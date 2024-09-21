@@ -10,20 +10,16 @@
 #include <exception>
 #include <future>
 
-#include "third_party/cxxopts.hpp"
+#include "option_utils.hpp"
 
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-void add_setup_options(cxxopts::Options& desc) {
-    // clang-format off
-    desc.add_options()
-        ("L,local_address", "IPv4 address of local interface", cxxopts::value<std::string>())
-        ("N,new_device_address", "new IPv4 address of device to be saved", cxxopts::value<std::string>())
-        ("h,help", "Print usage")
-        ;
-    // clang-format on
+void add_setup_options(option_utils::program_options& desc) {
+    desc.add_option("local_address", "IPv4 address of local interface", option_utils::supported_types::STRING);
+    desc.add_option("new_device_address", "new IPv4 address of device to be saved", option_utils::supported_types::STRING);
+    desc.add_flag("help", "print usage", false);
 }
 
 bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
@@ -113,13 +109,13 @@ int main(int argc, char* argv[]) {
     const double timeout_s                 = 10;
 
     try {
-        cxxopts::Options desc("vxsdr_save_addr", "Permanently saves a new IPv4 address for a VXSDR device; use vxsdr_set_addr to change the address first");
+        option_utils::program_options desc("vxsdr_save_addr", "Permanently saves a new IPv4 address for a VXSDR device; use vxsdr_set_addr to change the address first");
 
         add_setup_options(desc);
 
         auto vm = desc.parse(argc, argv);
 
-        if (vm.count("help")) {
+        if (vm.help_requested()) {
             std::cout << desc.help() << std::endl;
             exit(0);
         }

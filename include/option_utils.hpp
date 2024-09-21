@@ -106,7 +106,7 @@ namespace option_utils {
                     return {name, values[name], types[name], throw_on_error};
                 }
                 // asked for a key which does not exist
-                lookup_error("nonexistent option requested: " + name);
+                lookup_error("option requested but not set: " + name);
                 return {name, "", supported_types::NONE, throw_on_error};
             }
             size_t count(const std::string& key) const noexcept { return values.count(key); };
