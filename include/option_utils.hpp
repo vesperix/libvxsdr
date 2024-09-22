@@ -141,6 +141,7 @@ class program_options {
     bool throw_on_error = false;
     std::map<std::string, std::string> values;
     std::map<std::string, supported_types> types;
+    std::map<std::string, bool> is_required;
     std::map<std::string, std::string> help_msg;
 
   public:
@@ -188,13 +189,19 @@ class program_options {
                             i++;
                         }
                     } else {
-                        parse_error("unrecognized option: " + opt);
+                        parse_error("unrecognized option: --" + opt);
                         return {values, types, throw_on_error};
                     }
                 }
             } else {
-                parse_error("unrecognized option: " + opt);
+                parse_error("unrecognized option: --" + opt);
                 return {values, types, throw_on_error};
+            }
+        }
+        for (auto& [key, is_req] : is_required) {
+            if (is_req and values[key].empty()) {
+                parse_error("required option has not been set: --" + key);
+                break;
             }
         }
         return {values, types, throw_on_error};
@@ -208,27 +215,43 @@ class program_options {
         }
     }
     void add_flag(const std::string& long_name, const std::string& help_text) {
-        add_option(long_name, help_text, supported_types::BOOLEAN);
+        add_option(long_name, help_text, supported_types::BOOLEAN, false, "F");
     }
-    void add_flag(const std::string& long_name, const std::string& help_text, const bool default_value) {
+    void add_flag(const std::string& long_name, const std::string& help_text, const bool required) {
+        add_option(long_name, help_text, supported_types::BOOLEAN, required);
+    }
+    void add_flag(const std::string& long_name, const std::string& help_text, const bool required, const bool default_value) {
         if (default_value) {
-            add_option(long_name, help_text, supported_types::BOOLEAN, "T");
+            add_option(long_name, help_text, supported_types::BOOLEAN, required, "T");
         } else {
-            add_option(long_name, help_text, supported_types::BOOLEAN, "F");
+            add_option(long_name, help_text, supported_types::BOOLEAN, required, "F");
         }
     }
     void add_option(const std::string& long_name, const std::string& help_text, supported_types type) {
         types[long_name]    = type;
         values[long_name]   = "";
         help_msg[long_name] = help_text;
+        is_required[long_name] = false;
     }
     void add_option(const std::string& long_name,
                     const std::string& help_text,
                     supported_types type,
+                    const bool required) {
+        types[long_name]    = type;
+        values[long_name]   = "";
+        help_msg[long_name] = help_text;
+        is_required[long_name] = required;
+    }
+    void add_option(const std::string& long_name,
+                    const std::string& help_text,
+                    supported_types type,
+                    const bool required,
                     const std::string& default_value) {
         types[long_name]    = type;
         values[long_name]   = default_value;
         help_msg[long_name] = help_text;
+        // if an empty default is given, then it's still required on the command line, otherwise not
+        is_required[long_name] = default_value.empty();
     }
     std::string help() {
         std::stringstream outstr;
@@ -242,10 +265,14 @@ class program_options {
         outstr << "Command line options:" << std::endl;
         for (auto& [key, value] : values) {
             if (types[key] == supported_types::BOOLEAN) {
-                outstr << "     --" << key << " (flag, opposite is --no" << key << "): " << help_msg[key] << std::endl;
+                outstr << "     --" << key << " (flag, opposite is --no" << key << "): " << help_msg[key];
             } else {
-                outstr << "     --" << key << " <" << type_to_string(types[key]) << ">: " << help_msg[key] << std::endl;
+                outstr << "     --" << key << " <" << type_to_string(types[key]) << ">: " << help_msg[key];
             }
+            if (is_required[key]) {
+                outstr << " [REQUIRED]";
+            }
+            outstr << std::endl;
         }
         return outstr.str();
     };

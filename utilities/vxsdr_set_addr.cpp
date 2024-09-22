@@ -15,11 +15,11 @@
 #include "vxsdr_threads.hpp"
 
 void add_setup_options(option_utils::program_options& desc) {
-    desc.add_option("local_address", "IPv4 address of local interface", option_utils::supported_types::STRING);
-    desc.add_option("device_address", "current IPv4 address of device", option_utils::supported_types::STRING);
-    desc.add_option("new_device_address", "new IPv4 address of device", option_utils::supported_types::STRING);
-    desc.add_option("netmask", "IPv4 netmask of local interface", option_utils::supported_types::STRING, "255.255.255.0");
-    desc.add_flag("help", "print usage", false);
+    desc.add_option("local_address", "IPv4 address of local interface", option_utils::supported_types::STRING, true);
+    desc.add_option("device_address", "current IPv4 address of device", option_utils::supported_types::STRING, true);
+    desc.add_option("new_device_address", "new IPv4 address of device", option_utils::supported_types::STRING, true);
+    desc.add_option("netmask", "IPv4 netmask of local interface", option_utils::supported_types::STRING, false, "255.255.255.0");
+    desc.add_flag("help", "print usage");
 }
 
 bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
@@ -83,19 +83,6 @@ int main(int argc, char* argv[]) {
         if (vm.help_requested()) {
             std::cout << desc.help() << std::endl;
             exit(0);
-        }
-
-        if (vm.count("local_address") == 0) {
-            std::cerr << "local_address must be specified on the command line" << std::endl;
-            exit(1);
-        }
-        if (vm.count("device_address") == 0) {
-            std::cerr << "device_address must be specified on the command line" << std::endl;
-            exit(1);
-        }
-        if (vm.count("new_device_address") == 0) {
-            std::cerr << "new_device_address must be specified on the command line" << std::endl;
-            exit(1);
         }
 
         auto local_addr               = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
