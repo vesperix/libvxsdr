@@ -15,7 +15,7 @@
 
 namespace option_utils {
 enum class supported_types { NONE, BOOLEAN, INTEGER, REAL, STRING };
-std::string type_to_string(const supported_types t) {
+inline std::string type_to_string(const supported_types t) {
     switch (t) {
         case supported_types::NONE:
             return "NONE";
@@ -58,8 +58,7 @@ struct option_as_string {
             exit(1);
         }
     }
-    template <typename T>
-    T as() const {
+    template <typename T> T as() const {
         if constexpr (std::is_same<T, bool>::value) {
             if (type == supported_types::BOOLEAN) {
                 if (std::toupper(value.c_str()[0]) == 'T') {
@@ -69,14 +68,14 @@ struct option_as_string {
             }
         } else if constexpr (std::is_integral<T>()) {
             if (type == supported_types::INTEGER) {
-                T result;
+                T result{};
                 std::from_chars(value.data(), value.data() + value.size(), result);
                 return result;
             }
         }
         if constexpr (std::is_floating_point<T>()) {
             if (type == supported_types::REAL) {
-                T result;
+                T result{};
                 std::from_chars(value.data(), value.data() + value.size(), result);
                 return result;
             }
@@ -87,7 +86,7 @@ struct option_as_string {
             }
         }
         // last resort is to try stringstream
-        T result;
+        T result{};
         std::stringstream(value) >> result;
         cast_error(incompatible_type_error_message<T>(name, type));
         return result;
