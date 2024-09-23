@@ -170,7 +170,7 @@ class program_options {
     };
     void process_tokens(std::vector<std::string>& tokens, std::map<std::string, std::string>& values, bool processing_config_file = false) {
         unsigned i = 0;
-        unsigned n_tokens = tokens.size();
+        unsigned n_tokens = (unsigned)tokens.size();
         while (i < n_tokens) {
             std::string opt     = tokens[i];
             std::string nextopt = "";
