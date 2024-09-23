@@ -153,6 +153,13 @@ class program_options {
     };
     ~program_options() = default;
     parsed_options parse(const int argc, char* argv[]) {
+        std::map<std::string, std::string> set_values;
+        // set any variables with default values first
+        for (auto& [key, val] : values) {
+            if (not val.empty()) {
+                set_values[key] = val;
+            }
+        }
         int i = 1;
         while (i < argc) {
             std::string opt     = argv[i];
@@ -166,16 +173,16 @@ class program_options {
                 if (values.count(opt_name)) {
                     if (types[opt_name] == supported_types::BOOLEAN) {
                         // this is a flag, set the value to true
-                        values[opt_name] = "T";
+                        set_values[opt_name] = "T";
                         i++;
                     } else {
                         if (nextopt.empty() or nextopt.starts_with("--")) {
                             // this option needs a value, but there isn't one
                             parse_error("option requires a value: " + opt);
-                            return {values, types, throw_on_error};
+                            return {set_values, types, throw_on_error};
                         } else {
                             // this option looks like it has a value
-                            values[opt_name] = nextopt;
+                            set_values[opt_name] = nextopt;
                             i += 2;
                         }
                     }
@@ -184,26 +191,26 @@ class program_options {
                         // see if this is the --nosomething form of the --something flag
                         std::string test_flag = opt_name.substr(2);
                         if (values.count(test_flag) and types[test_flag] == supported_types::BOOLEAN) {
-                            values[test_flag] = "F";
+                            set_values[test_flag] = "F";
                             i++;
                         }
                     } else {
                         parse_error("unrecognized option: --" + opt);
-                        return {values, types, throw_on_error};
+                        return {set_values, types, throw_on_error};
                     }
                 }
             } else {
                 parse_error("unrecognized option: --" + opt);
-                return {values, types, throw_on_error};
+                return {set_values, types, throw_on_error};
             }
         }
         for (auto& [key, is_req] : is_required) {
-            if (is_req and values[key].empty()) {
+            if (is_req and set_values.count(key) == 0) {
                 parse_error("required option has not been set: --" + key);
                 break;
             }
         }
-        return {values, types, throw_on_error};
+        return {set_values, types, throw_on_error};
     };
     void parse_error(const std::string& error_message) const {
         if (throw_on_error) {
