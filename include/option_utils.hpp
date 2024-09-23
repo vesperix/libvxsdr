@@ -138,7 +138,7 @@ class program_options {
     std::string program_name;
     std::string program_function;
     bool throw_on_error = false;
-    std::map<std::string, std::string> values;
+    std::map<std::string, std::string> allowed_values;
     std::map<std::string, supported_types> types;
     std::map<std::string, bool> is_required;
     std::map<std::string, std::string> help_msg;
@@ -153,11 +153,11 @@ class program_options {
     };
     ~program_options() = default;
     parsed_options parse(const int argc, char* argv[]) {
-        std::map<std::string, std::string> set_values;
+        std::map<std::string, std::string> values;
         // set any variables with default values first
-        for (auto& [key, val] : values) {
+        for (auto& [key, val] : allowed_values) {
             if (not val.empty()) {
-                set_values[key] = val;
+                values[key] = val;
             }
         }
         int i = 1;
@@ -170,19 +170,19 @@ class program_options {
             if (opt.starts_with("--")) {
                 // remove the dashes and see if it's recognized
                 std::string opt_name = opt.substr(2);
-                if (values.count(opt_name)) {
+                if (allowed_values.count(opt_name)) {
                     if (types[opt_name] == supported_types::BOOLEAN) {
                         // this is a flag, set the value to true
-                        set_values[opt_name] = "T";
+                        values[opt_name] = "T";
                         i++;
                     } else {
                         if (nextopt.empty() or nextopt.starts_with("--")) {
                             // this option needs a value, but there isn't one
                             parse_error("option requires a value: " + opt);
-                            return {set_values, types, throw_on_error};
+                            return {values, types, throw_on_error};
                         } else {
                             // this option looks like it has a value
-                            set_values[opt_name] = nextopt;
+                            values[opt_name] = nextopt;
                             i += 2;
                         }
                     }
@@ -190,27 +190,27 @@ class program_options {
                     if (opt_name.starts_with("no")) {
                         // see if this is the --nosomething form of the --something flag
                         std::string test_flag = opt_name.substr(2);
-                        if (values.count(test_flag) and types[test_flag] == supported_types::BOOLEAN) {
-                            set_values[test_flag] = "F";
+                        if (allowed_values.count(test_flag) and types[test_flag] == supported_types::BOOLEAN) {
+                            values[test_flag] = "F";
                             i++;
                         }
                     } else {
                         parse_error("unrecognized option: --" + opt);
-                        return {set_values, types, throw_on_error};
+                        return {values, types, throw_on_error};
                     }
                 }
             } else {
                 parse_error("unrecognized option: --" + opt);
-                return {set_values, types, throw_on_error};
+                return {values, types, throw_on_error};
             }
         }
         for (auto& [key, is_req] : is_required) {
-            if (is_req and set_values.count(key) == 0) {
+            if (is_req and values.count(key) == 0) {
                 parse_error("required option has not been set: --" + key);
                 break;
             }
         }
-        return {set_values, types, throw_on_error};
+        return {values, types, throw_on_error};
     };
     void parse_error(const std::string& error_message) const {
         if (throw_on_error) {
@@ -235,7 +235,7 @@ class program_options {
     }
     void add_option(const std::string& long_name, const std::string& help_text, supported_types type) {
         types[long_name]    = type;
-        values[long_name]   = "";
+        allowed_values[long_name]   = "";
         help_msg[long_name] = help_text;
         is_required[long_name] = false;
     }
@@ -244,7 +244,7 @@ class program_options {
                     supported_types type,
                     const bool required) {
         types[long_name]    = type;
-        values[long_name]   = "";
+        allowed_values[long_name]   = "";
         help_msg[long_name] = help_text;
         is_required[long_name] = required;
     }
@@ -254,7 +254,7 @@ class program_options {
                     const bool required,
                     const std::string& default_value) {
         types[long_name]    = type;
-        values[long_name]   = default_value;
+        allowed_values[long_name]   = default_value;
         help_msg[long_name] = help_text;
         // if an empty default is given, then it's still required on the command line, otherwise not
         is_required[long_name] = default_value.empty();
@@ -269,7 +269,7 @@ class program_options {
             outstr << std::endl;
         }
         outstr << "Command line options:" << std::endl;
-        for (auto& [key, value] : values) {
+        for (auto& [key, value] : allowed_values) {
             if (types[key] == supported_types::BOOLEAN) {
                 outstr << "     --" << key << " (flag, opposite is --no" << key << "): " << help_msg[key];
             } else {
