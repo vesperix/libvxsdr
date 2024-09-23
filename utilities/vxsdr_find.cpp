@@ -116,11 +116,6 @@ int main(int argc, char* argv[]) {
 
         auto vm = desc.parse(argc, argv);
 
-        if (vm.help_requested()) {
-            std::cout << desc.help() << std::endl;
-            exit(0);
-        }
-
         auto local_addr = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
         auto netmask    = net::ip::address_v4::from_string(vm["netmask"].as<std::string>());
         net::ip::network_v4 local_net(local_addr, netmask);

@@ -7,6 +7,8 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <fstream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -124,20 +126,13 @@ struct parsed_options {
             exit(1);
         }
     }
-    bool help_requested() {
-        if (values.count("help") > 0) {
-            if (types["help"] == supported_types::BOOLEAN) {
-                return std::toupper(values["help"].c_str()[0]) == 'T';
-            }
-        }
-        return false;
-    }
 };
 class program_options {
   private:
     std::string program_name;
     std::string program_function;
     bool throw_on_error = false;
+    std::string config_file_option = "";
     std::map<std::string, std::string> allowed_values;
     std::map<std::string, supported_types> types;
     std::map<std::string, bool> is_required;
@@ -160,16 +155,50 @@ class program_options {
                 values[key] = val;
             }
         }
-        int i = 1;
-        while (i < argc) {
-            std::string opt     = argv[i];
+        std::vector<std::string> tokens;
+        for (int i = 1; i < argc; i++) {
+            tokens.push_back(argv[i]);
+        }
+        process_tokens(tokens, values);
+        for (auto& [key, is_req] : is_required) {
+            if (is_req and values.count(key) == 0) {
+                parse_error("required option has not been set: --" + key);
+                break;
+            }
+        }
+        return {values, types, throw_on_error};
+    };
+    void process_tokens(std::vector<std::string>& tokens, std::map<std::string, std::string>& values, bool processing_config_file = false) {
+        unsigned i = 0;
+        unsigned n_tokens = tokens.size();
+        while (i < n_tokens) {
+            std::string opt     = tokens[i];
             std::string nextopt = "";
-            if (i + 1 < argc) {
-                nextopt = argv[i + 1];
+            if (i + 1 < n_tokens) {
+                nextopt = tokens[i + 1];
             }
             if (opt.starts_with("--")) {
                 // remove the dashes and see if it's recognized
                 std::string opt_name = opt.substr(2);
+                // check for help and show immediately
+                if (opt_name == "help") {
+                    std::cerr << help() << std::endl;
+                    exit(0);
+                }
+                if (opt_name == "config_file") {
+                    if (nextopt.empty() or nextopt.starts_with("--")) {
+                        // this option needs a value, but there isn't one
+                        parse_error("option requires a value: " + opt);
+                    } else if(processing_config_file) {
+                        parse_error("option cannot be used inside a config file: " + opt);
+                    } else {
+                        auto config_file_name = nextopt;
+                        auto file_tokens = read_tokens_from_file(config_file_name);
+                        process_tokens(file_tokens, values, true);
+                        i += 2;
+                    }
+                    continue;
+                }
                 if (allowed_values.count(opt_name)) {
                     if (types[opt_name] == supported_types::BOOLEAN) {
                         // this is a flag, set the value to true
@@ -179,7 +208,6 @@ class program_options {
                         if (nextopt.empty() or nextopt.starts_with("--")) {
                             // this option needs a value, but there isn't one
                             parse_error("option requires a value: " + opt);
-                            return {values, types, throw_on_error};
                         } else {
                             // this option looks like it has a value
                             values[opt_name] = nextopt;
@@ -195,23 +223,23 @@ class program_options {
                             i++;
                         }
                     } else {
-                        parse_error("unrecognized option: --" + opt);
-                        return {values, types, throw_on_error};
+                        parse_error("unrecognized option: " + opt);
                     }
                 }
             } else {
-                parse_error("unrecognized option: --" + opt);
-                return {values, types, throw_on_error};
+                parse_error("unrecognized option: " + opt);
             }
         }
-        for (auto& [key, is_req] : is_required) {
-            if (is_req and values.count(key) == 0) {
-                parse_error("required option has not been set: --" + key);
-                break;
-            }
+    }
+    std::vector<std::string> read_tokens_from_file(const std::string& file_name) {
+        std::vector<std::string> tokens;
+        std::ifstream infile(file_name);
+        if (not infile.is_open()) {
+            parse_error("cannot open config file: " + file_name);
         }
-        return {values, types, throw_on_error};
-    };
+        std::copy(std::istream_iterator<std::string>(infile), std::istream_iterator<std::string>(), std::back_inserter(tokens));
+        return tokens;
+    }
     void parse_error(const std::string& error_message) const {
         if (throw_on_error) {
             throw std::runtime_error(error_message);
@@ -221,7 +249,7 @@ class program_options {
         }
     }
     void add_flag(const std::string& long_name, const std::string& help_text) {
-        add_option(long_name, help_text, supported_types::BOOLEAN, false, "F");
+        add_option(long_name, help_text, supported_types::BOOLEAN);
     }
     void add_flag(const std::string& long_name, const std::string& help_text, const bool required) {
         add_option(long_name, help_text, supported_types::BOOLEAN, required);

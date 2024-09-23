@@ -115,11 +115,6 @@ int main(int argc, char* argv[]) {
 
         auto vm = desc.parse(argc, argv);
 
-        if (vm.help_requested()) {
-            std::cout << desc.help() << std::endl;
-            exit(0);
-        }
-
         auto local_addr           = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
         auto new_destination_addr = net::ip::address_v4::from_string(vm["new_device_address"].as<std::string>());
 
