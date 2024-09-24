@@ -129,22 +129,27 @@ struct parsed_options {
 };
 class program_options {
   private:
-    std::string program_name;
-    std::string program_function;
+    std::string program_name = "";
+    std::string program_function = "";
     bool throw_on_error = false;
     std::string config_file_option = "";
+    std::string help_option = "";
     std::map<std::string, std::string> allowed_values;
     std::map<std::string, supported_types> types;
     std::map<std::string, bool> is_required;
     std::map<std::string, std::string> help_msg;
 
   public:
-    explicit program_options(const std::string& prog_name     = "",
-                             const std::string& prog_function = "",
-                             const bool throw_except          = false) {
+    explicit program_options(const std::string& prog_name              = "",
+                             const std::string& prog_function          = "",
+                             const bool throw_except                   = false,
+                             const std::string help_option_name        = "help",
+                             const std::string config_file_option_name = "config_file") {
         program_name     = prog_name;
         program_function = prog_function;
         throw_on_error   = throw_except;
+        help_option = help_option_name;
+        config_file_option = config_file_option_name;
     };
     ~program_options() = default;
     parsed_options parse(const int argc, char* argv[]) {
@@ -168,7 +173,10 @@ class program_options {
         }
         return {values, types, throw_on_error};
     };
-    void process_tokens(std::vector<std::string>& tokens, std::map<std::string, std::string>& values, bool processing_config_file = false) {
+    void process_tokens(std::vector<std::string>& tokens,
+                        std::map<std::string,
+                        std::string>& values,
+                        bool processing_config_file = false) {
         unsigned i = 0;
         unsigned n_tokens = (unsigned)tokens.size();
         while (i < n_tokens) {
@@ -181,11 +189,11 @@ class program_options {
                 // remove the dashes and see if it's recognized
                 std::string opt_name = opt.substr(2);
                 // check for help and show immediately
-                if (opt_name == "help") {
+                if (opt_name == help_option) {
                     std::cerr << help() << std::endl;
                     exit(0);
                 }
-                if (opt_name == "config_file") {
+                if (opt_name == config_file_option) {
                     if (nextopt.empty() or nextopt.starts_with("--")) {
                         // this option needs a value, but there isn't one
                         parse_error("option requires a value: " + opt);
@@ -231,7 +239,7 @@ class program_options {
             }
         }
     }
-    std::vector<std::string> read_tokens_from_file(const std::string& file_name) {
+    std::vector<std::string> read_tokens_from_file(const std::string& file_name) const {
         std::vector<std::string> tokens;
         std::ifstream infile(file_name);
         if (not infile.is_open()) {
@@ -309,6 +317,14 @@ class program_options {
             outstr << std::endl;
         }
         return outstr.str();
+        if (not config_file_option.empty()) {
+            outstr << "     --" << config_file_option << " <" << type_to_string(supported_types::STRING) << ">: "
+                    << "read settings from the specified config file" << std::endl;
+        }
+        if (not help_option.empty()) {
+            outstr << "     --" << help_option << " (flag, opposite is --no" << help_option << "): "
+                    << "show this help message" << std::endl;
+        }
     };
 };
 }  // namespace option_utils
