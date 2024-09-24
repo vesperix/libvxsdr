@@ -20,15 +20,15 @@ enum class supported_types { NONE, BOOLEAN, INTEGER, REAL, STRING };
 inline std::string type_to_string(const supported_types t) {
     switch (t) {
         case supported_types::NONE:
-            return "NONE";
+            return "none";
         case supported_types::BOOLEAN:
-            return "BOOLEAN";
+            return "boolean";
         case supported_types::INTEGER:
-            return "INTEGER";
+            return "integer";
         case supported_types::REAL:
-            return "REAL";
+            return "real";
         case supported_types::STRING:
-            return "STRING";
+            return "string";
     }
     return "ERROR";
 }
@@ -40,7 +40,10 @@ struct option_as_string {
     supported_types type;
 
   public:
-    option_as_string(const std::string& nam, const std::string& val, const supported_types tp, const bool throw_except) {
+    option_as_string(const std::string& nam,
+                     const std::string& val,
+                     const supported_types tp,
+                     const bool throw_except) {
         name           = nam;
         value          = val;
         type           = tp;
@@ -48,8 +51,10 @@ struct option_as_string {
     }
     ~option_as_string() = default;
     template <typename T>
-    std::string incompatible_type_error_message(const std::string& name, const supported_types type) const {
-        return "incompatible types for option \"" + name + "\": cannot cast " + type_to_string(type) +
+    std::string incompatible_type_error_message(const std::string& name,
+                                                const supported_types type) const {
+        return "incompatible types for option \"" + name +
+               "\": cannot cast " + type_to_string(type) +
                " to (possibly mangled) type " + typeid(T).name();
     }
     void cast_error(const std::string& error_message) const {
@@ -176,9 +181,13 @@ class program_options {
     void process_tokens(std::vector<std::string>& tokens,
                         std::map<std::string,
                         std::string>& values,
-                        bool processing_config_file = false) {
+                        std::string current_config_file = "") {
         unsigned i = 0;
         unsigned n_tokens = (unsigned)tokens.size();
+        std::string filename_info = "";
+        if (not current_config_file.empty()) {
+            filename_info = " in configuration file " + current_config_file;
+        }
         while (i < n_tokens) {
             std::string opt     = tokens[i];
             std::string nextopt = "";
@@ -189,23 +198,27 @@ class program_options {
                 // remove the dashes and see if it's recognized
                 std::string opt_name = opt.substr(2);
                 if (opt_name.empty()) {
-                    parse_error("option name must follow --");
+                    parse_error("option name must follow --" + filename_info);
                 }
                 // check for help and show immediately
                 if (opt_name == help_option) {
-                    std::cerr << help() << std::endl;
-                    exit(0);
+                    if (not current_config_file.empty()) {
+                        parse_error("option cannot be used in file: " + opt + filename_info);
+                    } else {
+                        std::cerr << help() << std::endl;
+                        exit(0);
+                    }
                 }
                 if (opt_name == config_file_option) {
                     if (nextopt.empty() or nextopt.starts_with("--")) {
                         // this option needs a value, but there isn't one
-                        parse_error("option requires a value: " + opt);
-                    } else if(processing_config_file) {
-                        parse_error("option cannot be used inside a config file: " + opt);
+                        parse_error("option requires a value: " + opt + filename_info);
+                    } else if(not current_config_file.empty()) {
+                        parse_error("option cannot be used in file: " + opt + filename_info);
                     } else {
                         auto config_file_name = nextopt;
                         auto file_tokens = read_tokens_from_file(config_file_name);
-                        process_tokens(file_tokens, values, true);
+                        process_tokens(file_tokens, values, config_file_name);
                         i += 2;
                     }
                     continue;
@@ -218,7 +231,7 @@ class program_options {
                     } else {
                         if (nextopt.empty() or nextopt.starts_with("--")) {
                             // this option needs a value, but there isn't one
-                            parse_error("option requires a value: " + opt);
+                            parse_error("option requires a value: " + opt + filename_info);
                         } else {
                             // this option looks like it has a value
                             values[opt_name] = nextopt;
@@ -229,16 +242,17 @@ class program_options {
                     if (opt_name.starts_with("no")) {
                         // see if this is the --nosomething form of the --something flag
                         std::string test_flag = opt_name.substr(2);
-                        if (allowed_values.count(test_flag) and types[test_flag] == supported_types::BOOLEAN) {
+                        if (allowed_values.count(test_flag)
+                            and types[test_flag] == supported_types::BOOLEAN) {
                             values[test_flag] = "F";
                             i++;
                         }
                     } else {
-                        parse_error("unrecognized option: " + opt);
+                        parse_error("unrecognized option: " + opt + filename_info);
                     }
                 }
             } else {
-                parse_error("unrecognized option: " + opt);
+                parse_error("unrecognized option: " + opt + filename_info);
             }
         }
     }
@@ -248,7 +262,9 @@ class program_options {
         if (not infile.is_open()) {
             parse_error("cannot open config file: " + file_name);
         }
-        std::copy(std::istream_iterator<std::string>(infile), std::istream_iterator<std::string>(), std::back_inserter(tokens));
+        std::copy(std::istream_iterator<std::string>(infile),
+                  std::istream_iterator<std::string>(),
+                  std::back_inserter(tokens));
         return tokens;
     }
     void parse_error(const std::string& error_message) const {
@@ -262,10 +278,15 @@ class program_options {
     void add_flag(const std::string& long_name, const std::string& help_text) {
         add_option(long_name, help_text, supported_types::BOOLEAN);
     }
-    void add_flag(const std::string& long_name, const std::string& help_text, const bool required) {
+    void add_flag(const std::string& long_name,
+                  const std::string& help_text,
+                  const bool required) {
         add_option(long_name, help_text, supported_types::BOOLEAN, required);
     }
-    void add_flag(const std::string& long_name, const std::string& help_text, const bool required, const bool default_value) {
+    void add_flag(const std::string& long_name,
+                  const std::string& help_text,
+                  const bool required,
+                  const bool default_value) {
         if (default_value) {
             add_option(long_name, help_text, supported_types::BOOLEAN, required, "T");
         } else {
@@ -309,25 +330,53 @@ class program_options {
         }
         outstr << "Command line options:" << std::endl;
         for (auto& [key, value] : allowed_values) {
-            if (types[key] == supported_types::BOOLEAN) {
-                outstr << "     --" << key << " (flag, opposite is --no" << key << "): " << help_msg[key];
-            } else {
-                outstr << "     --" << key << " <" << type_to_string(types[key]) << ">: " << help_msg[key];
-            }
-            if (is_required[key]) {
-                outstr << " [REQUIRED]";
-            }
-            outstr << std::endl;
+            outstr << format_help(key, types[key], help_msg[key], is_required[key]) << std::endl;
         }
         if (not config_file_option.empty()) {
-            outstr << "     --" << config_file_option << " <" << type_to_string(supported_types::STRING) << ">: "
-                    << "read settings from the specified configuration file" << std::endl;
+            outstr << format_help(config_file_option,
+                                  supported_types::STRING,
+                                  "read settings from the specified configuration file") << std::endl;
         }
         if (not help_option.empty()) {
-            outstr << "     --" << help_option << " (flag, opposite is --no" << help_option << "): "
-                    << "show this help message" << std::endl;
+            outstr << format_help(help_option,
+                                  supported_types::BOOLEAN,
+                                  "show this help message",
+                                  false,
+                                  false) << std::endl;
         }
         return outstr.str();
     };
+    std::string format_help(const std::string& name,
+                            const supported_types type,
+                            const std::string& help_msg,
+                            const bool required = false,
+                            const bool has_bool_off = true) {
+        const std::string indent = "   ";
+        const std::string tab_indent = "                          ";
+        std::string output_str;
+        if (type == supported_types::BOOLEAN) {
+            std::string key_part = indent + "--" + name + " ";
+            if (key_part.size() < tab_indent.size()) {
+                key_part.insert(key_part.end(), tab_indent.size() - key_part.size(), ' ');
+            } else {
+                key_part = key_part + "\n" + tab_indent;
+            }
+            output_str = key_part + help_msg;
+            if (has_bool_off)
+                output_str += " (off is --no" + name + ")";
+        } else {
+            std::string key_part = indent + "--" + name + " <" + type_to_string(type) + "> ";
+            if (key_part.size() < tab_indent.size()) {
+                key_part.insert(key_part.end(), tab_indent.size() - key_part.size(), ' ');
+            } else {
+                key_part = key_part + "\n" + tab_indent;
+            }
+            output_str = key_part + help_msg;
+        }
+        if (required) {
+            output_str += " [REQUIRED]";
+        }
+        return output_str;
+    }
 };
 }  // namespace option_utils
