@@ -188,6 +188,9 @@ class program_options {
             if (opt.starts_with("--")) {
                 // remove the dashes and see if it's recognized
                 std::string opt_name = opt.substr(2);
+                if (opt_name.empty()) {
+                    parse_error("option name must follow --");
+                }
                 // check for help and show immediately
                 if (opt_name == help_option) {
                     std::cerr << help() << std::endl;
@@ -316,15 +319,15 @@ class program_options {
             }
             outstr << std::endl;
         }
-        return outstr.str();
         if (not config_file_option.empty()) {
             outstr << "     --" << config_file_option << " <" << type_to_string(supported_types::STRING) << ">: "
-                    << "read settings from the specified config file" << std::endl;
+                    << "read settings from the specified configuration file" << std::endl;
         }
         if (not help_option.empty()) {
             outstr << "     --" << help_option << " (flag, opposite is --no" << help_option << "): "
                     << "show this help message" << std::endl;
         }
+        return outstr.str();
     };
 };
 }  // namespace option_utils
