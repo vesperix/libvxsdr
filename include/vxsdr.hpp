@@ -334,6 +334,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Get the transmit center frequency.
+      If the external transmit LO has been enabled, this command will return an error.
       @returns a std::optional with the center frequency in Hz
       @param subdev the subdevice number
     */
@@ -341,6 +342,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Get the receive center frequency.
+      If the external receive LO has been enabled, this command will return an error.
       @returns a std::optional with the center frequency in Hz
       @param subdev the subdevice number
     */
@@ -348,6 +350,8 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Set the transmit center frequency.
+      If the external transmit LO has been enabled, this command will return an error.
+      Set the external transmit LO to disabled to allow internal tuning.
       @returns @b true if the command succeeds, @b false otherwise
       @param freq_hz the desired frequency in Hz
       @param subdev the subdevice number
@@ -356,6 +360,8 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Set the receive center frequency.
+      If the external receive LO has been enabled, this command will return an error.
+      Set the external receive LO to disabled to allow internal tuning.
       @returns @b true if the command succeeds, @b false otherwise
       @param freq_hz the desired frequency in Hz
       @param subdev the subdevice number
@@ -424,6 +430,8 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Get the center frequency of a transmit tuning stage.
+      If the external transmit LO has been enabled, requesting the frequency of the internal LO
+      stage will return an error. All stages which are tunable when an external LO is used will return a result.
       @param stage_num the number of the stage
       @returns a std::optional with the center frequency in Hz
       @param subdev the subdevice number
@@ -432,6 +440,8 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Get the center frequency of a receive tuning stage.
+      If the external receive LO has been enabled, requesting the frequency of the internal LO
+      stage will return an error. All stages which are tunable when an external LO is used will return a result.
       @returns a std::optional with the center frequency in Hz
       @param stage_num the number of the stage
       @param subdev the subdevice number
@@ -440,6 +450,9 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Set the center frequency of a transmit tuning stage.
+      If the external transmit LO has been enabled, tuning the internal LO stage will return an error.
+      All stages which are tunable when an external LO is used will return a result.
+      Disable the external LO setting to allow tuning the internal LO.
       @returns @b true if the command succeeds, @b false otherwise
       @param freq_hz the desired frequency in Hz
       @param stage_num the number of the stage
@@ -449,6 +462,9 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Set the center frequency of a receive tuning stage.
+      If the external receive LO has been enabled, tuning the internal LO stage will return an error.
+      All stages which are tunable when an external LO is used will return a result.
+      Disable the external LO setting to allow tuning the internal LO.
       @returns @b true if the command succeeds, @b false otherwise
       @param freq_hz the desired frequency in Hz
       @param stage_num the number of the stage
@@ -758,7 +774,9 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Enable or disable the transmit external LO input.
-      Note that when switching from external to internal LO inputs, you may need to set the transmit
+      If the transmit external LO is enabled, all transmit tuning commands which adjust the internal LO
+      will return an error; you must disable the external LO in order to tune the internal LO.
+      When switching from external to internal LO inputs, you will need to set the transmit
       frequency again so that the internal LO is properly configured. The radio does not necessarily
       retain previously tuned internal frequencies when the LO is switched from internal to external and back.
       @returns @b true if the command succeeds, @b false otherwise
@@ -769,7 +787,9 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Enable or disable the receive external LO input.
-      Note that when switching from external to internal LO inputs, you may need to set the transmit
+      If the receive external LO is enabled, all receive tuning commands which adjust the internal LO
+      will return an error; you must disable the external LO in order to tune the internal LO.
+      When switching from external to internal LO inputs, you will need to set the transmit
       frequency again so that the internal LO is properly configured. The radio does not necessarily
       retain previously tuned internal frequencies when the LO is switched from internal to external and back.
       @returns @b true if the command succeeds, @b false otherwise
