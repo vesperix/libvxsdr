@@ -26,10 +26,11 @@
 
 /* This modification removes the need to include #include <folly/concurrency/CacheLocality.h> */
 
-#ifndef __cpp_lib_hardware_interference_size
-inline constexpr size_t hardware_destructive_interference_size = 64;
+#ifdef VXSDR_TARGET_MACOS
+    // assuming AArch64; Intel Mac is not supported
+    inline constexpr size_t hardware_destructive_interference_size = 128;
 #else
-inline constexpr size_t hardware_destructive_interference_size = std::hardware_destructive_interference_size;
+    inline constexpr size_t hardware_destructive_interference_size = 64;
 #endif
 
 namespace folly {

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 19)
-set(libvxsdr_version_patch 27)
+set(libvxsdr_version_patch 28)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -205,7 +205,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     set(vxsdr_warning_options -Wall)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(vxsdr_compiler_defs -DVXSDR_COMPILER_GCC)
-    set(vxsdr_warning_options -Wall -Wno-packed-bitfield-compat -Wno-interference-size)
+    set(vxsdr_warning_options -Wall -Wno-packed-bitfield-compat)
     if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
         # -fno-trapping-math is needed for gcc to properly optimize float32-int16 conversions
         set(vxsdr_optimization_options -fno-trapping-math)
