@@ -18,6 +18,9 @@ using namespace std::chrono_literals;
 #include "thread_utils.hpp"
 #include "vxsdr_threads.hpp"
 
+static constexpr unsigned data_packet_samples = 2048;
+static constexpr unsigned data_packet_bytes = 4 * data_packet_samples + 8;
+
 static constexpr size_t tx_queue_length =     512;
 static constexpr size_t rx_queue_length =     512;
 
@@ -53,10 +56,8 @@ void tx_producer(const size_t n_items, double& push_rate) {
     size_t i = 0;
 
     for (i = 0; i < n_items; i++) {
-        p.hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, MAX_DATA_PACKET_BYTES, 0};
+        p.hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, data_packet_bytes, 0};
         p.hdr.sequence_counter = i % (UINT16_MAX + 1);
-
-        std::memset((void *)&p.data, 0xFF, MAX_DATA_PAYLOAD_BYTES);
 
         unsigned n_try = 0;
 
@@ -77,7 +78,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
 
     auto t1                         = std::chrono::steady_clock::now();
     std::chrono::duration<double> d = t1 - t0;
-    push_rate                       = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
+    push_rate                       = (data_packet_samples * (double)i / d.count());
     std::lock_guard<std::mutex> guard(console_mutex);
     std::cout << "producer: " << i << " packets pushed in " << d.count() << " sec: " << push_rate << " samples/s"
               << std::endl;
@@ -107,10 +108,11 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
     }
 
     static constexpr unsigned data_buffer_size = 256;
+    unsigned buffer_read_size = std::min((unsigned)256, data_buffer_size);
     static std::array<data_queue_element, data_buffer_size> data_buffer;
     net::socket_base::message_flags flags = 0;
     while (not sender_thread_stop_flag) {
-        unsigned n_popped = tx_queue.pop(data_buffer.data(), data_buffer_size);
+        unsigned n_popped = tx_queue.pop(data_buffer.data(), buffer_read_size);
         for (unsigned i = 0; i < n_popped; i++) {
             if (data_buffer[i].hdr.packet_size == 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
@@ -232,7 +234,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
 
     auto t1                         = std::chrono::steady_clock::now();
     std::chrono::duration<double> d = t1 - t0;
-    pop_rate = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
+    pop_rate = (data_packet_samples * (double)i / d.count());
     std::lock_guard<std::mutex> guard(console_mutex);
     std::cout << "consumer: " << i << " packets popped in " << d.count() << " sec: " << pop_rate << " samples/s with "
               << seq_errors << " sequence errors" << std::endl;
@@ -249,8 +251,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "testing speed of data transfer through localhost" << std::endl;
 
-    std::cout << sizeof(data_queue_element) << "  " << alignof(data_queue_element) << "  " << sizeof(largest_data_packet)<< std::endl;
-
     double n_seconds    = std::strtod(argv[1], nullptr);
     double minimum_rate = std::strtod(argv[2], nullptr);
 
@@ -266,8 +266,6 @@ int main(int argc, char* argv[]) {
         net::io_context ctx;
         net::ip::udp::socket sender_socket(ctx, local_send_endpoint);
         net::ip::udp::socket receiver_socket(ctx, local_receive_endpoint);
-
-        auto context_thread = vxsdr_thread([&ctx]() { ctx.run(); });
 
         sender_socket.connect(local_receive_endpoint);
         receiver_socket.connect(local_send_endpoint);
@@ -324,6 +322,7 @@ int main(int argc, char* argv[]) {
         receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
         if (err and err != net_error_code_types::not_connected) {
             // the not connected error is expected since it's a UDP socket
+            std::lock_guard<std::mutex> guard(console_mutex);
             std::cout << "receiver socket shutdown: " << err.message() << std::endl;
         }
 
@@ -334,9 +333,6 @@ int main(int argc, char* argv[]) {
             rx_thread.join();
         }
         ctx.stop();
-        if(context_thread.joinable()) {
-            context_thread.join();
-        }
 
         pass = (pop_rate > minimum_rate) and (push_rate > minimum_rate) and seq_errors == 0;
 
