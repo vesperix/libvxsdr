@@ -19,7 +19,7 @@ using namespace std::chrono_literals;
 #include "vxsdr_threads.hpp"
 
 static constexpr size_t tx_queue_length =     512;
-static constexpr size_t rx_queue_length =  32'768;
+static constexpr size_t rx_queue_length =     512;
 
 const unsigned network_send_buffer_size     =   262'144;
 const unsigned network_receive_buffer_size  = 8'388'608;
@@ -235,7 +235,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
     pop_rate = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
     std::lock_guard<std::mutex> guard(console_mutex);
     std::cout << "consumer: " << i << " packets popped in " << d.count() << " sec: " << pop_rate << " samples/s with "
-              << seq_errors << " sequence_errors" << std::endl;
+              << seq_errors << " sequence errors" << std::endl;
 }
 
 int main(int argc, char* argv[]) {

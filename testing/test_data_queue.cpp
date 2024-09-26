@@ -15,7 +15,7 @@
 #include "vxsdr_packets.hpp"
 #include "vxsdr_threads.hpp"
 
-static constexpr size_t queue_length = 32'768;
+static constexpr size_t queue_length = 512;
 
 static constexpr unsigned push_queue_wait_us = 100;
 static constexpr unsigned pop_queue_wait_us  = 100;

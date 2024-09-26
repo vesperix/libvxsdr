@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
-set(libvxsdr_version_minor 19)
-set(libvxsdr_version_patch 28)
+set(libvxsdr_version_minor 20)
+set(libvxsdr_version_patch  0)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -293,7 +293,7 @@ endif()
 
 if(VXSDR_USE_BOOST_QUEUE)
     target_include_directories(libvxsdr PRIVATE ${Boost_INCLUDE_DIRS})
-    target_link_libraries(libvxsdr PRIVATE Boost::lockfree)
+    #target_link_libraries(libvxsdr PRIVATE Boost::lockfree)
 endif()
 
 if(Make_Python_Bindings)
