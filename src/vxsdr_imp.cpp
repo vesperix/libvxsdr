@@ -137,6 +137,14 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         }
     }
 
+    // check whether the data transport has reduced the number of samples per packet (e.g. because of mtu) and tell the device
+    if (data_tport->get_max_samples_per_packet() < max_samps_per_packet) {
+        if (not vxsdr::imp::set_max_payload_bytes(data_tport->get_max_samples_per_packet() * sizeof(vxsdr::wire_sample))) {
+            LOG_ERROR("error setting maximum data payload");
+            throw std::runtime_error("error setting maximum data payload in vxsdr constructor");
+        }
+    }
+
     // enable the TX
     if (not vxsdr::imp::set_tx_enabled(true)) {
         LOG_ERROR("error enabling tx");

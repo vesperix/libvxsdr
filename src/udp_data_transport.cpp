@@ -117,10 +117,14 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         LOG_ERROR("error getting mtu for udp data sender socket");
         throw std::runtime_error("error getting mtu for udp data sender socket");
     } else if (mtu_est > 0) {
+        if (mtu_est < 9000) {
+            LOG_WARN("mtu is less than 9000 on udp data sender socket");
+        }
         constexpr unsigned minimum_ip_udp_header_bytes = 28;
-        if (mtu_est < (int)(max_samples_per_packet * sizeof(vxsdr::wire_sample) + sizeof(packet_header) + sizeof(stream_spec_t) + sizeof(time_spec_t) + minimum_ip_udp_header_bytes)) {
-            LOG_ERROR("mtu too small for requested max_samples_per_packet on udp data sender socket");
-            throw std::runtime_error("mtu too small for requested max_samples_per_packet on udp data sender socket");
+        unsigned socket_max_samples = (mtu_est - sizeof(packet_header) - sizeof(stream_spec_t) - sizeof(time_spec_t) - minimum_ip_udp_header_bytes) / sizeof(vxsdr::wire_sample);
+        if (socket_max_samples < max_samples_per_packet) {
+            max_samples_per_packet = sample_granularity * (socket_max_samples / sample_granularity);
+            LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (mtu = {:d})", max_samples_per_packet, mtu_est);
         }
     }
 
