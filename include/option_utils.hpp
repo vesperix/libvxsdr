@@ -114,7 +114,7 @@ struct parsed_options {
         throw_on_error = throw_except;
     };
     ~parsed_options() = default;
-    option_as_string operator[](const std::string& name) noexcept {
+    option_as_string operator[](const std::string& name) {
         if (values.count(name) > 0) {
             return {name, values[name], types[name], throw_on_error};
         }
@@ -181,7 +181,7 @@ class program_options {
     void process_tokens(std::vector<std::string>& tokens,
                         std::map<std::string,
                         std::string>& values,
-                        std::string current_config_file = "") {
+                        const std::string& current_config_file = "") {
         unsigned i = 0;
         unsigned n_tokens = (unsigned)tokens.size();
         std::string filename_info = "";

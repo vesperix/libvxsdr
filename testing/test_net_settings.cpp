@@ -223,7 +223,9 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
             if (p[j].hdr.sequence_counter != expected_seq) {
                 std::lock_guard<std::mutex> guard(console_mutex);
                 std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq
-                          << " " << (p[j].hdr.sequence_counter - expected_seq) << std::endl;
+                        << " " << (p[j].hdr.sequence_counter - expected_seq) << std::endl;
+            }
+            if (p[j].hdr.sequence_counter != expected_seq) {
                 seq_errors++;
                 expected_seq = p[j].hdr.sequence_counter;
             }
