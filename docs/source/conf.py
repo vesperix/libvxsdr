@@ -18,7 +18,7 @@ copyright = '2024, Vesperix Corporation'
 author = 'Vesperix Corporation'
 
 # The full version, including alpha/beta/rc tags
-release = '0.19.26'
+release = '0.19.27'
 
 # -- General configuration ---------------------------------------------------
 
