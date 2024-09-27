@@ -21,7 +21,8 @@ int get_socket_mtu(net::ip::udp::socket& sock) {
 
 int set_socket_dontfrag(net::ip::udp::socket& sock) {
     // for UDP sockets, this just forces the DNF flag to be set; does not do discovery
-    int val = IP_PMTUDISC_DO;
+    // FIXME: test this
+    int val = IP_PMTUDISC_PROBE;
     return setsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU_DISCOVER, (void *)&val, sizeof(val));
 }
 

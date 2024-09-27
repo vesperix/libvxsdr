@@ -286,8 +286,4 @@ class vxsdr::imp {
         }
         return std::span(d, data_samples);
     }
-    template <typename SampleType>unsigned max_samples_per_packet(const unsigned payload_bytes) const {
-      constexpr unsigned bytes_in_largest_header = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
-      return (payload_bytes - bytes_in_largest_header) / sizeof(SampleType);
-    }
 };

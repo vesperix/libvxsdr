@@ -411,6 +411,10 @@ class data_transport : public packet_transport {
         return true;
     }
 
+    unsigned find_max_samples_per_packet(const unsigned payload_bytes) const {
+      return sample_granularity * ((payload_bytes / sizeof(vxsdr::wire_sample)) / sample_granularity);
+    }
+
     unsigned get_max_samples_per_packet() const noexcept {
         return max_samples_per_packet;
     }
@@ -465,6 +469,9 @@ class udp_data_transport : public data_transport {
                                                        {"udp_data_transport:sender_thread_affinity",               0},
                                                        {"udp_data_transport:receiver_thread_affinity",             1}};
     };
+
+    // used for computing how many samples fit within a MTU
+    static constexpr unsigned minimum_ip_udp_header_bytes = 28;
 
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
