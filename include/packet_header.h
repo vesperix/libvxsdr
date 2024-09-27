@@ -58,7 +58,8 @@ typedef struct {
     uint16_t sequence_counter; // 16 bits; wraps on overflow
 } packet_header;
 
-/* Times are specified using the following type.
+/*
+   Times are specified using the following type.
    NOTE that unlike common Unix/Linux practice, the
    elements are unsigned.
 */
@@ -69,6 +70,7 @@ typedef struct {
 } time_spec_t;
 
 typedef uint64_t stream_spec_t;
+
 typedef uint64_t capabilities_t;
 
 #pragma pack(pop)
@@ -81,15 +83,18 @@ typedef uint64_t capabilities_t;
    Maximum sizes of packet elements
 */
 
+// the maximum overhead that a VXSDR packet can add to a payload
+#define VXSDR_MAX_PACKET_OVERHEAD    (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t))
+
 #define MAX_NAME_LENGTH_BYTES                (16U)  // maximum length of a name (sensors, gains stages) including terminating null
 
 #define MAX_DATA_LENGTH_SAMPLES              (4096UL)
 #define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
-#define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
+#define MAX_DATA_PACKET_BYTES                (VXSDR_MAX_PACKET_OVERHEAD + MAX_DATA_PAYLOAD_BYTES)
 
 #define MAX_FRONTEND_FILTER_LENGTH           (16U)  // must be even for packet size to be a multiple of 8 bytes
 #define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
-#define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
+#define MAX_CMD_RSP_PACKET_BYTES             (VXSDR_MAX_PACKET_OVERHEAD + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Packet Types: 6 bits
 //   TX data is sent only from a host to a radio

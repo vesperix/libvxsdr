@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 20)
-set(libvxsdr_version_patch  3)
+set(libvxsdr_version_patch  4)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
