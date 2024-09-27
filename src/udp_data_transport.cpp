@@ -112,7 +112,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     LOG_DEBUG("checking udp_data_transport:mtu_bytes");
     if (config.count("udp_data_transport:mtu_bytes") > 0) {
         auto specified_mtu = config["udp_data_transport:mtu_bytes"];
-        unsigned specified_max_samples = find_max_samples_per_packet(specified_mtu - minimum_ip_udp_header_bytes);
+        unsigned specified_max_samples = find_max_samples_per_packet(specified_mtu - get_transport_overhead_bytes());
         if (specified_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(specified_max_samples)) {
                 LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (udp_data_transport:mtu_bytes = {:d})", max_samples_per_packet, specified_mtu);
@@ -131,7 +131,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         LOG_ERROR("error getting mtu for udp data sender socket");
         throw std::runtime_error("error getting mtu for udp data sender socket");
     } else if (mtu_est > 0) {
-        unsigned socket_max_samples = find_max_samples_per_packet(mtu_est - minimum_ip_udp_header_bytes);
+        unsigned socket_max_samples = find_max_samples_per_packet(mtu_est - get_transport_overhead_bytes());
         if (socket_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(socket_max_samples)) {
                 LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (socket mtu = {:d})", max_samples_per_packet, mtu_est);
@@ -140,7 +140,6 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
                 throw std::runtime_error("error setting maximum samples per packet from socket mtu");
             }
         }
-
     }
 
     size_t network_send_buffer_bytes    = config["udp_data_transport:network_send_buffer_bytes"];

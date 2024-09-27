@@ -16,8 +16,27 @@
 #define PACKET_VERSION_PATCH                 (12)
 
 /*
-   The packet header and the elements used to fill it are defined below.
-   Each packet contains a 64-bit header, followed by any necessary payload.
+   This header defines the VXSDR packet format. It is used (in C) by the MCU controlling the device,
+   and (in C++) by the VXSDR library on the host.
+
+   A VXSDR packet is composed of these elements:
+      - a VXSDR packet header
+      - an optional time_spec_t
+      - an optional stream_spec_t
+      - an optional payload of up to
+        MAX_CMD_RSP_PAYLOAD_BYTES for command packets, and
+        MAX_DATA_PAYLOAD_BYTES for data packets
+
+   The packet header and its components, the time_spec_t, the stream_spec t,
+   and the #defines giving the maximum sizes are specified below.
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
+#pragma pack(push, 1)
+/*
    The widths of each field in the header, in bits, are shown below:
 
    |TYPE | COMMAND | FLAGS | SUBDEVICE | CHANNEL | SIZE | SEQUENCE
@@ -25,25 +44,18 @@
 
    The size and sequence elements are little-endian uint16_t's.
 */
-
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
-
 #define VXSDR_PACKET_TYPE_BITS               (6)
 #define VXSDR_COMMAND_BITS                   (6)
 #define VXSDR_FLAGS_BITS                     (4)
 
-#pragma pack(push, 1)
-
 typedef struct {
-    uint16_t packet_type       : VXSDR_PACKET_TYPE_BITS;
-    uint16_t command           : VXSDR_COMMAND_BITS;
-    uint16_t flags             : VXSDR_FLAGS_BITS;
-    uint8_t  subdevice;
-    uint8_t  channel;
-    uint16_t packet_size;            // length of packet including header in bytes
-    uint16_t sequence_counter;
+    uint16_t packet_type        : VXSDR_PACKET_TYPE_BITS;
+    uint16_t command            : VXSDR_COMMAND_BITS;
+    uint16_t flags              : VXSDR_FLAGS_BITS;
+    uint8_t  subdevice;        // 8 bits
+    uint8_t  channel;          // 8 bits
+    uint16_t packet_size;      // 16 bits; length of packet including header in bytes
+    uint16_t sequence_counter; // 16 bits; wraps on overflow
 } packet_header;
 
 /* Times are specified using the following type.
@@ -64,6 +76,20 @@ typedef uint64_t capabilities_t;
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
+
+/*
+   Maximum sizes of packet elements
+*/
+
+#define MAX_NAME_LENGTH_BYTES                (16U)  // maximum length of a name (sensors, gains stages) including terminating null
+
+#define MAX_DATA_LENGTH_SAMPLES              (4096UL)
+#define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
+#define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
+
+#define MAX_FRONTEND_FILTER_LENGTH           (16U)  // must be even for packet size to be a multiple of 8 bytes
+#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
+#define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Packet Types: 6 bits
 //   TX data is sent only from a host to a radio
@@ -285,16 +311,6 @@ typedef uint64_t capabilities_t;
 
 #define VXSDR_ALL_SUBDEVICES                      (0xFFU)
 #define VXSDR_ALL_CHANNELS                        (0xFFU)
-
-#define MAX_NAME_LENGTH_BYTES                      (16U)  // maximum length of a name (sensors, gains stages) including terminating null
-
-#define MAX_DATA_LENGTH_SAMPLES                 (4096UL)
-#define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
-#define MAX_DATA_PACKET_BYTES                (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_DATA_PAYLOAD_BYTES)
-
-#define MAX_FRONTEND_FILTER_LENGTH           (16U)  // must be even for packet size to be a multiple of 8 bytes
-#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
-#define MAX_CMD_RSP_PACKET_BYTES             (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t) + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Wire sample types
 #define SAMPLE_TYPE_REAL                     (0x00000000UL)

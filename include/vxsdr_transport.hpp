@@ -28,6 +28,8 @@ using namespace std::chrono_literals;
 
 #include "vxsdr.hpp"
 
+static constexpr unsigned num_vxsdr_packet_types = (1ULL << (VXSDR_PACKET_TYPE_BITS));
+
 class packet_transport {
   protected:
     // threads used for sending and receiving
@@ -43,8 +45,8 @@ class packet_transport {
     uint64_t packets_received = 0;
     uint64_t bytes_received   = 0;
 
-    std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_sent     = {0};
-    std::array<uint64_t, (1UL << VXSDR_PACKET_TYPE_BITS)> packet_types_received = {0};
+    std::array<uint64_t, num_vxsdr_packet_types> packet_types_sent     = {0};
+    std::array<uint64_t, num_vxsdr_packet_types> packet_types_received = {0};
 
     // control of behavior
     std::atomic<bool> throw_on_tx_error  {false};
@@ -65,6 +67,7 @@ class packet_transport {
 
     virtual std::string get_transport_type() const noexcept { return "unspecified"; };
     virtual std::string get_payload_type() const noexcept { return "unknown"; };
+    virtual unsigned get_transport_overhead_bytes() const noexcept { return 0; };
 
     // flags used for orderly shutdown
     std::atomic<bool> sender_thread_stop_flag   {false};
@@ -176,7 +179,7 @@ class packet_transport {
         sequence_errors                 = 0;
         packets_received                = 0;
         bytes_received                  = 0;
-        for (unsigned j = 0; j < (1UL << VXSDR_PACKET_TYPE_BITS); j++) {
+        for (unsigned j = 0; j < packet_types_received.size(); j++) {
             packet_types_received[j] = 0;
         }
         return true;
@@ -191,7 +194,7 @@ class packet_transport {
         send_errors                 = 0;
         packets_sent                = 0;
         bytes_sent                  = 0;
-        for (unsigned j = 0; j < (1UL << VXSDR_PACKET_TYPE_BITS); j++) {
+        for (unsigned j = 0; j < packet_types_sent.size(); j++) {
             packet_types_sent[j] = 0;
         }
         return true;
@@ -451,6 +454,7 @@ class udp_command_transport : public command_transport {
     ~udp_command_transport() noexcept;
 
   protected:
+    unsigned get_transport_overhead_bytes() const noexcept final { return 28; };
     size_t packet_send(const packet& packet, int& error_code) final;
     size_t packet_receive(command_queue_element& packet, int& error_code) final;
 };
@@ -504,6 +508,7 @@ class udp_data_transport : public data_transport {
     ~udp_data_transport() noexcept;
 
   protected:
+    unsigned get_transport_overhead_bytes() const noexcept final { return 28; };
     size_t packet_send(const packet& packet, int& error_code) final;
     size_t packet_receive(data_queue_element& packet, int& error_code) final;
 };
@@ -523,6 +528,7 @@ class pcie_command_transport : public command_transport {
     ~pcie_command_transport() noexcept;
 
   protected:
+    unsigned get_transport_overhead_bytes() const noexcept final { return 0; };
     size_t packet_send(const packet& packet, int& error_code) final;
     size_t packet_receive(command_queue_element& packet, int& error_code) final;
 };
@@ -556,6 +562,7 @@ class pcie_data_transport : public data_transport {
     ~pcie_data_transport() noexcept;
 
   protected:
+    unsigned get_transport_overhead_bytes() const noexcept final { return 0; };
     size_t packet_send(const packet& packet, int& error_code) final;
     size_t packet_receive(data_queue_element& packet, int& error_code) final;
 };

@@ -104,6 +104,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
     unsigned sample_granularity = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
     unsigned num_rx_subdevs = res->at(6);
+    // the initial value is the maximum the device can support; the transport may reduce it if required
     unsigned max_samps_per_packet = sample_granularity * ((res->at(7) / sizeof(vxsdr::wire_sample)) / sample_granularity);
 
     if (not vxsdr::imp::tx_stop() or not vxsdr::imp::rx_stop()) {

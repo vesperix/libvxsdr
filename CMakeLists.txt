@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 20)
-set(libvxsdr_version_patch  2)
+set(libvxsdr_version_patch  3)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -396,9 +396,10 @@ if(Make_Python_Bindings)
 endif()
 
 if(VXSDR_BUILD_UTILITIES)
-    install(TARGETS vxsdr_find RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install(TARGETS vxsdr_set_addr RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install(TARGETS vxsdr_save_addr RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    foreach(source_file ${vxsdr_utility_source})
+        get_filename_component(target_name ${source_file} NAME_WE)
+        install(TARGETS ${target_name} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endforeach()
 endif()
 
 set(libvxsdr_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/vxsdr)
