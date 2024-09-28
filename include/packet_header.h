@@ -84,28 +84,34 @@ typedef uint64_t capabilities_t;
 */
 
 // the maximum overhead that a VXSDR packet can add to a payload
-#define VXSDR_MAX_PACKET_OVERHEAD    (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t))
+#define VXSDR_MAX_PACKET_OVERHEAD            (sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t))
 
-#define MAX_NAME_LENGTH_BYTES                (16U)  // maximum length of a name (sensors, gains stages) including terminating null
+// maximum length of a name (sensors, gains stages) including terminating null
+#define MAX_NAME_LENGTH_BYTES                (16)
 
-#define MAX_DATA_LENGTH_SAMPLES              (4096UL)
+#define MAX_DATA_LENGTH_SAMPLES              (4096)
 #define MAX_DATA_PAYLOAD_BYTES               (4 * MAX_DATA_LENGTH_SAMPLES)
 #define MAX_DATA_PACKET_BYTES                (VXSDR_MAX_PACKET_OVERHEAD + MAX_DATA_PAYLOAD_BYTES)
 
-#define MAX_FRONTEND_FILTER_LENGTH           (16U)  // must be even for packet size to be a multiple of 8 bytes
-#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)  // maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
+#define MAX_FRONTEND_FILTER_LENGTH           (16)  // must be even for packet size to be a multiple of 8 bytes
+
+// maximum length of a CMD or RSP packet, excluding header, time spec, and stream spec
+#define MAX_CMD_RSP_PAYLOAD_BYTES            (4 * MAX_FRONTEND_FILTER_LENGTH + 8)
 #define MAX_CMD_RSP_PACKET_BYTES             (VXSDR_MAX_PACKET_OVERHEAD + MAX_CMD_RSP_PAYLOAD_BYTES)
 
 // Packet Types: 6 bits
 //   TX data is sent only from a host to a radio
 #define PACKET_TYPE_TX_SIGNAL_DATA           (0x00U)
+
 //   RX data is sent only from a radio to a host
 #define PACKET_TYPE_RX_SIGNAL_DATA           (0x01U)
+
 //   Commands are sent only from a host to a radio, and may
 //   have responses or acks, depending on the command
 #define PACKET_TYPE_DEVICE_CMD               (0x02U)
 #define PACKET_TYPE_TX_RADIO_CMD             (0x03U)
 #define PACKET_TYPE_RX_RADIO_CMD             (0x04U)
+
 //   Async messages are sent by a radio only, and are not
 //   responses to a host message
 #define PACKET_TYPE_ASYNC_MSG                (0x05U)
@@ -137,156 +143,156 @@ typedef uint64_t capabilities_t;
 #define PACKET_TYPE_RX_SIGNAL_DATA_ACK       PACKET_TYPE_MAKE_ACK(PACKET_TYPE_RX_SIGNAL_DATA)
 
 // Device Commands : 6 bits
-#define DEVICE_CMD_HELLO                     (0x00)
+#define DEVICE_CMD_HELLO                     (0x00U)
 
-#define DEVICE_CMD_SET_TIME_NOW              (0x01)  // error if TIME_PRESENT is 0
-#define DEVICE_CMD_SET_TIME_NEXT_PPS         (0x02)  // error if TIME_PRESENT is 0
-#define DEVICE_CMD_GET_TIME                  (0x03)
+#define DEVICE_CMD_SET_TIME_NOW              (0x01U)  // error if TIME_PRESENT is 0
+#define DEVICE_CMD_SET_TIME_NEXT_PPS         (0x02U)  // error if TIME_PRESENT is 0
+#define DEVICE_CMD_GET_TIME                  (0x03U)
 
-#define DEVICE_CMD_GET_STATUS                (0x04)
-#define DEVICE_CMD_CLEAR_STATUS              (0x05)  // resets error flags and counters
+#define DEVICE_CMD_GET_STATUS                (0x04U)
+#define DEVICE_CMD_CLEAR_STATUS              (0x05U)  // resets error flags and counters
 
-#define DEVICE_CMD_GET_BUFFER_INFO           (0x06)  // info on how many buffers and their purpose
-#define DEVICE_CMD_GET_BUFFER_USE            (0x07)  // asks for buffer info
+#define DEVICE_CMD_GET_BUFFER_INFO           (0x06U)  // info on how many buffers and their purpose
+#define DEVICE_CMD_GET_BUFFER_USE            (0x07U)  // asks for buffer info
 
-#define DEVICE_CMD_GET_STREAM_STATE          (0x08)
+#define DEVICE_CMD_GET_STREAM_STATE          (0x08U)
 
-#define DEVICE_CMD_STOP                      (0x09)  // stop all streaming and return to wait state within session
+#define DEVICE_CMD_STOP                      (0x09U)  // stop all streaming and return to wait state within session
 
-#define DEVICE_CMD_GET_TRANSPORT_INFO        (0x0A)  // OPTIONAL // how many interfaces, what kind
-#define DEVICE_CMD_GET_TRANSPORT_ADDR        (0x0B)
-#define DEVICE_CMD_GET_MAX_PAYLOAD           (0x0C)
+#define DEVICE_CMD_GET_TRANSPORT_INFO        (0x0AU)  // OPTIONAL // how many interfaces, what kind
+#define DEVICE_CMD_GET_TRANSPORT_ADDR        (0x0BU)
+#define DEVICE_CMD_GET_MAX_PAYLOAD           (0x0CU)
 
-#define DEVICE_CMD_CLEAR_DATA_BUFFER         (0x0D)
+#define DEVICE_CMD_CLEAR_DATA_BUFFER         (0x0DU)
 
-#define DEVICE_CMD_DISCOVER                  (0x0E)
-#define DEVICE_CMD_SET_TRANSPORT_ADDR        (0x0F)
-#define DEVICE_CMD_SET_MAX_PAYLOAD           (0x10)
-#define DEVICE_CMD_SAVE_TRANSPORT_ADDR       (0x11)
+#define DEVICE_CMD_DISCOVER                  (0x0EU)
+#define DEVICE_CMD_SET_TRANSPORT_ADDR        (0x0FU)
+#define DEVICE_CMD_SET_MAX_PAYLOAD           (0x10U)
+#define DEVICE_CMD_SAVE_TRANSPORT_ADDR       (0x11U)
 
-#define DEVICE_CMD_GET_TIMING_INFO           (0x12)  // OPTIONAL // what timing inputs are available
-#define DEVICE_CMD_GET_TIMING_STATUS         (0x13)  // PPS present/absent; 10 MHz locked/unlocked
-#define DEVICE_CMD_GET_TIMING_REF            (0x14)  // OPTIONAL // current sources of 10 MHz and PPS
-#define DEVICE_CMD_SET_TIMING_REF            (0x15)  // OPTIONAL // set sources of 10 MHz and PPS
-#define DEVICE_CMD_GET_TIMING_RESOLUTION     (0x16)
+#define DEVICE_CMD_GET_TIMING_INFO           (0x12U)  // OPTIONAL // what timing inputs are available
+#define DEVICE_CMD_GET_TIMING_STATUS         (0x13U)  // PPS present/absent; 10 MHz locked/unlocked
+#define DEVICE_CMD_GET_TIMING_REF            (0x14U)  // OPTIONAL // current sources of 10 MHz and PPS
+#define DEVICE_CMD_SET_TIMING_REF            (0x15U)  // OPTIONAL // set sources of 10 MHz and PPS
+#define DEVICE_CMD_GET_TIMING_RESOLUTION     (0x16U)
 
-#define DEVICE_CMD_GET_NUM_SUBDEVS           (0x17)
-#define DEVICE_CMD_GET_NUM_SENSORS           (0x18)
-#define DEVICE_CMD_GET_SENSOR_READING        (0x19)  // OPTIONAL
-#define DEVICE_CMD_GET_SENSOR_NAME           (0x1A)  // OPTIONAL
-#define DEVICE_CMD_GET_CAPABILITIES          (0x1B)
+#define DEVICE_CMD_GET_NUM_SUBDEVS           (0x17U)
+#define DEVICE_CMD_GET_NUM_SENSORS           (0x18U)
+#define DEVICE_CMD_GET_SENSOR_READING        (0x19U)  // OPTIONAL
+#define DEVICE_CMD_GET_SENSOR_NAME           (0x1AU)  // OPTIONAL
+#define DEVICE_CMD_GET_CAPABILITIES          (0x1BU)
 
-#define DEVICE_CMD_APP_UPDATE_MODE_SET       (0x3C)
-#define DEVICE_CMD_APP_UPDATE_DATA           (0x3D)
-#define DEVICE_CMD_APP_UPDATE_DONE           (0x3E)
-#define DEVICE_CMD_RESET                     (0x3F)  // do a power on reset (closing session and returning to idle)
+#define DEVICE_CMD_APP_UPDATE_MODE_SET       (0x3CU)
+#define DEVICE_CMD_APP_UPDATE_DATA           (0x3DU)
+#define DEVICE_CMD_APP_UPDATE_DONE           (0x3EU)
+#define DEVICE_CMD_RESET                     (0x3FU)  // do a power on reset (closing session and returning to idle)
 
 // Generic Errors used for Device Commands and Radio Commands
-#define ERR_NO_ERROR                         (0x00)  // no error
-#define ERR_BAD_COMMAND                      (0x01)  // generic bad stuff happened; can substitute for more detailed ones
-#define ERR_BUSY                             (0x02)  // can't accept that command because we're running
-#define ERR_NO_SUCH_SUBDEVICE                (0x03)  // the specified subdevice doesn't exist
-#define ERR_NO_SUCH_CHANNEL                  (0x04)  // the specified channel doesn't exist
-#define ERR_TIMEOUT                          (0x05)  // tried to do command but something didn't answer
-#define ERR_BAD_HEADER_SIZE                  (0x06)  // size field in header does not match allowed values
-#define ERR_BAD_HEADER_FLAGS                 (0x07)  // flags field in header does not match allowed values
-#define ERR_BAD_PARAMETER                    (0x08)  // command parameter is out of allowed range
-#define ERR_NOT_SUPPORTED                    (0x09)  // this device can't do that command
-#define ERR_BAD_PACKET_SIZE                  (0x0A)  // packet size does not match header
-#define ERR_INTERNAL_ERROR                   (0x0B)  // logic error in packet processing
-#define ERR_FAILED                           (0x0C)  // should have worked, but didn't
+#define ERR_NO_ERROR                         (0x00U)  // no error
+#define ERR_BAD_COMMAND                      (0x01U)  // generic bad stuff happened; can substitute for more detailed ones
+#define ERR_BUSY                             (0x02U)  // can't accept that command because we're running
+#define ERR_NO_SUCH_SUBDEVICE                (0x03U)  // the specified subdevice doesn't exist
+#define ERR_NO_SUCH_CHANNEL                  (0x04U)  // the specified channel doesn't exist
+#define ERR_TIMEOUT                          (0x05U)  // tried to do command but something didn't answer
+#define ERR_BAD_HEADER_SIZE                  (0x06U)  // size field in header does not match allowed values
+#define ERR_BAD_HEADER_FLAGS                 (0x07U)  // flags field in header does not match allowed values
+#define ERR_BAD_PARAMETER                    (0x08U)  // command parameter is out of allowed range
+#define ERR_NOT_SUPPORTED                    (0x09U)  // this device can't do that command
+#define ERR_BAD_PACKET_SIZE                  (0x0AU)  // packet size does not match header
+#define ERR_INTERNAL_ERROR                   (0x0BU)  // logic error in packet processing
+#define ERR_FAILED                           (0x0CU)  // should have worked, but didn't
 
 // Radio Commands
-#define RADIO_CMD_STOP                       (0x01)  // error if TIME_PRESENT is 0
-#define RADIO_CMD_START                      (0x02)  // error if TIME_PRESENT is 0
-#define RADIO_CMD_LOOP                       (0x03)  // error if TIME_PRESENT is 0
+#define RADIO_CMD_STOP                       (0x01U)  // error if TIME_PRESENT is 0
+#define RADIO_CMD_START                      (0x02U)  // error if TIME_PRESENT is 0
+#define RADIO_CMD_LOOP                       (0x03U)  // error if TIME_PRESENT is 0
 
-#define RADIO_CMD_GET_RF_FREQ                (0x04)
-#define RADIO_CMD_GET_RF_GAIN                (0x05)
-#define RADIO_CMD_GET_SAMPLE_RATE            (0x06)
-#define RADIO_CMD_GET_RF_BW                  (0x07)
-#define RADIO_CMD_GET_RF_ENABLED             (0x08)
-#define RADIO_CMD_GET_RF_PORT                (0x09)
-#define RADIO_CMD_GET_NUM_RF_PORTS           (0x0A)
-#define RADIO_CMD_GET_RF_PORT_NAME           (0x0B)
-#define RADIO_CMD_GET_LO_INPUT               (0x0C)
-#define RADIO_CMD_GET_LOCK_STATUS            (0x0D)
-#define RADIO_CMD_GET_MASTER_CLK             (0x0E)
-#define RADIO_CMD_GET_FILTER_COEFFS          (0x0F)
+#define RADIO_CMD_GET_RF_FREQ                (0x04U)
+#define RADIO_CMD_GET_RF_GAIN                (0x05U)
+#define RADIO_CMD_GET_SAMPLE_RATE            (0x06U)
+#define RADIO_CMD_GET_RF_BW                  (0x07U)
+#define RADIO_CMD_GET_RF_ENABLED             (0x08U)
+#define RADIO_CMD_GET_RF_PORT                (0x09U)
+#define RADIO_CMD_GET_NUM_RF_PORTS           (0x0AU)
+#define RADIO_CMD_GET_RF_PORT_NAME           (0x0BU)
+#define RADIO_CMD_GET_LO_INPUT               (0x0CU)
+#define RADIO_CMD_GET_LOCK_STATUS            (0x0DU)
+#define RADIO_CMD_GET_MASTER_CLK             (0x0EU)
+#define RADIO_CMD_GET_FILTER_COEFFS          (0x0FU)
 
-#define RADIO_CMD_SET_RF_FREQ                (0x10)
-#define RADIO_CMD_SET_RF_GAIN                (0x11)
-#define RADIO_CMD_SET_SAMPLE_RATE            (0x12)
-#define RADIO_CMD_SET_RF_BW                  (0x13)
-#define RADIO_CMD_SET_RF_ENABLED             (0x14)
-#define RADIO_CMD_SET_RF_PORT                (0x15)
-#define RADIO_CMD_SET_LO_INPUT               (0x16)
-#define RADIO_CMD_SET_MASTER_CLK             (0x17)
+#define RADIO_CMD_SET_RF_FREQ                (0x10U)
+#define RADIO_CMD_SET_RF_GAIN                (0x11U)
+#define RADIO_CMD_SET_SAMPLE_RATE            (0x12U)
+#define RADIO_CMD_SET_RF_BW                  (0x13U)
+#define RADIO_CMD_SET_RF_ENABLED             (0x14U)
+#define RADIO_CMD_SET_RF_PORT                (0x15U)
+#define RADIO_CMD_SET_LO_INPUT               (0x16U)
+#define RADIO_CMD_SET_MASTER_CLK             (0x17U)
 
-#define RADIO_CMD_GET_IF_FREQ                (0x18)
-#define RADIO_CMD_GET_RF_FREQ_RANGE          (0x19)
-#define RADIO_CMD_GET_RF_GAIN_RANGE          (0x1A)
-#define RADIO_CMD_GET_SAMPLE_RATE_RANGE      (0x1B)
-#define RADIO_CMD_GET_NUM_CHANNELS           (0x1C)
-#define RADIO_CMD_GET_MASTER_CLK_RANGE       (0x1D)
-#define RADIO_CMD_GET_FILTER_LENGTH          (0x1E)
+#define RADIO_CMD_GET_IF_FREQ                (0x18U)
+#define RADIO_CMD_GET_RF_FREQ_RANGE          (0x19U)
+#define RADIO_CMD_GET_RF_GAIN_RANGE          (0x1AU)
+#define RADIO_CMD_GET_SAMPLE_RATE_RANGE      (0x1BU)
+#define RADIO_CMD_GET_NUM_CHANNELS           (0x1CU)
+#define RADIO_CMD_GET_MASTER_CLK_RANGE       (0x1DU)
+#define RADIO_CMD_GET_FILTER_LENGTH          (0x1EU)
 
-#define RADIO_CMD_GET_IQ_BIAS                (0x1F)
-#define RADIO_CMD_GET_IQ_CORR                (0x20)
-#define RADIO_CMD_SET_IQ_BIAS                (0x21)
-#define RADIO_CMD_SET_IQ_CORR                (0x22)
-#define RADIO_CMD_SET_FILTER_ENABLED         (0x23)
-#define RADIO_CMD_SET_FILTER_COEFFS          (0x24)
+#define RADIO_CMD_GET_IQ_BIAS                (0x1FU)
+#define RADIO_CMD_GET_IQ_CORR                (0x20U)
+#define RADIO_CMD_SET_IQ_BIAS                (0x21U)
+#define RADIO_CMD_SET_IQ_CORR                (0x22U)
+#define RADIO_CMD_SET_FILTER_ENABLED         (0x23U)
+#define RADIO_CMD_SET_FILTER_COEFFS          (0x24U)
 
-#define RADIO_CMD_GET_NUM_RF_GAIN_STAGES     (0x25)
-#define RADIO_CMD_GET_RF_GAIN_STAGE_NAME     (0x26)
-#define RADIO_CMD_GET_RF_GAIN_RANGE_STAGE    (0x27)
-#define RADIO_CMD_GET_RF_GAIN_STAGE          (0x28)
-#define RADIO_CMD_SET_RF_GAIN_STAGE          (0x29)
+#define RADIO_CMD_GET_NUM_RF_GAIN_STAGES     (0x25U)
+#define RADIO_CMD_GET_RF_GAIN_STAGE_NAME     (0x26U)
+#define RADIO_CMD_GET_RF_GAIN_RANGE_STAGE    (0x27U)
+#define RADIO_CMD_GET_RF_GAIN_STAGE          (0x28U)
+#define RADIO_CMD_SET_RF_GAIN_STAGE          (0x29U)
 
-#define RADIO_CMD_GET_NUM_RF_FREQ_STAGES     (0x2A)
-#define RADIO_CMD_GET_RF_FREQ_STAGE_NAME     (0x2B)
-#define RADIO_CMD_GET_RF_FREQ_RANGE_STAGE    (0x2C)
-#define RADIO_CMD_GET_RF_FREQ_STAGE          (0x2D)
-#define RADIO_CMD_SET_RF_FREQ_STAGE          (0x2E)
+#define RADIO_CMD_GET_NUM_RF_FREQ_STAGES     (0x2AU)
+#define RADIO_CMD_GET_RF_FREQ_STAGE_NAME     (0x2BU)
+#define RADIO_CMD_GET_RF_FREQ_RANGE_STAGE    (0x2CU)
+#define RADIO_CMD_GET_RF_FREQ_STAGE          (0x2DU)
+#define RADIO_CMD_SET_RF_FREQ_STAGE          (0x2EU)
 
-#define RADIO_CMD_GET_RF_BW_RANGE            (0x2F)
-#define RADIO_CMD_GET_CAPABILITIES           (0x30)
+#define RADIO_CMD_GET_RF_BW_RANGE            (0x2FU)
+#define RADIO_CMD_GET_CAPABILITIES           (0x30U)
 
 // Flags : 4 bits
 #define FLAGS_REQUEST_ACK                    (0x01U)
 #define FLAGS_TIME_PRESENT                   (0x02U)
 #define FLAGS_STREAM_ID_PRESENT              (0x04U)
 
-// Async messages : 6 bits in command field
+// Async messages use the 6 bits in command field to specify what they indicate
 
 // lower 4 bits give error type
-#define ASYNC_NO_ERROR                       (0x00)
-#define ASYNC_DATA_UNDERFLOW                 (0x01)
-#define ASYNC_DATA_OVERFLOW                  (0x02)
-#define ASYNC_OVER_TEMP                      (0x03)  // too hot
-#define ASYNC_POWER_ERROR                    (0x04)
-#define ASYNC_FREQ_ERROR                     (0x05)  // loss of lock, etc
-#define ASYNC_OUT_OF_SEQUENCE                (0x06)  // got a packet out of sequence (may be benign on first packet)
-#define ASYNC_CMD_ERROR                      (0x07)  // error executing command
-#define ASYNC_PPS_TIMEOUT                    (0x08)
-#define ASYNC_VOLTAGE_ERROR                  (0x09)
-#define ASYNC_CURRENT_ERROR                  (0x0A)
+#define ASYNC_NO_ERROR                       (0x00U)
+#define ASYNC_DATA_UNDERFLOW                 (0x01U)
+#define ASYNC_DATA_OVERFLOW                  (0x02U)
+#define ASYNC_OVER_TEMP                      (0x03U)  // too hot
+#define ASYNC_POWER_ERROR                    (0x04U)
+#define ASYNC_FREQ_ERROR                     (0x05U)  // loss of lock, etc
+#define ASYNC_OUT_OF_SEQUENCE                (0x06U)  // got a packet out of sequence (may be benign on first packet)
+#define ASYNC_CMD_ERROR                      (0x07U)  // error executing command
+#define ASYNC_PPS_TIMEOUT                    (0x08U)
+#define ASYNC_VOLTAGE_ERROR                  (0x09U)
+#define ASYNC_CURRENT_ERROR                  (0x0AU)
 // 0x0B - 0x0F unused
 #define ASYNC_ERROR_TYPE_MASK                (0x0FU)
 
 // upper 2 bits give affected system
-#define ASYNC_UNSPECIFIED                    (0x00)
-#define ASYNC_TX                             (0x10)
-#define ASYNC_RX                             (0x20)
-#define ASYNC_FPGA                           (0x30)
+#define ASYNC_UNSPECIFIED                    (0x00U)
+#define ASYNC_TX                             (0x10U)
+#define ASYNC_RX                             (0x20U)
+#define ASYNC_FPGA                           (0x30U)
 #define ASYNC_AFFECTED_SYSTEM_MASK           (0x30U)
 
 // Stream State
 #define STREAM_STATE_RX_RUNNING_FLAG         (0x1ULL)
 #define STREAM_STATE_RX_WAITING_FLAG         (0x2ULL)
-#define STREAM_STATE_TX_RUNNING_FLAG         (0x1ULL << 32U)
-#define STREAM_STATE_TX_WAITING_FLAG         (0x2ULL << 32U)
+#define STREAM_STATE_TX_RUNNING_FLAG         (0x1ULL << 32)
+#define STREAM_STATE_TX_WAITING_FLAG         (0x2ULL << 32)
 
 // Device Capabilities
 #define DEV_CAP_HAS_REF_LOCK_DETECT          (0x0001ULL)
@@ -314,8 +320,8 @@ typedef uint64_t capabilities_t;
 #define RADIO_CAP_HAS_DC_POWER_MEASURE       (0x4000ULL)
 #define RADIO_CAP_HAS_RF_POWER_MEASURE       (0x8000ULL)
 
-#define VXSDR_ALL_SUBDEVICES                      (0xFFU)
-#define VXSDR_ALL_CHANNELS                        (0xFFU)
+#define VXSDR_ALL_SUBDEVICES                 (0xFFU)
+#define VXSDR_ALL_CHANNELS                   (0xFFU)
 
 // Wire sample types
 #define SAMPLE_TYPE_REAL                     (0x00000000UL)
@@ -327,7 +333,7 @@ typedef uint64_t capabilities_t;
 #define SAMPLE_FORMAT_MASK                   (0x00000200UL)
 #define SAMPLE_DATATYPE_MASK                 (SAMPLE_TYPE_MASK | SAMPLE_FORMAT_MASK | SAMPLE_LENGTH_MASK)  // type, format, and length
 #define SAMPLE_GRANULARITY_MASK              (0xFF000000UL)
-#define SAMPLE_GRANULARITY_SHIFT                      (24U)
+#define SAMPLE_GRANULARITY_SHIFT             (24)
 #define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK &  8UL))
 #define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 12UL))
 #define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 16UL))
@@ -348,16 +354,16 @@ typedef uint64_t capabilities_t;
 #define SAMPLE_TYPE_COMPLEX_F64              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 64UL))
 
 // Timing status return values
-#define TIMING_STATUS_EXT_PPS_LOCK          (0x00000001U)
-#define TIMING_STATUS_EXT_10MHZ_LOCK        (0x00000002U)
-#define TIMING_STATUS_REF_OSC_LOCK          (0x00000004U)
+#define TIMING_STATUS_EXT_PPS_LOCK           (0x00000001U)
+#define TIMING_STATUS_EXT_10MHZ_LOCK         (0x00000002U)
+#define TIMING_STATUS_REF_OSC_LOCK           (0x00000004U)
 
 #ifdef __cplusplus
-#define VXSDR_CHECK_SIZE_EQUALS(x, n)     static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
-#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n) static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
+#define VXSDR_CHECK_SIZE_EQUALS(x, n)        static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
+#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n)    static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
 #else  // need to use the old form until c23
-#define VXSDR_CHECK_SIZE_EQUALS(x, n)     _Static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
-#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n) _Static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
+#define VXSDR_CHECK_SIZE_EQUALS(x, n)        _Static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
+#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n)    _Static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
 #endif
 
 // Check that size is as expected
