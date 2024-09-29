@@ -5,15 +5,15 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <thread>
-#include <stdexcept>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
@@ -29,7 +29,7 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
                                          const unsigned granularity,
                                          const unsigned n_rx_subdevs,
                                          const unsigned max_samps_per_packet)
-            : data_transport(granularity, n_rx_subdevs, max_samps_per_packet) {
+    : data_transport(granularity, n_rx_subdevs, max_samps_per_packet) {
     LOG_DEBUG("pcie data transport constructor entered");
     num_rx_subdevs = n_rx_subdevs;
 
@@ -43,11 +43,11 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
     for (unsigned i = 0; i < num_rx_subdevs; i++) {
         rx_data_queue.push_back(
             std::make_unique<vxsdr_queue<data_queue_element>>(config["pcie_data_transport:rx_data_queue_packets"]));
-        rx_sample_queue.push_back(
-            std::make_unique<vxsdr_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
+        rx_sample_queue.push_back(std::make_unique<vxsdr_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
     }
 
-    LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["pcie_data_transport:rx_data_queue_packets"]);
+    LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs,
+              config["pcie_data_transport:rx_data_queue_packets"]);
     LOG_DEBUG("using {:d} receive sample buffers of {:d} samples", num_rx_subdevs, MAX_DATA_LENGTH_SAMPLES);
 
     rx_state        = TRANSPORT_STARTING;
@@ -65,7 +65,8 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
     if (config["pcie_data_transport:thread_priority"] >= 0) {
         if (set_thread_priority_realtime(receiver_thread, (int)config["pcie_data_transport:thread_priority"]) != 0) {
             LOG_ERROR("unable to set pcie data receiver thread realtime priority in pcie data transport constructor");
-            throw std::runtime_error("unable to set pcie data receiver thread realtime priority in pcie data transport constructor");
+            throw std::runtime_error(
+                "unable to set pcie data receiver thread realtime priority in pcie data transport constructor");
         }
         LOG_DEBUG("pcie data receiver thread priority set to {:d}", config["pcie_data_transport:thread_priority"]);
     }
@@ -105,7 +106,7 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
 pcie_data_transport::~pcie_data_transport() noexcept {
     LOG_DEBUG("pcie data transport destructor entered");
 
-    tx_state = TRANSPORT_SHUTDOWN;
+    tx_state                = TRANSPORT_SHUTDOWN;
     sender_thread_stop_flag = true;
 
     // tx must shut down before rx since tx sends a final ack request to update stats
@@ -114,7 +115,7 @@ pcie_data_transport::~pcie_data_transport() noexcept {
         sender_thread.join();
     }
 
-    rx_state = TRANSPORT_SHUTDOWN;
+    rx_state                  = TRANSPORT_SHUTDOWN;
     receiver_thread_stop_flag = true;
 
     LOG_DEBUG("joining pcie data receiver thread");
@@ -133,8 +134,8 @@ size_t pcie_data_transport::packet_send(const packet& packet, int& error_code) {
 }
 
 size_t pcie_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
-    packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
+    packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     return pcie_if->pcie_dma_data_receive(&packet, sizeof(packet), error_code);
 }
 
-#endif // #ifdef VXSDR_ENABLE_PCIE
+#endif  // #ifdef VXSDR_ENABLE_PCIE

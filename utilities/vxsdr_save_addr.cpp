@@ -1,14 +1,14 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <cmath>
 #include <exception>
 #include <future>
+#include <iostream>
+#include <string>
 
 #include "option_utils.hpp"
 
@@ -26,7 +26,7 @@ bool send_packet(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& de
     static size_t packets_sent  = 0;
     packet.hdr.sequence_counter = (uint16_t)(packets_sent % (UINT16_MAX + 1));
     packets_sent++;
-    return  packet.hdr.packet_size == sender_socket.send_to(net::buffer(&packet, packet.hdr.packet_size), device_endpoint);
+    return packet.hdr.packet_size == sender_socket.send_to(net::buffer(&packet, packet.hdr.packet_size), device_endpoint);
 }
 
 bool receive_packet(net::ip::udp::socket& receiver_socket,
@@ -50,9 +50,9 @@ bool receive_device_cmd_response_packet(net::ip::udp::socket& receiver_socket,
     net::ip::udp::endpoint remote_endpoint;
     largest_data_packet packet;
     unsigned timeout_ms = std::lround(1000 * timeout_s);
-    auto timeout = std::chrono::milliseconds(timeout_ms);
-    auto start_time = std::chrono::steady_clock::now();
-    while(std::chrono::steady_clock::now() - start_time <= timeout) {
+    auto timeout        = std::chrono::milliseconds(timeout_ms);
+    auto start_time     = std::chrono::steady_clock::now();
+    while (std::chrono::steady_clock::now() - start_time <= timeout) {
         if (receive_packet(receiver_socket, packet, remote_endpoint, timeout_ms)) {
             if (remote_endpoint == device_endpoint and packet.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) {
                 std::memcpy((void*)&results, &packet, std::min((size_t)packet.hdr.packet_size, sizeof(results)));
@@ -80,7 +80,8 @@ bool send_device_cmd_and_check_response(net::ip::udp::socket& sender_socket,
     if (bytes != packet.hdr.packet_size) {
         return false;
     }
-    if (not receive_device_cmd_response_packet(receiver_socket, device_endpoint, r, timeout_s) or r.hdr.command != packet.hdr.command) {
+    if (not receive_device_cmd_response_packet(receiver_socket, device_endpoint, r, timeout_s) or
+        r.hdr.command != packet.hdr.command) {
         return false;
     }
     return true;
@@ -109,7 +110,9 @@ int main(int argc, char* argv[]) {
     const double timeout_s                 = 10;
 
     try {
-        option_utils::program_options desc("vxsdr_save_addr", "Permanently saves a new IPv4 address for a VXSDR device; use vxsdr_set_addr to change the address first");
+        option_utils::program_options desc(
+            "vxsdr_save_addr",
+            "Permanently saves a new IPv4 address for a VXSDR device; use vxsdr_set_addr to change the address first");
 
         add_setup_options(desc);
 

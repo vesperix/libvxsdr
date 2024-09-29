@@ -2,46 +2,46 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
+#include <atomic>
+#include <chrono>
 #include <complex>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
 #include <vector>
-#include <atomic>
-#include <chrono>
 using namespace std::chrono_literals;
 
 // disable exceptions
-#define FMT_EXCEPTIONS              (0)
+#define FMT_EXCEPTIONS (0)
 // force header only
 #define FMT_HEADER_ONLY
 
 #include <spdlog/fmt/fmt.h>
 
-#include "vxsdr_queues.hpp"
+#include "thread_utils.hpp"
 #include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
-#include "thread_utils.hpp"
+#include "vxsdr_queues.hpp"
 #include "vxsdr_threads.hpp"
 
-static constexpr size_t tx_queue_length =     512;
-static constexpr size_t rx_queue_length =     512;
+static constexpr size_t tx_queue_length = 512;
+static constexpr size_t rx_queue_length = 512;
 
-const unsigned network_send_buffer_size     =   262'144;
-const unsigned network_receive_buffer_size  = 8'388'608;
+const unsigned network_send_buffer_size    = 262'144;
+const unsigned network_receive_buffer_size = 8'388'608;
 
-static constexpr unsigned udp_host_receive_port =  1030;
+static constexpr unsigned udp_host_receive_port = 1030;
 static constexpr unsigned udp_host_send_port    = 55123;
 
 static constexpr unsigned push_queue_wait_us = 100;
 static constexpr unsigned pop_queue_wait_us  = 100;
-static constexpr unsigned n_tries = 10'000; // ~1s timeout
+static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
 
 static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
 
 static unsigned data_buffer_chunk = 32;
-static unsigned tx_net_wait_us = 50;
+static unsigned tx_net_wait_us    = 50;
 
 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -50,7 +50,7 @@ static vxsdr_queue<data_queue_element> rx_queue{rx_queue_length};
 
 std::mutex console_mutex;
 
-std::atomic_bool sender_thread_stop_flag = false;
+std::atomic_bool sender_thread_stop_flag   = false;
 std::atomic_bool receiver_thread_stop_flag = false;
 
 void tx_producer(const size_t n_items, double& push_rate) {
@@ -61,7 +61,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
 
     for (i = 0; i < n_items; i++) {
         p.hdr.sequence_counter = i % (UINT16_MAX + 1UL);
-        p.hdr.packet_size = sizeof(largest_data_packet);
+        p.hdr.packet_size      = sizeof(largest_data_packet);
 
         unsigned n_try = 0;
 
@@ -85,8 +85,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
     push_rate                       = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
 }
 
-void tx_net_sender(net::ip::udp::socket& sender_socket)
-{
+void tx_net_sender(net::ip::udp::socket& sender_socket) {
     net_error_code::error_code err;
     sender_socket.set_option(net::socket_base::send_buffer_size((int)network_send_buffer_size), err);
     if (err) {
@@ -124,7 +123,7 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
             size_t bytes = sender_socket.send(net::buffer(&data_buffer[i], data_buffer[i].hdr.packet_size), flags, err);
             if (err) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "packet send error: " <<  err.message() << std::endl;
+                std::cout << "packet send error: " << err.message() << std::endl;
                 return;
             }
             if (bytes != data_buffer[i].hdr.packet_size) {
@@ -139,8 +138,7 @@ void tx_net_sender(net::ip::udp::socket& sender_socket)
     }
 }
 
-void rx_net_receiver(net::ip::udp::socket& receiver_socket)
-{
+void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
     net_error_code::error_code err;
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
@@ -172,10 +170,10 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket)
 
     while (not receiver_thread_stop_flag) {
         net::socket_base::message_flags flags = 0;
-        auto bytes_in_packet = receiver_socket.receive(net::buffer(&recv_buffer, sizeof(recv_buffer)), flags, err);
+        auto bytes_in_packet                  = receiver_socket.receive(net::buffer(&recv_buffer, sizeof(recv_buffer)), flags, err);
         if (err) {
             std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "packet receive error: " <<  err.message() << std::endl;
+            std::cout << "packet receive error: " << err.message() << std::endl;
             return;
         }
         if (bytes_in_packet > 0 and not receiver_thread_stop_flag) {
@@ -195,15 +193,15 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket)
 
 void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
     constexpr size_t buffer_size = 512;
-    auto t0 = std::chrono::steady_clock::now();
+    auto t0                      = std::chrono::steady_clock::now();
 
-    size_t i = 0;
+    size_t i              = 0;
     uint16_t expected_seq = 0;
 
     while (i < n_items) {
         static std::array<data_queue_element, buffer_size> p;
 
-        unsigned n_try = 0;
+        unsigned n_try  = 0;
         size_t n_popped = 0;
 
         while (n_popped == 0 and n_try < n_tries) {
@@ -222,8 +220,8 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
         for (size_t j = 0; j < n_popped; j++) {
             if (p[j].hdr.sequence_counter != expected_seq) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq
-                        << " " << (p[j].hdr.sequence_counter - expected_seq) << std::endl;
+                std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << " "
+                          << (p[j].hdr.sequence_counter - expected_seq) << std::endl;
             }
             if (p[j].hdr.sequence_counter != expected_seq) {
                 seq_errors++;
@@ -240,17 +238,21 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
 
     auto t1                         = std::chrono::steady_clock::now();
     std::chrono::duration<double> d = t1 - t0;
-    pop_rate = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
+    pop_rate                        = (MAX_DATA_LENGTH_SAMPLES * (double)i / d.count());
 }
 
-void run_test(const double n_seconds, const double minimum_rate, const unsigned wait_us, const unsigned chunk_size,
-             double& push_rate, double& pop_rate, unsigned& seq_errors) {
-
+void run_test(const double n_seconds,
+              const double minimum_rate,
+              const unsigned wait_us,
+              const unsigned chunk_size,
+              double& push_rate,
+              double& pop_rate,
+              unsigned& seq_errors) {
     data_buffer_chunk = chunk_size;
-    tx_net_wait_us = wait_us;
+    tx_net_wait_us    = wait_us;
 
-    std::vector<int> thread_priority = { 1, 1};
-    std::vector<int> thread_affinity = { 0, 1};
+    std::vector<int> thread_priority = {1, 1};
+    std::vector<int> thread_affinity = {0, 1};
 
     size_t n_items = std::ceil(n_seconds * minimum_rate / MAX_DATA_LENGTH_SAMPLES);
 
@@ -299,8 +301,8 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
         }
     }
 
-    pop_rate = 0;
-    push_rate = 0;
+    pop_rate   = 0;
+    push_rate  = 0;
     seq_errors = 0;
 
     auto consumer_thread = vxsdr_thread(&rx_consumer, n_items, std::ref(pop_rate), std::ref(seq_errors));
@@ -311,7 +313,7 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
     producer_thread.join();
     consumer_thread.join();
 
-    sender_thread_stop_flag = true;
+    sender_thread_stop_flag   = true;
     receiver_thread_stop_flag = true;
 
     net_error_code::error_code err;
@@ -321,19 +323,20 @@ void run_test(const double n_seconds, const double minimum_rate, const unsigned 
         std::cout << "receiver socket shutdown: " << err.message() << std::endl;
     }
 
-    if(tx_thread.joinable()) {
+    if (tx_thread.joinable()) {
         tx_thread.join();
     }
-    if(rx_thread.joinable()) {
+    if (rx_thread.joinable()) {
         rx_thread.join();
     }
     ctx.stop();
 }
 
-
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc < 4) {
-        std::cerr << "usage: test_net_settings <number of seconds of data> <minimum sample rate> <chunk_delay_us> <packet_pop_chunk_size>" << std::endl;
+        std::cerr
+            << "usage: test_net_settings <number of seconds of data> <minimum sample rate> <chunk_delay_us> <packet_pop_chunk_size>"
+            << std::endl;
         return -1;
     }
     double n_seconds    = atof(argv[1]);
@@ -343,11 +346,12 @@ int main(int argc, char *argv[]) {
 
     double push_rate = 0, pop_rate = 0;
     unsigned seq_errors = 0;
-    bool pass = true;
+    bool pass           = true;
     try {
         run_test(n_seconds, min_rate, delay_us, chunk_size, push_rate, pop_rate, seq_errors);
-        std::cout << fmt::format(" {:10.1f} {:10d} {:10d} {:12.2e} {:12.2e} {:12.2e} {:10d}",
-                                n_seconds, delay_us, chunk_size, min_rate, push_rate, pop_rate, seq_errors) << std::endl;
+        std::cout << fmt::format(" {:10.1f} {:10d} {:10d} {:12.2e} {:12.2e} {:12.2e} {:10d}", n_seconds, delay_us, chunk_size,
+                                 min_rate, push_rate, pop_rate, seq_errors)
+                  << std::endl;
 
         pass = (seq_errors > 0) || (push_rate < min_rate) || (pop_rate < min_rate);
     } catch (std::exception& e) {

@@ -1,15 +1,15 @@
+#include <algorithm>
 #include <array>
 #include <atomic>
-#include <algorithm>
 #include <bit>
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <memory>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
-#include <chrono>
 using namespace std::chrono_literals;
 
 #include <errno.h>
@@ -31,7 +31,7 @@ void data_transport::log_stats() const {
     }
     LOG_INFO("   {:15d} bytes received", bytes_received);
     LOG_INFO("   {:15d} samples received", samples_received);
-    if(sequence_errors == 0) {
+    if (sequence_errors == 0) {
         LOG_INFO("   {:15d} sequence errors", sequence_errors);
     } else {
         LOG_WARN("   {:15d} sequence errors", sequence_errors);
@@ -45,7 +45,7 @@ void data_transport::log_stats() const {
     }
     LOG_INFO("   {:15d} bytes sent", bytes_sent);
     LOG_INFO("   {:15d} samples sent", samples_sent);
-    if(send_errors == 0) {
+    if (send_errors == 0) {
         LOG_INFO("   {:15d} send errors", send_errors);
     } else {
         LOG_WARN("   {:15d} send errors", send_errors);
@@ -74,8 +74,8 @@ void data_transport::data_send() {
     static constexpr unsigned data_buffer_size = 256;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
 
-    uint64_t data_packets_processed = 0;
-    uint64_t last_check             = 0;
+    uint64_t data_packets_processed          = 0;
+    uint64_t last_check                      = 0;
     // Note: all of these must be less than or equal to data_buffer_size
     //       since they are used for unchecked indexing into data_buffer!
     unsigned buffer_low_packets_to_send      = data_buffer_size;
@@ -84,9 +84,9 @@ void data_transport::data_send() {
     unsigned buffer_check_throttling_packets = data_buffer_size / 2;
 
     throttling_state throttling_state = NO_THROTTLING;
-    unsigned buffer_check_interval = buffer_check_default_packets;
+    unsigned buffer_check_interval    = buffer_check_default_packets;
     // make sure the buffer doesn't overflow
-    unsigned max_packets_to_send   = std::min(data_buffer_size, buffer_normal_packets_to_send);
+    unsigned max_packets_to_send      = std::min(data_buffer_size, buffer_normal_packets_to_send);
 
     // get class-specific values
     const bool use_throttling        = use_tx_throttling();
@@ -119,32 +119,32 @@ void data_transport::data_send() {
             if (throttling_state == NO_THROTTLING) {
                 if (tx_buffer_fill_percent >= throttle_hard_pct) {
                     throttling_state = HARD_THROTTLING;
-                    LOG_TRACE("{:s} data tx entering throttling state HARD from NONE ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                    LOG_TRACE("{:s} data tx entering throttling state HARD from NONE ({:2d}% full)", transport_type,
+                              (int)tx_buffer_fill_percent);
                 } else if (tx_buffer_fill_percent >= throttle_on_pct) {
                     throttling_state = NORMAL_THROTTLING;
-                    LOG_TRACE("{:s} data tx entering throttling state NRML from NONE ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                    LOG_TRACE("{:s} data tx entering throttling state NRML from NONE ({:2d}% full)", transport_type,
+                              (int)tx_buffer_fill_percent);
                 }
             } else if (throttling_state == NORMAL_THROTTLING) {
                 if (tx_buffer_fill_percent >= throttle_hard_pct) {
                     throttling_state = HARD_THROTTLING;
-                    LOG_TRACE("{:s} data tx entering throttling state HARD from NRML ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                    LOG_TRACE("{:s} data tx entering throttling state HARD from NRML ({:2d}% full)", transport_type,
+                              (int)tx_buffer_fill_percent);
                 } else if (tx_buffer_fill_percent < throttle_off_pct) {
                     throttling_state = NO_THROTTLING;
-                    LOG_TRACE("{:s} data tx entering throttling state NONE from NRML ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                    LOG_TRACE("{:s} data tx entering throttling state NONE from NRML ({:2d}% full)", transport_type,
+                              (int)tx_buffer_fill_percent);
                 }
             } else {  // current_state == HARD_THROTTLING
                 if (tx_buffer_fill_percent < throttle_off_pct) {
                     throttling_state = NO_THROTTLING;
-                    LOG_TRACE("{:s} data tx entering throttling state NONE from HARD ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                    LOG_TRACE("{:s} data tx entering throttling state NONE from HARD ({:2d}% full)", transport_type,
+                              (int)tx_buffer_fill_percent);
                 } else if (tx_buffer_fill_percent < throttle_hard_pct) {
                     throttling_state = NORMAL_THROTTLING;
-                    LOG_TRACE("{:s} data tx entering throttling state NRML from HARD ({:2d}% full)",
-                                transport_type, (int)tx_buffer_fill_percent);
+                    LOG_TRACE("{:s} data tx entering throttling state NRML from HARD ({:2d}% full)", transport_type,
+                              (int)tx_buffer_fill_percent);
                 }
             }
             // In no throttling and normal throttling, two control variables are set:
@@ -175,7 +175,8 @@ void data_transport::data_send() {
                 std::this_thread::sleep_for(data_send_wait);
             }
             for (unsigned i = 0; i < n_popped; i++) {
-                if (use_throttling and (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
+                if (use_throttling and
+                    (data_packets_processed == 0 or data_packets_processed - last_check >= buffer_check_interval)) {
                     // request ack to update buffer use
                     data_buffer[i].hdr.flags |= FLAGS_REQUEST_ACK;
                     last_check = data_packets_processed;
@@ -213,11 +214,11 @@ void data_transport::data_send() {
 void data_transport::data_receive() {
     LOG_DEBUG("{:s} data rx started", get_transport_type());
     const std::string transport_type = get_transport_type();
-    uint16_t last_seq = 0;
-    bytes_received    = 0;
-    samples_received  = 0;
-    packets_received  = 0;
-    sequence_errors   = 0;
+    uint16_t last_seq                = 0;
+    bytes_received                   = 0;
+    samples_received                 = 0;
+    packets_received                 = 0;
+    sequence_errors                  = 0;
 
     if (rx_data_queue.empty()) {
         rx_state = TRANSPORT_SHUTDOWN;
@@ -231,7 +232,7 @@ void data_transport::data_receive() {
 
     while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
         static data_queue_element recv_buffer;
-        int err = 0;
+        int err                = 0;
         size_t bytes_in_packet = 0;
 
         // sync receive
@@ -248,8 +249,8 @@ void data_transport::data_receive() {
                 // check size and discard unless packet size agrees with header
                 if (recv_buffer.hdr.packet_size != bytes_in_packet) {
                     rx_state = TRANSPORT_ERROR;
-                    LOG_ERROR("packet size error in {:s} data rx (header {:d}, packet {:d})",
-                            transport_type, (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
+                    LOG_ERROR("packet size error in {:s} data rx (header {:d}, packet {:d})", transport_type,
+                              (uint16_t)recv_buffer.hdr.packet_size, bytes_in_packet);
                     if (throw_on_rx_error) {
                         throw(std::runtime_error("packet size error in " + transport_type + " data rx"));
                     }
@@ -261,10 +262,10 @@ void data_transport::data_receive() {
 
                     // check sequence and update sequence counter
                     if (packets_received > 1 and recv_buffer.hdr.sequence_counter != (uint16_t)(last_seq + 1)) {
-                        rx_state = TRANSPORT_ERROR;
+                        rx_state          = TRANSPORT_ERROR;
                         uint16_t received = recv_buffer.hdr.sequence_counter;
-                        LOG_ERROR("sequence error in {:s} data rx (expected {:d}, received {:d})",
-                                transport_type, (uint16_t)(last_seq + 1), received);
+                        LOG_ERROR("sequence error in {:s} data rx (expected {:d}, received {:d})", transport_type,
+                                  (uint16_t)(last_seq + 1), received);
                         sequence_errors++;
                         sequence_errors_current_stream++;
                         if (throw_on_rx_error) {
@@ -278,33 +279,35 @@ void data_transport::data_receive() {
                         if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
                             uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
                             // update sample stats
-                            size_t n_samps = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
+                            size_t n_samps         = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
                             if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
-                                        transport_type, recv_buffer.hdr.subdevice, samples_received);
+                                          transport_type, recv_buffer.hdr.subdevice, samples_received);
                                 if (throw_on_rx_error) {
                                     throw(std::runtime_error("error pushing to data queue in " + transport_type + " data rx"));
                                 }
                             }
                         } else {
-                            LOG_WARN("{:s} data rx discarded rx data packet from unknown subdevice {:d}",
-                                    transport_type, recv_buffer.hdr.subdevice);
+                            LOG_WARN("{:s} data rx discarded rx data packet from unknown subdevice {:d}", transport_type,
+                                     recv_buffer.hdr.subdevice);
                         }
                     } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
-                        auto* r = std::bit_cast<six_uint32_packet*>(&recv_buffer);
+                        auto* r              = std::bit_cast<six_uint32_packet*>(&recv_buffer);
                         tx_buffer_used_bytes = r->value3;
                         tx_buffer_size_bytes = r->value4;
                         tx_packet_oos_count  = r->value5;
                         if (tx_buffer_size_bytes > 0) {
-                            tx_buffer_fill_percent = (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
+                            tx_buffer_fill_percent =
+                                (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
                         } else {
                             tx_buffer_fill_percent = 0;
                         }
                     } else {
-                        LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", transport_type, (int)recv_buffer.hdr.packet_type);
+                        LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", transport_type,
+                                 (int)recv_buffer.hdr.packet_type);
                     }
                 }
             }

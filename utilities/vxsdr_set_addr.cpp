@@ -3,10 +3,10 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include <iostream>
-#include <string>
 #include <exception>
 #include <future>
+#include <iostream>
+#include <string>
 
 #include "option_utils.hpp"
 
@@ -43,9 +43,7 @@ bool receive_packet(net::ip::udp::socket& receiver_socket,
     return false;
 }
 
-bool send_device_cmd(net::ip::udp::socket& sender_socket,
-                                        net::ip::udp::endpoint& device_endpoint,
-                                        packet& packet) {
+bool send_device_cmd(net::ip::udp::socket& sender_socket, net::ip::udp::endpoint& device_endpoint, packet& packet) {
     static size_t packets_sent = 0;
     if (packet.hdr.packet_type != PACKET_TYPE_DEVICE_CMD) {
         return false;
@@ -58,9 +56,9 @@ bool send_device_cmd(net::ip::udp::socket& sender_socket,
 bool send_set_transport_addr_packet(net::ip::udp::socket& sender_socket,
                                     net::ip::udp::endpoint& device_endpoint,
                                     net::ip::address_v4& new_address) {
-    one_uint32_packet p         = {};
-    p.hdr                       = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SET_TRANSPORT_ADDR, 0, 0, 0, sizeof(p), 0};
-    p.value1                    = new_address.to_uint();
+    one_uint32_packet p = {};
+    p.hdr               = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SET_TRANSPORT_ADDR, 0, 0, 0, sizeof(p), 0};
+    p.value1            = new_address.to_uint();
     return send_device_cmd(sender_socket, device_endpoint, p);
 }
 
@@ -74,7 +72,8 @@ int main(int argc, char* argv[]) {
     const unsigned udp_device_receive_port = 1030;
 
     try {
-        option_utils::program_options desc("vxsdr_set_addr", "Sets a new IPv4 address for a VXSDR device; use vxsdr_save_addr to make the change permanent");
+        option_utils::program_options desc(
+            "vxsdr_set_addr", "Sets a new IPv4 address for a VXSDR device; use vxsdr_save_addr to make the change permanent");
 
         add_setup_options(desc);
 

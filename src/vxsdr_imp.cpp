@@ -1,25 +1,24 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <algorithm>
 #include <cmath>
 #include <compare>
 #include <fstream>
-#include <sstream>
-#include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
-#include <memory>
 #include <utility>
 
 #include "logging.hpp"
-#include "vxsdr_packets.hpp"
-#include "vxsdr_transport.hpp"
-#include "vxsdr_threads.hpp"
 #include "vxsdr_imp.hpp"
-
+#include "vxsdr_packets.hpp"
+#include "vxsdr_threads.hpp"
+#include "vxsdr_transport.hpp"
 
 /*! @file vxsdr_imp.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_imp class.
@@ -31,7 +30,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
 
     auto det = get_library_details();
     LOG_INFO("library info:");
-    for (auto &str : det) {
+    for (auto& str : det) {
         LOG_INFO("    {:s}", str);
     }
 
@@ -40,7 +39,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     std::shared_ptr<pcie_dma_interface> pcie_iface = nullptr;
 
     // See if a PCIe interface is needed
-    if constexpr(pcie_transport_enabled) {
+    if constexpr (pcie_transport_enabled) {
         if (config["command_transport"] == vxsdr::TRANSPORT_TYPE_PCIE or config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
             pcie_iface = std::make_shared<pcie_dma_interface>();
         }
@@ -69,7 +68,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     const auto output_type = (vxsdr::async_message_handler)config["async_message_handler"];
-    async_handler_thread = vxsdr_thread([this, output_type] { vxsdr::imp::async_handler(output_type); });
+    async_handler_thread   = vxsdr_thread([this, output_type] { vxsdr::imp::async_handler(output_type); });
 
     auto res = vxsdr::imp::hello();
     if (not res) {
@@ -85,7 +84,8 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     // check that library and device support the same packet version
     if (get_library_packet_version() != res->at(4)) {
         LOG_WARN("library packet version is {:s}, device packet version is {:s}",
-                vxsdr::imp::version_number_to_string(get_library_packet_version()), vxsdr::imp::version_number_to_string(res->at(4)));
+                 vxsdr::imp::version_number_to_string(get_library_packet_version()),
+                 vxsdr::imp::version_number_to_string(res->at(4)));
     }
     LOG_INFO("   sample format: 0x{:x}", res->at(5));
     LOG_INFO("   number of subdevices: {:d}", res->at(6));
@@ -102,8 +102,8 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
-    unsigned sample_granularity = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
-    unsigned num_rx_subdevs = res->at(6);
+    unsigned sample_granularity   = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
+    unsigned num_rx_subdevs       = res->at(6);
     // the initial value is the maximum the device can support; the transport may reduce it if required
     unsigned max_samps_per_packet = sample_granularity * ((res->at(7) / sizeof(vxsdr::wire_sample)) / sample_granularity);
 
@@ -122,7 +122,8 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         data_tport = std::make_unique<udp_data_transport>(config, sample_granularity, num_rx_subdevs, max_samps_per_packet);
     } else if (pcie_transport_enabled and config["data_transport"] == vxsdr::TRANSPORT_TYPE_PCIE) {
         LOG_DEBUG("making pcie data transport with {:d} receive subdevices", num_rx_subdevs);
-        data_tport = std::make_unique<pcie_data_transport>(config, pcie_iface, sample_granularity, num_rx_subdevs, max_samps_per_packet);
+        data_tport =
+            std::make_unique<pcie_data_transport>(config, pcie_iface, sample_granularity, num_rx_subdevs, max_samps_per_packet);
     } else {
         LOG_ERROR("the data transport specified is not enabled");
         throw std::runtime_error("the data transport specified is not enabled in vxsdr constructor");
@@ -216,10 +217,14 @@ std::vector<std::string> vxsdr::imp::get_library_details() {
     return ret;
 }
 
-template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
+template <typename T>
+size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
+                               size_t n_requested,
+                               const uint8_t subdev,
+                               const double timeout_s) {
     LOG_DEBUG("get_rx_data from subdevice {:d} entered", subdev);
 
-    if(subdev >= data_tport->rx_data_queue.size()) {
+    if (subdev >= data_tport->rx_data_queue.size()) {
         LOG_ERROR("incorrect subdevice {:d} in get_rx_data()", subdev);
         return 0;
     }
@@ -233,7 +238,7 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         return 0;
     }
     const vxsdr::duration data_rx_timeout = std::chrono::microseconds(std::llround(timeout_s * 1e6));
-    const vxsdr::duration data_rx_wait = 100us;
+    const vxsdr::duration data_rx_wait    = 100us;
 
     if (not data_tport->rx_usable()) {
         LOG_ERROR("data transport rx is not usable in get_rx_data()");
@@ -268,13 +273,13 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         size_t n_to_copy = std::min(n_requested, saved_samples);
         std::vector<vxsdr::wire_sample> saved_data(n_to_copy);
         int64_t n_saved = data_tport->rx_sample_queue[subdev]->pop(saved_data.data(), n_to_copy);
-        if constexpr(std::is_same<T, int16_t>()) {
-            for(int64_t i = 0; i < n_saved; i++) {
+        if constexpr (std::is_same<T, int16_t>()) {
+            for (int64_t i = 0; i < n_saved; i++) {
                 data[n_received + i] = saved_data[i];
             }
-        } else if constexpr(std::is_floating_point<T>()) {
+        } else if constexpr (std::is_floating_point<T>()) {
             constexpr T scale = 1.0 / 32'768.0;
-            for(int64_t i = 0; i < n_saved; i++) {
+            for (int64_t i = 0; i < n_saved; i++) {
                 data[n_received + i] = std::complex<T>(scale * (T)saved_data[i].real(), scale * (T)saved_data[i].imag());
             }
         }
@@ -290,27 +295,28 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         while (not data_tport->rx_data_queue[subdev]->pop(q)) {
             std::this_thread::sleep_for(data_rx_wait);
             if ((std::chrono::steady_clock::now() - start_time) > data_rx_timeout) {
-                LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received, n_requested);
+                LOG_ERROR("timeout popping from rx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_received,
+                          n_requested);
                 return n_received;
             }
         }
 
         if (q.hdr.packet_size == 0) {
-            LOG_ERROR("zero size packet popped from rx_data_queue (type = 0x{:02x} cmd = 0x{:02x})",
-                        (unsigned)q.hdr.packet_type, (unsigned)q.hdr.command);
+            LOG_ERROR("zero size packet popped from rx_data_queue (type = 0x{:02x} cmd = 0x{:02x})", (unsigned)q.hdr.packet_type,
+                      (unsigned)q.hdr.command);
         }
-        auto packet_data = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
+        auto packet_data     = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
         int64_t data_samples = packet_data.size();
 
         if (data_samples > 0) {
             int64_t n_to_copy = std::min(n_remaining, data_samples);
-            if constexpr(std::is_same<T, int16_t>()) {
-                for(int64_t i = 0; i < n_to_copy; i++) {
+            if constexpr (std::is_same<T, int16_t>()) {
+                for (int64_t i = 0; i < n_to_copy; i++) {
                     data[n_received + i] = packet_data[i];
                 }
-            } else if constexpr(std::is_floating_point<T>()) {
+            } else if constexpr (std::is_floating_point<T>()) {
                 constexpr T scale = 1.0 / 32'768.0;
-                for(int64_t i = 0; i < n_to_copy; i++) {
+                for (int64_t i = 0; i < n_to_copy; i++) {
                     data[n_received + i] = std::complex<T>(scale * (T)packet_data[i].real(), scale * (T)packet_data[i].imag());
                 }
             }
@@ -320,7 +326,8 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
         if (data_samples > n_remaining) {
             int64_t n_pushed = data_tport->rx_sample_queue[subdev]->push(&packet_data[n_remaining], data_samples - n_remaining);
             if (n_pushed != data_samples - n_remaining) {
-                LOG_ERROR("error pushing data to rx sample queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_pushed, data_samples - n_remaining);
+                LOG_ERROR("error pushing data to rx sample queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_pushed,
+                          data_samples - n_remaining);
                 return n_received;
             }
         }
@@ -330,10 +337,20 @@ template <typename T> size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>
 }
 
 // Need to explicitly instantiate template classes for all allowed types so compiler will include code in library
-template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<int16_t>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
-template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<float>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
+template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<int16_t>>& data,
+                                        size_t n_requested,
+                                        const uint8_t subdev,
+                                        const double timeout_s);
+template size_t vxsdr::imp::get_rx_data(std::vector<std::complex<float>>& data,
+                                        size_t n_requested,
+                                        const uint8_t subdev,
+                                        const double timeout_s);
 
-template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s) {
+template <typename T>
+size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data,
+                               size_t n_requested,
+                               const uint8_t subdev,
+                               const double timeout_s) {
     LOG_DEBUG("put_tx_data started");
 
     if (timeout_s <= 0.0) {
@@ -345,7 +362,7 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         return 0;
     }
     const vxsdr::duration data_tx_timeout = std::chrono::microseconds(std::llround(timeout_s * 1e6));
-    const vxsdr::duration data_tx_wait = 100us;
+    const vxsdr::duration data_tx_wait    = 100us;
 
     if (not data_tport->tx_rx_usable()) {
         // need both available since acks must be received
@@ -370,7 +387,7 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
     LOG_DEBUG("sending {:d} samples to subdevice {:d}", n_requested, subdev);
 
     // puts plain data_packets (no time, no stream)
-    size_t n_put = 0;
+    size_t n_put        = 0;
     size_t n_packet_max = data_tport->get_max_samples_per_packet();
     for (size_t i = 0; i < n_requested; i += n_packet_max) {
         data_queue_element q;
@@ -379,13 +396,13 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
         unsigned n_data_bytes = n_samples * sizeof(vxsdr::wire_sample);
         auto packet_size      = (uint16_t)(sizeof(packet_header) + n_data_bytes);
         p->hdr                = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, subdev, 0, packet_size, 0};
-        if constexpr(std::is_same<T, int16_t>()) {
+        if constexpr (std::is_same<T, int16_t>()) {
             // data is in native format -- just copy
             std::copy_n(data.begin() + (int64_t)i, (int64_t)n_samples, std::begin(p->data));
-        } else if constexpr(std::is_floating_point<T>()) {
+        } else if constexpr (std::is_floating_point<T>()) {
             // must convert data from float and scale it
             constexpr T scale = 32'767.0;
-            for(size_t j = 0; j < n_samples; j++) {
+            for (size_t j = 0; j < n_samples; j++) {
 #ifndef VXSDR_LIB_TRUNCATE_FLOAT_CONVERSION
 #if defined(VXSDR_COMPILER_CLANG) || defined(VXSDR_COMPILER_APPLECLANG) || defined(VXSDR_COMPILER_GCC)
                 // for float32 data (the only floating-point data currently supported),
@@ -405,16 +422,15 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
                     im -= (T)0.5;
                 }
                 p->data[j] = std::complex<int16_t>((int16_t)(re), (int16_t)(im));
-#else // #if defined(VXSDR_COMPILER_CLANG) or defined(VXSDR_COMPILER_GCC)
-                // the implementation below rounds properly using a library routine; it can be several times slower
+#else   // #if defined(VXSDR_COMPILER_CLANG) or defined(VXSDR_COMPILER_GCC)
+        // the implementation below rounds properly using a library routine; it can be several times slower
                 p->data[j] = std::complex<int16_t>((int16_t)std::lroundf(scale * data[i + j].real()),
-                                                (int16_t)std::lroundf(scale * data[i + j].imag()));
-#endif // #if defined(VXSDR_COMPILER_CLANG) or defined(VXSDR_COMPILER_GCC)
-#else // #ifndef VXSDR_LIB_TRUNCATE_FLOAT_CONVERSION
-                // truncate is fast but costs 6 dB in output noise floor
-                p->data[j] = std::complex<int16_t>((int16_t)(scale * data[i + j].real()),
-                                                (int16_t)(scale * data[i + j].imag()));
-#endif // #ifndef VXSDR_LIB_TRUNCATE_FLOAT_CONVERSION
+                                                   (int16_t)std::lroundf(scale * data[i + j].imag()));
+#endif  // #if defined(VXSDR_COMPILER_CLANG) or defined(VXSDR_COMPILER_GCC)
+#else   // #ifndef VXSDR_LIB_TRUNCATE_FLOAT_CONVERSION
+        // truncate is fast but costs 6 dB in output noise floor
+                p->data[j] = std::complex<int16_t>((int16_t)(scale * data[i + j].real()), (int16_t)(scale * data[i + j].imag()));
+#endif  // #ifndef VXSDR_LIB_TRUNCATE_FLOAT_CONVERSION
             }
         }
 
@@ -434,14 +450,20 @@ template <typename T> size_t vxsdr::imp::put_tx_data(const std::vector<std::comp
 }
 
 // Need to explicitly instantiate template classes for all allowed types so compiler will include code in library!
-template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<int16_t>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
-template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<float>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
+template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<int16_t>>& data,
+                                        size_t n_requested,
+                                        const uint8_t subdev,
+                                        const double timeout_s);
+template size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<float>>& data,
+                                        size_t n_requested,
+                                        const uint8_t subdev,
+                                        const double timeout_s);
 
 bool vxsdr::imp::set_host_command_timeout(const double timeout_s) {
     if (timeout_s > 3600 or timeout_s < 1e-3) {
         return false;
     }
-    vxsdr::imp::command_response_timeout= std::chrono::milliseconds(std::llround(1e3 * timeout_s));
+    vxsdr::imp::command_response_timeout = std::chrono::milliseconds(std::llround(1e3 * timeout_s));
     return true;
 }
 
@@ -471,14 +493,14 @@ double vxsdr::imp::get_host_command_timeout() const {
         }
     }
     if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
-            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
-            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
+         (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
+         (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
         q.hdr.command == p.hdr.command) {
         return true;
     }
     if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
-            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
-            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
+         (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
+         (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
         q.hdr.command == p.hdr.command) {
         LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return false;
@@ -487,7 +509,8 @@ double vxsdr::imp::get_host_command_timeout() const {
     return false;
 }
 
-[[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_command_and_return_response(packet& p, const std::string& cmd_name) {
+[[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_command_and_return_response(packet& p,
+                                                                                                const std::string& cmd_name) {
     if (not command_tport->tx_rx_usable()) {
         LOG_ERROR("send_command_and_return_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
         return std::nullopt;
@@ -506,14 +529,14 @@ double vxsdr::imp::get_host_command_timeout() const {
         }
     }
     if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
-            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
-            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
+         (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
+         (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
         q.hdr.command == p.hdr.command) {
         return q;
     }
     if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
-            (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
-            (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
+         (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
+         (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
         q.hdr.command == p.hdr.command) {
         LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return std::nullopt;
@@ -524,7 +547,7 @@ double vxsdr::imp::get_host_command_timeout() const {
 
 [[nodiscard]] bool vxsdr::imp::cmd_queue_push_check(packet& p, const std::string& cmd_name) {
     command_queue_element q;
-    std::memcpy((void *)&q, &p, std::min((size_t)p.hdr.packet_size, sizeof(q)));
+    std::memcpy((void*)&q, &p, std::min((size_t)p.hdr.packet_size, sizeof(q)));
     if (not command_tport->command_queue.push(q)) {
         LOG_ERROR("error pushing to command queue in {:s}", cmd_name);
         return false;
@@ -537,7 +560,7 @@ void vxsdr::imp::async_handler(const vxsdr::async_message_handler output_type) {
     while (not async_handler_stop_flag and command_tport->rx_state != packet_transport::TRANSPORT_SHUTDOWN) {
         command_queue_element a;
         while (command_tport->async_msg_queue.pop(a)) {
-            switch(output_type) {
+            switch (output_type) {
                 case vxsdr::ASYNC_NULL:
                     vxsdr::imp::null_async_message_handler(a);
                     break;
@@ -563,7 +586,7 @@ void vxsdr::imp::null_async_message_handler(const command_queue_element& a) cons
 
 void vxsdr::imp::brief_async_message_handler(const command_queue_element& a) const {
     uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
-    switch(type) {
+    switch (type) {
         case ASYNC_NO_ERROR:
             break;
         case ASYNC_DATA_UNDERFLOW:
@@ -605,7 +628,8 @@ void vxsdr::imp::brief_async_message_handler(const command_queue_element& a) con
 void vxsdr::imp::stderr_async_message_handler(const command_queue_element& a) const {
     uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
-        std::cerr << "async_msg: " + async_msg_to_name(a.hdr.command) + " subdevice " +  std::to_string(a.hdr.subdevice) << std::endl;
+        std::cerr << "async_msg: " + async_msg_to_name(a.hdr.command) + " subdevice " + std::to_string(a.hdr.subdevice)
+                  << std::endl;
     }
 }
 
@@ -624,23 +648,23 @@ void vxsdr::imp::log_async_message_handler(const command_queue_element& a) const
 void vxsdr::imp::throw_async_message_handler(const command_queue_element& a) const {
     uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
-        std::string msg = async_msg_to_name(a.hdr.command) + " subdevice " +  std::to_string(a.hdr.subdevice);
+        std::string msg = async_msg_to_name(a.hdr.command) + " subdevice " + std::to_string(a.hdr.subdevice);
         throw vxsdr::async_message_exception(msg);
     }
 }
 
 void vxsdr::imp::time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) const {
     auto secs = std::chrono::time_point_cast<std::chrono::seconds>(t);
-    auto nsecs = std::chrono::time_point_cast<std::chrono::nanoseconds>(t)
-                    - std::chrono::time_point_cast<std::chrono::nanoseconds>(secs);
+    auto nsecs =
+        std::chrono::time_point_cast<std::chrono::nanoseconds>(t) - std::chrono::time_point_cast<std::chrono::nanoseconds>(secs);
     ts.seconds     = (uint32_t)secs.time_since_epoch().count();
     ts.nanoseconds = (uint32_t)nsecs.count();
 }
 
 void vxsdr::imp::duration_to_time_spec_t(const vxsdr::duration& d, time_spec_t& ts) const {
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(d);
-    auto nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(d)
-                    - std::chrono::duration_cast<std::chrono::nanoseconds>(secs);
+    auto nsecs =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(d) - std::chrono::duration_cast<std::chrono::nanoseconds>(secs);
     ts.seconds     = (uint32_t)secs.count();
     ts.nanoseconds = (uint32_t)nsecs.count();
 }
@@ -901,23 +925,23 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
     uint8_t sys = msg & ASYNC_AFFECTED_SYSTEM_MASK;
     std::string subsys;
     std::string typstr;
-    switch(sys) {
-            case ASYNC_UNSPECIFIED:
-                subsys = "";
-                break;
-            case ASYNC_TX:
-                subsys = "TX";
-                break;
-            case ASYNC_RX:
-                subsys = "RX";
-                break;
-            case ASYNC_FPGA:
-                subsys = "FPGA";
-                break;
-            default:
-                subsys = "UNKNOWN";
-                break;
-        }
+    switch (sys) {
+        case ASYNC_UNSPECIFIED:
+            subsys = "";
+            break;
+        case ASYNC_TX:
+            subsys = "TX";
+            break;
+        case ASYNC_RX:
+            subsys = "RX";
+            break;
+        case ASYNC_FPGA:
+            subsys = "FPGA";
+            break;
+        default:
+            subsys = "UNKNOWN";
+            break;
+    }
     switch (typ) {
         case ASYNC_NO_ERROR:
             typstr = "NO_ERROR";
@@ -941,10 +965,10 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
             typstr = "PPS_TIMEOUT";
             break;
         case ASYNC_VOLTAGE_ERROR:
-            typstr =  "VOLTAGE_ERROR";
+            typstr = "VOLTAGE_ERROR";
             break;
         case ASYNC_CURRENT_ERROR:
-            typstr =  "CURRENT_ERROR";
+            typstr = "CURRENT_ERROR";
             break;
         default:
             typstr = "UNKNOWN";

@@ -10,10 +10,10 @@
 
 #include <stdint.h>
 
-#define PACKET_VERSION_STRING                "1.0.12"
-#define PACKET_VERSION_MAJOR                 (1)
-#define PACKET_VERSION_MINOR                 (0)
-#define PACKET_VERSION_PATCH                 (12)
+#define PACKET_VERSION_STRING "1.0.12"
+#define PACKET_VERSION_MAJOR  (1)
+#define PACKET_VERSION_MINOR  (0)
+#define PACKET_VERSION_PATCH  (12)
 
 /*
    This header defines the VXSDR packet format. It is used (in C) by the MCU controlling the device,
@@ -44,18 +44,18 @@ extern "C" {
 
    The size and sequence elements are little-endian uint16_t's.
 */
-#define VXSDR_PACKET_TYPE_BITS               (6)
-#define VXSDR_COMMAND_BITS                   (6)
-#define VXSDR_FLAGS_BITS                     (4)
+#define VXSDR_PACKET_TYPE_BITS (6)
+#define VXSDR_COMMAND_BITS     (6)
+#define VXSDR_FLAGS_BITS       (4)
 
 typedef struct {
-    uint16_t packet_type        : VXSDR_PACKET_TYPE_BITS;
-    uint16_t command            : VXSDR_COMMAND_BITS;
-    uint16_t flags              : VXSDR_FLAGS_BITS;
-    uint8_t  subdevice;        // 8 bits
-    uint8_t  channel;          // 8 bits
-    uint16_t packet_size;      // 16 bits; length of packet including header in bytes
-    uint16_t sequence_counter; // 16 bits; wraps on overflow
+    uint16_t packet_type : VXSDR_PACKET_TYPE_BITS;
+    uint16_t command : VXSDR_COMMAND_BITS;
+    uint16_t flags : VXSDR_FLAGS_BITS;
+    uint8_t subdevice;          // 8 bits
+    uint8_t channel;            // 8 bits
+    uint16_t packet_size;       // 16 bits; length of packet including header in bytes
+    uint16_t sequence_counter;  // 16 bits; wraps on overflow
 } packet_header;
 
 /*
@@ -65,8 +65,8 @@ typedef struct {
 */
 
 typedef struct {
-  uint32_t              seconds;
-  uint32_t              nanoseconds;
+    uint32_t seconds;
+    uint32_t nanoseconds;
 } time_spec_t;
 
 typedef uint64_t stream_spec_t;
@@ -125,9 +125,9 @@ typedef uint64_t capabilities_t;
 #define PACKET_TYPE_MASK                     (0x0FU)
 
 // convenience macros to turn a command into an err, rsp, or ack
-#define PACKET_TYPE_MAKE_ERR(x)              (((x) & PACKET_TYPE_MASK) | PACKET_ERR_INDICATOR)
-#define PACKET_TYPE_MAKE_RSP(x)              (((x) & PACKET_TYPE_MASK) | PACKET_RSP_INDICATOR)
-#define PACKET_TYPE_MAKE_ACK(x)              (((x) & PACKET_TYPE_MASK) | PACKET_ACK_INDICATOR)
+#define PACKET_TYPE_MAKE_ERR(x)              (((x)&PACKET_TYPE_MASK) | PACKET_ERR_INDICATOR)
+#define PACKET_TYPE_MAKE_RSP(x)              (((x)&PACKET_TYPE_MASK) | PACKET_RSP_INDICATOR)
+#define PACKET_TYPE_MAKE_ACK(x)              (((x)&PACKET_TYPE_MASK) | PACKET_ACK_INDICATOR)
 
 //   Errors, responses, and acks are sent by a radio only,
 //   and only in response to a host packet
@@ -334,21 +334,21 @@ typedef uint64_t capabilities_t;
 #define SAMPLE_DATATYPE_MASK                 (SAMPLE_TYPE_MASK | SAMPLE_FORMAT_MASK | SAMPLE_LENGTH_MASK)  // type, format, and length
 #define SAMPLE_GRANULARITY_MASK              (0xFF000000UL)
 #define SAMPLE_GRANULARITY_SHIFT             (24)
-#define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK &  8UL))
-#define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 12UL))
-#define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 16UL))
-#define SAMPLE_TYPE_REAL_I20                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 20UL))
-#define SAMPLE_TYPE_REAL_I24                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 24UL))
-#define SAMPLE_TYPE_REAL_I32                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 32UL))
-#define SAMPLE_TYPE_REAL_F16                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 16UL))
-#define SAMPLE_TYPE_REAL_F32                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 32UL))
-#define SAMPLE_TYPE_REAL_F64                 (SAMPLE_TYPE_REAL    | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 64UL))
-#define SAMPLE_TYPE_COMPLEX_I8               (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK &  8UL))
-#define SAMPLE_TYPE_COMPLEX_I12              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 12UL))
-#define SAMPLE_TYPE_COMPLEX_I16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 16UL))
-#define SAMPLE_TYPE_COMPLEX_I20              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 20UL))
-#define SAMPLE_TYPE_COMPLEX_I24              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 24UL))
-#define SAMPLE_TYPE_COMPLEX_I32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT   | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 8UL))
+#define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 12UL))
+#define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_REAL_I20                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 20UL))
+#define SAMPLE_TYPE_REAL_I24                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 24UL))
+#define SAMPLE_TYPE_REAL_I32                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_REAL_F16                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_REAL_F32                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 32UL))
+#define SAMPLE_TYPE_REAL_F64                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 64UL))
+#define SAMPLE_TYPE_COMPLEX_I8               (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 8UL))
+#define SAMPLE_TYPE_COMPLEX_I12              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 12UL))
+#define SAMPLE_TYPE_COMPLEX_I16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 16UL))
+#define SAMPLE_TYPE_COMPLEX_I20              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 20UL))
+#define SAMPLE_TYPE_COMPLEX_I24              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 24UL))
+#define SAMPLE_TYPE_COMPLEX_I32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 32UL))
 #define SAMPLE_TYPE_COMPLEX_F16              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 16UL))
 #define SAMPLE_TYPE_COMPLEX_F32              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 32UL))
 #define SAMPLE_TYPE_COMPLEX_F64              (SAMPLE_TYPE_COMPLEX | SAMPLE_FORMAT_FLOAT | (SAMPLE_LENGTH_MASK & 64UL))
@@ -359,11 +359,11 @@ typedef uint64_t capabilities_t;
 #define TIMING_STATUS_REF_OSC_LOCK           (0x00000004U)
 
 #ifdef __cplusplus
-#define VXSDR_CHECK_SIZE_EQUALS(x, n)        static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
-#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n)    static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
+#define VXSDR_CHECK_SIZE_EQUALS(x, n)     static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
+#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n) static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
 #else  // need to use the old form until c23
-#define VXSDR_CHECK_SIZE_EQUALS(x, n)        _Static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
-#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n)    _Static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
+#define VXSDR_CHECK_SIZE_EQUALS(x, n)     _Static_assert(sizeof(x) == (n), "sizeof(" #x ") != " #n)
+#define VXSDR_CHECK_SIZE_LESS_EQUAL(x, n) _Static_assert(sizeof(x) <= (n), "sizeof(" #x ") > " #n)
 #endif
 
 // Check that size is as expected

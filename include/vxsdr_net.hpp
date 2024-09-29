@@ -7,18 +7,18 @@
 // this means use boost::asio (the default)
 #include <boost/asio/ts/buffer.hpp>
 #include <boost/asio/ts/io_context.hpp>
-#include <boost/asio/ts/socket.hpp>
 #include <boost/asio/ts/net.hpp>
-namespace net = boost::asio;
-namespace net_error_code = boost::system;
+#include <boost/asio/ts/socket.hpp>
+namespace net                  = boost::asio;
+namespace net_error_code       = boost::system;
 namespace net_error_code_types = boost::system::errc;
 #else
 // use standalone asio
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/io_context.hpp>
-#include <asio/ts/socket.hpp>
 #include <asio/ts/net.hpp>
-namespace net = asio;
-namespace net_error_code = asio;
+#include <asio/ts/socket.hpp>
+namespace net                  = asio;
+namespace net_error_code       = asio;
 namespace net_error_code_types = asio::error;
 #endif

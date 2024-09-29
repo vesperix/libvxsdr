@@ -4,12 +4,12 @@
 #ifdef VXSDR_ENABLE_PCIE
 
 #include <atomic>
-#include <cstdint>
-#include <cstddef>
 #include <compare>
+#include <cstddef>
+#include <cstdint>
 #include <map>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <system_error>
 #include <thread>
 #include <utility>
@@ -22,7 +22,8 @@
     @brief Constructor, destructor, and utility functions for the @p vxsdr_pcie command transport classes.
 */
 
-pcie_command_transport::pcie_command_transport(const std::map<std::string, int64_t>& settings, std::shared_ptr<pcie_dma_interface> pcie_iface) {
+pcie_command_transport::pcie_command_transport(const std::map<std::string, int64_t>& settings,
+                                               std::shared_ptr<pcie_dma_interface> pcie_iface) {
     LOG_DEBUG("pcie command transport constructor entered");
 
     auto config = apply_transport_settings(settings, get_default_settings());
@@ -57,7 +58,7 @@ pcie_command_transport::~pcie_command_transport() noexcept {
         receiver_thread.join();
     }
     LOG_DEBUG("joining pcie command sender thread");
-    tx_state = TRANSPORT_SHUTDOWN;
+    tx_state                = TRANSPORT_SHUTDOWN;
     sender_thread_stop_flag = true;
     if (sender_thread.joinable()) {
         sender_thread.join();
@@ -74,8 +75,8 @@ size_t pcie_command_transport::packet_send(const packet& packet, int& error_code
 }
 
 size_t pcie_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
-    packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
+    packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     return pcie_if->pcie_dma_command_receive(&packet, sizeof(packet), error_code);
 }
 
-#endif // #ifdef VXSDR_ENABLE_PCIE
+#endif  // #ifdef VXSDR_ENABLE_PCIE

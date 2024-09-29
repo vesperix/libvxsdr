@@ -3,22 +3,22 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
+#include <chrono>
 #include <complex>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <optional>
-#include <vector>
-#include <span>
 #include <ratio>
+#include <span>
 #include <string>
-#include <array>
-#include <chrono>
+#include <vector>
 using namespace std::chrono_literals;
 
-#include "vxsdr_packets.hpp"
 #include "vxsdr_net.hpp"
+#include "vxsdr_packets.hpp"
 #include "vxsdr_queues.hpp"
 #include "vxsdr_threads.hpp"
 #include "vxsdr_transport.hpp"
@@ -34,18 +34,14 @@ class vxsdr::imp {
 #ifdef VXSDR_ENABLE_UDP
     static constexpr bool udp_transport_enabled{true};
     // make UDP the default transport if it is enabled
-    std::map<std::string, int64_t> default_config = {
-        {"command_transport",             vxsdr::TRANSPORT_TYPE_UDP},
-        {"data_transport",                vxsdr::TRANSPORT_TYPE_UDP},
-        {"async_message_handler",         vxsdr::ASYNC_FULL_LOG}
-    };
+    std::map<std::string, int64_t> default_config = {{"command_transport", vxsdr::TRANSPORT_TYPE_UDP},
+                                                     {"data_transport", vxsdr::TRANSPORT_TYPE_UDP},
+                                                     {"async_message_handler", vxsdr::ASYNC_FULL_LOG}};
 #else
     // make PCIe the default if UDP disabled (since one must be enabled)
-    std::map<std::string, int64_t> default_config = {
-        {"command_transport",             vxsdr::TRANSPORT_TYPE_PCIE},
-        {"data_transport",                vxsdr::TRANSPORT_TYPE_PCIE},
-        {"async_message_handler",         vxsdr::ASYNC_FULL_LOG}
-    };
+    std::map<std::string, int64_t> default_config = {{"command_transport", vxsdr::TRANSPORT_TYPE_PCIE},
+                                                     {"data_transport", vxsdr::TRANSPORT_TYPE_PCIE},
+                                                     {"async_message_handler", vxsdr::ASYNC_FULL_LOG}};
     static constexpr bool udp_transport_enabled{false};
 #endif
 
@@ -59,30 +55,30 @@ class vxsdr::imp {
     static constexpr double frequency_setting_rtol = 1e-12;
 
     // waits between tries for data queue push/pop
-    static constexpr unsigned tx_data_queue_wait_us   = 100;
-    static constexpr unsigned rx_data_queue_wait_us   = 100;
+    static constexpr unsigned tx_data_queue_wait_us = 100;
+    static constexpr unsigned rx_data_queue_wait_us = 100;
 
     // timeout and wait for command responses from device
-    vxsdr::duration command_response_timeout                 = 1s;  // not static since user can set
-    static constexpr vxsdr::duration command_response_wait   = 1ms;
+    vxsdr::duration command_response_timeout               = 1s;  // not static since user can set
+    static constexpr vxsdr::duration command_response_wait = 1ms;
 
     // timeout and wait between checks for transport to become ready
     static constexpr vxsdr::duration transport_ready_timeout = 1s;
     static constexpr vxsdr::duration transport_ready_wait    = 1ms;
 
     // timeout and wait between checks for rf (tx and rx) to become ready
-    static constexpr vxsdr::duration rf_ready_timeout        = 5s;
-    static constexpr vxsdr::duration rf_ready_wait           = 5ms;
+    static constexpr vxsdr::duration rf_ready_timeout = 5s;
+    static constexpr vxsdr::duration rf_ready_wait    = 5ms;
 
     // how often to check the async queue
-    static constexpr vxsdr::duration async_queue_wait        = 1ms;
+    static constexpr vxsdr::duration async_queue_wait = 1ms;
     // thread to check the queue
     vxsdr_thread async_handler_thread;
     // flag for shutdown of async handler
     std::atomic<bool> async_handler_stop_flag = false;
 
     std::unique_ptr<command_transport> command_tport{};
-    std::unique_ptr<data_transport>    data_tport{};
+    std::unique_ptr<data_transport> data_tport{};
 
   public:
     explicit imp(const std::map<std::string, int64_t>& config);
@@ -96,14 +92,10 @@ class vxsdr::imp {
     uint32_t get_library_version();
     uint32_t get_library_packet_version();
     std::vector<std::string> get_library_details();
-    template <typename T> size_t get_rx_data(std::vector<std::complex<T>>& data,
-                       size_t n_requested,
-                       const uint8_t subdev,
-                       const double timeout_s);
-    template <typename T> size_t put_tx_data(const std::vector<std::complex<T>>& data,
-                       size_t n_requested,
-                       const uint8_t subdev,
-                       const double timeout_s);
+    template <typename T>
+    size_t get_rx_data(std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
+    template <typename T>
+    size_t put_tx_data(const std::vector<std::complex<T>>& data, size_t n_requested, const uint8_t subdev, const double timeout_s);
     std::optional<std::array<uint32_t, 8>> hello();
     bool reset();
     bool clear_status(const uint8_t subdev = 0);
@@ -113,22 +105,18 @@ class vxsdr::imp {
     std::optional<vxsdr::time_point> get_time_now();
     std::optional<vxsdr::stream_state> get_tx_stream_state(const uint8_t subdev = 0);
     std::optional<vxsdr::stream_state> get_rx_stream_state(const uint8_t subdev = 0);
-    bool tx_start(const vxsdr::time_point& t,
-                                        const uint64_t n,
-                                        const uint8_t subdev = 0);
-    bool rx_start(const vxsdr::time_point& t,
-                                        const uint64_t n,
-                                        const uint8_t subdev = 0);
+    bool tx_start(const vxsdr::time_point& t, const uint64_t n, const uint8_t subdev = 0);
+    bool rx_start(const vxsdr::time_point& t, const uint64_t n, const uint8_t subdev = 0);
     bool tx_loop(const vxsdr::time_point& t,
-                                        const uint64_t n,
-                                        const vxsdr::duration& t_delay = vxsdr::duration::zero(),
-                                        const uint32_t n_repeat = 0,
-                                        const uint8_t subdev = 0);
+                 const uint64_t n,
+                 const vxsdr::duration& t_delay = vxsdr::duration::zero(),
+                 const uint32_t n_repeat        = 0,
+                 const uint8_t subdev           = 0);
     bool rx_loop(const vxsdr::time_point& t,
-                                        const uint64_t n,
-                                        const vxsdr::duration& t_delay = vxsdr::duration::zero(),
-                                        const uint32_t n_repeat = 0,
-                                        const uint8_t subdev = 0);
+                 const uint64_t n,
+                 const vxsdr::duration& t_delay = vxsdr::duration::zero(),
+                 const uint32_t n_repeat        = 0,
+                 const uint8_t subdev           = 0);
     bool tx_stop(const uint8_t subdev = 0);
     bool rx_stop(const uint8_t subdev = 0);
     std::optional<std::array<double, 2>> get_tx_freq_range(const uint8_t subdev = 0);
@@ -175,8 +163,12 @@ class vxsdr::imp {
     bool set_rx_filter_enabled(const bool enabled, const uint8_t subdev = 0);
     std::optional<std::vector<vxsdr::filter_coefficient>> get_tx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
     std::optional<std::vector<vxsdr::filter_coefficient>> get_rx_filter_coeffs(const uint8_t subdev = 0, const uint8_t channel = 0);
-    bool set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
-    bool set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev = 0, const uint8_t channel = 0);
+    bool set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs,
+                              const uint8_t subdev  = 0,
+                              const uint8_t channel = 0);
+    bool set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs,
+                              const uint8_t subdev  = 0,
+                              const uint8_t channel = 0);
     std::optional<unsigned> get_tx_filter_length(const uint8_t subdev = 0);
     std::optional<unsigned> get_rx_filter_length(const uint8_t subdev = 0);
     bool get_tx_external_lo_enabled(const uint8_t subdev = 0);
@@ -218,8 +210,8 @@ class vxsdr::imp {
     bool set_host_command_timeout(const double timeout_s);
     [[nodiscard]] double get_host_command_timeout() const;
     std::vector<std::string> discover_ipv4_addresses(const std::string& local_addr,
-                                                            const std::string& broadcast_addr,
-                                                            const double timeout_s);
+                                                     const std::string& broadcast_addr,
+                                                     const double timeout_s);
     bool set_ipv4_address(const std::string& device_address);
     bool save_ipv4_address(const std::string& device_address);
     std::optional<unsigned> get_max_payload_bytes();
@@ -233,6 +225,7 @@ class vxsdr::imp {
     std::string cmd_error_to_name(const uint32_t reason) const;
     std::string radio_cmd_to_name(const uint8_t cmd) const;
     std::string async_msg_to_name(const uint8_t msg) const;
+
   private:
     bool send_command_and_check_response(packet& p, const std::string& cmd_name = "unknown");
     std::optional<command_queue_element> send_command_and_return_response(packet& p, const std::string& cmd_name = "unknown");
@@ -246,41 +239,42 @@ class vxsdr::imp {
     void log_async_message_handler(const command_queue_element& a) const;
     void throw_async_message_handler(const command_queue_element& a) const;
     std::map<std::string, int64_t> apply_config(const std::map<std::string, int64_t>& input_config) const;
-    template <typename SampleType> std::span<SampleType> get_packet_data_span(packet& q) const {
-        constexpr unsigned packet_header_only_size = sizeof(packet_header);
-        constexpr unsigned packet_header_time_size = sizeof(packet_header) + sizeof(time_spec_t);
-        constexpr unsigned packet_header_stream_size = sizeof(packet_header) + sizeof(stream_spec_t);
+    template <typename SampleType>
+    std::span<SampleType> get_packet_data_span(packet& q) const {
+        constexpr unsigned packet_header_only_size        = sizeof(packet_header);
+        constexpr unsigned packet_header_time_size        = sizeof(packet_header) + sizeof(time_spec_t);
+        constexpr unsigned packet_header_stream_size      = sizeof(packet_header) + sizeof(stream_spec_t);
         constexpr unsigned packet_header_time_stream_size = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
-        constexpr unsigned sample_size = sizeof(SampleType);
+        constexpr unsigned sample_size                    = sizeof(SampleType);
 
         SampleType* d;
-        unsigned data_samples = 0;
-        unsigned data_bytes = 0;
+        unsigned data_samples       = 0;
+        unsigned data_bytes         = 0;
         const unsigned packet_bytes = q.hdr.packet_size;
 
         const bool has_time      = (bool)(q.hdr.flags & FLAGS_TIME_PRESENT);
         const bool has_stream_id = (bool)(q.hdr.flags & FLAGS_STREAM_ID_PRESENT);
 
         if (not has_time and not has_stream_id) {
-            auto* p = std::bit_cast<data_packet*>(&q);
+            auto* p    = std::bit_cast<data_packet*>(&q);
             data_bytes = packet_bytes - packet_header_only_size;
-            d = (SampleType*)p->data;
+            d          = (SampleType*)p->data;
         } else if (has_time and not has_stream_id) {
-            auto* p = std::bit_cast<data_packet_time*>(&q);
+            auto* p    = std::bit_cast<data_packet_time*>(&q);
             data_bytes = packet_bytes - packet_header_time_size;
-            d = (SampleType*)p->data;
+            d          = (SampleType*)p->data;
         } else if (has_stream_id and not has_time) {
-            auto* p = std::bit_cast<data_packet_stream*>(&q);
+            auto* p    = std::bit_cast<data_packet_stream*>(&q);
             data_bytes = packet_bytes - packet_header_stream_size;
-            d = (SampleType*)p->data;
+            d          = (SampleType*)p->data;
         } else {
-            auto* p = std::bit_cast<data_packet_time_stream*>(&q);
+            auto* p    = std::bit_cast<data_packet_time_stream*>(&q);
             data_bytes = packet_bytes - packet_header_time_stream_size;
-            d = (SampleType*)p->data;
+            d          = (SampleType*)p->data;
         }
         if (data_bytes < sample_size) {
             data_samples = 0;
-            d = nullptr;
+            d            = nullptr;
         } else {
             data_samples = data_bytes / sample_size;
         }

@@ -90,8 +90,8 @@ class one_uint64_packet : public packet {
 
 class filter_coeff_packet : public packet {
   public:
-    uint32_t length = 0;
-    uint32_t reserved = 0;
+    uint32_t length                                          = 0;
+    uint32_t reserved                                        = 0;
     std::complex<int16_t> coeffs[MAX_FRONTEND_FILTER_LENGTH] = {0};
 };
 
@@ -122,7 +122,7 @@ class time_packet : public packet {
 
 class time_stream_packet : public packet {
   public:
-    time_spec_t time = {0, 0};
+    time_spec_t time        = {0, 0};
     stream_spec_t stream_id = 0;
 };
 
@@ -133,15 +133,15 @@ class samples_packet : public packet {
 
 class time_samples_packet : public packet {
   public:
-    time_spec_t time = {0, 0};
+    time_spec_t time   = {0, 0};
     uint64_t n_samples = 0;
 };
 
 class loop_packet : public time_samples_packet {
   public:
     time_spec_t t_delay = {0, 0};
-    uint32_t n_repeat = 0;
-    uint32_t reserved = 0;
+    uint32_t n_repeat   = 0;
+    uint32_t reserved   = 0;
 };
 
 class largest_cmd_or_rsp_packet : public time_stream_packet {
@@ -159,31 +159,29 @@ class data_packet : public packet {
 
 class data_packet_time : public packet {
   public:
-    time_spec_t time = {0, 0};
+    time_spec_t time                                    = {0, 0};
     std::complex<int16_t> data[MAX_DATA_LENGTH_SAMPLES] = {0};
 };
 
 class data_packet_stream : public packet {
   public:
-    stream_spec_t stream_id = 0;
+    stream_spec_t stream_id                             = 0;
     std::complex<int16_t> data[MAX_DATA_LENGTH_SAMPLES] = {0};
 };
 
 class data_packet_time_stream : public packet {
   public:
-    time_spec_t time = {0, 0};
-    stream_spec_t stream_id = 0;
+    time_spec_t time                                    = {0, 0};
+    stream_spec_t stream_id                             = 0;
     std::complex<int16_t> data[MAX_DATA_LENGTH_SAMPLES] = {0};
 };
 
 class largest_data_packet : public data_packet_time_stream {};
 
-
 // alignment of the buffers used to queue data packets
 constexpr unsigned VXSDR_DATA_BUFFER_ALIGNMENT = 64;
 
-class alignas(VXSDR_DATA_BUFFER_ALIGNMENT) data_queue_element : public largest_data_packet {
-};
+class alignas(VXSDR_DATA_BUFFER_ALIGNMENT) data_queue_element : public largest_data_packet {};
 
 #pragma pack(pop)
 

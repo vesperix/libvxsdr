@@ -9,17 +9,16 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
-#include <array>
 
-#include "vxsdr_queues.hpp"
 #include "vxsdr_packets.hpp"
+#include "vxsdr_queues.hpp"
 #include "vxsdr_threads.hpp"
 
 static constexpr size_t queue_length = 512;
 
 static constexpr unsigned push_queue_wait_us = 100;
 static constexpr unsigned pop_queue_wait_us  = 100;
-static constexpr unsigned n_tries = 10'000; // ~1s timeout
+static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
 
 static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
@@ -35,10 +34,10 @@ void producer(const size_t n_items, double& push_rate) {
 
     for (size_t i = 0; i < n_items; i++) {
         data_queue_element p;
-        p.hdr = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, MAX_DATA_PACKET_BYTES, 0};
+        p.hdr                  = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, MAX_DATA_PACKET_BYTES, 0};
         p.hdr.sequence_counter = i % (UINT16_MAX + 1);
 
-        std::memset((void *)&p.data, 0xFF, MAX_DATA_PAYLOAD_BYTES);
+        std::memset((void*)&p.data, 0xFF, MAX_DATA_PAYLOAD_BYTES);
 
         unsigned n_try = 0;
 
@@ -67,14 +66,14 @@ void producer(const size_t n_items, double& push_rate) {
 
 void consumer(const size_t n_items, double& pop_rate) {
     constexpr size_t buffer_size = 512;
-    auto t0 = std::chrono::steady_clock::now();
+    auto t0                      = std::chrono::steady_clock::now();
 
     size_t i = 0;
 
     while (i < n_items) {
         static std::array<data_queue_element, buffer_size> p;
 
-        unsigned n_try = 0;
+        unsigned n_try  = 0;
         size_t n_popped = 0;
 
         while (n_popped == 0 and n_try < n_tries) {
@@ -129,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     queue->reset();
 
-    double pop_rate = 0;
+    double pop_rate  = 0;
     double push_rate = 0;
 
     auto consumer_thread = vxsdr_thread(&consumer, n_items, std::ref(pop_rate));

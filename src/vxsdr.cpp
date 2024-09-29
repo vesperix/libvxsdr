@@ -26,21 +26,31 @@ std::vector<std::string> vxsdr::get_library_details() {
     return p_imp->get_library_details();
 }
 
-size_t vxsdr::get_rx_data(std::vector<std::complex<int16_t>>& data, const size_t n_requested, const uint8_t subdev,
-    const double timeout_s) {
+size_t vxsdr::get_rx_data(std::vector<std::complex<int16_t>>& data,
+                          const size_t n_requested,
+                          const uint8_t subdev,
+                          const double timeout_s) {
     return p_imp->get_rx_data<int16_t>(data, n_requested, subdev, timeout_s);
 }
 
-size_t vxsdr::get_rx_data(std::vector<std::complex<float>>& data, const size_t n_requested, const uint8_t subdev,
-    const double timeout_s) {
+size_t vxsdr::get_rx_data(std::vector<std::complex<float>>& data,
+                          const size_t n_requested,
+                          const uint8_t subdev,
+                          const double timeout_s) {
     return p_imp->get_rx_data<float>(data, n_requested, subdev, timeout_s);
 }
 
-size_t vxsdr::put_tx_data(const std::vector<std::complex<int16_t>> &data, const size_t n_requested, const uint8_t subdev, const double timeout_s) {
+size_t vxsdr::put_tx_data(const std::vector<std::complex<int16_t>>& data,
+                          const size_t n_requested,
+                          const uint8_t subdev,
+                          const double timeout_s) {
     return p_imp->put_tx_data<int16_t>(data, n_requested, subdev, timeout_s);
 }
 
-size_t vxsdr::put_tx_data(const std::vector<std::complex<float>> &data, const size_t n_requested, const uint8_t subdev, const double timeout_s) {
+size_t vxsdr::put_tx_data(const std::vector<std::complex<float>>& data,
+                          const size_t n_requested,
+                          const uint8_t subdev,
+                          const double timeout_s) {
     return p_imp->put_tx_data<float>(data, n_requested, subdev, timeout_s);
 }
 
@@ -101,8 +111,8 @@ double vxsdr::get_host_command_timeout() const {
 }
 
 std::vector<std::string> vxsdr::discover_ipv4_addresses(const std::string& local_addr,
-                                                               const std::string& broadcast_addr,
-                                                               const double timeout_s) {
+                                                        const std::string& broadcast_addr,
+                                                        const double timeout_s) {
     return p_imp->discover_ipv4_addresses(local_addr, broadcast_addr, timeout_s);
 }
 
@@ -138,13 +148,19 @@ bool vxsdr::rx_start(const vxsdr::time_point& t, const uint64_t n, const uint8_t
     return p_imp->rx_start(t, n, subdev);
 }
 
-bool vxsdr::tx_loop(const vxsdr::time_point& t, const uint64_t n, const vxsdr::duration& t_delay,
-                                        const uint32_t n_repeat, const uint8_t subdev) {
+bool vxsdr::tx_loop(const vxsdr::time_point& t,
+                    const uint64_t n,
+                    const vxsdr::duration& t_delay,
+                    const uint32_t n_repeat,
+                    const uint8_t subdev) {
     return p_imp->tx_loop(t, n, t_delay, n_repeat, subdev);
 }
 
-bool vxsdr::rx_loop(const vxsdr::time_point& t, const uint64_t n, const vxsdr::duration& t_delay,
-                                        const uint32_t n_repeat, const uint8_t subdev) {
+bool vxsdr::rx_loop(const vxsdr::time_point& t,
+                    const uint64_t n,
+                    const vxsdr::duration& t_delay,
+                    const uint32_t n_repeat,
+                    const uint8_t subdev) {
     return p_imp->rx_loop(t, n, t_delay, n_repeat, subdev);
 }
 
@@ -364,11 +380,15 @@ std::optional<std::vector<vxsdr::filter_coefficient>> vxsdr::get_rx_filter_coeff
     return p_imp->get_rx_filter_coeffs(subdev, channel);
 }
 
-bool vxsdr::set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev, const uint8_t channel) {
+bool vxsdr::set_tx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs,
+                                 const uint8_t subdev,
+                                 const uint8_t channel) {
     return p_imp->set_tx_filter_coeffs(coeffs, subdev, channel);
 }
 
-bool vxsdr::set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs, const uint8_t subdev, const uint8_t channel) {
+bool vxsdr::set_rx_filter_coeffs(const std::vector<vxsdr::filter_coefficient>& coeffs,
+                                 const uint8_t subdev,
+                                 const uint8_t channel) {
     return p_imp->set_rx_filter_coeffs(coeffs, subdev, channel);
 }
 

@@ -5,26 +5,26 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <complex>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <optional>
 #include <ratio>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
-#include <chrono>
 using namespace std::chrono_literals;
 
 #include "logging.hpp"
-#include "vxsdr_packets.hpp"
-#include "vxsdr_queues.hpp"
-#include "thread_utils.hpp"
 #include "socket_utils.hpp"
+#include "thread_utils.hpp"
 #include "vxsdr_net.hpp"
+#include "vxsdr_packets.hpp"
 #include "vxsdr_pcie.hpp"
+#include "vxsdr_queues.hpp"
 
 #include "vxsdr.hpp"
 
@@ -49,15 +49,15 @@ class packet_transport {
     std::array<uint64_t, num_vxsdr_packet_types> packet_types_received = {0};
 
     // control of behavior
-    std::atomic<bool> throw_on_tx_error  {false};
-    std::atomic<bool> throw_on_rx_error  {false};
-    std::atomic<bool> log_stats_on_exit  {true};
+    std::atomic<bool> throw_on_tx_error{false};
+    std::atomic<bool> throw_on_rx_error{false};
+    std::atomic<bool> log_stats_on_exit{true};
 
   public:
     packet_transport() = default;
     packet_transport(const std::string& local_address,
-              const std::string& device_address,
-              const std::map<std::string, int64_t>& settings);
+                     const std::string& device_address,
+                     const std::map<std::string, int64_t>& settings);
 
     virtual ~packet_transport()                          = default;
     packet_transport(const packet_transport&)            = delete;
@@ -70,13 +70,19 @@ class packet_transport {
     virtual unsigned get_transport_overhead_bytes() const noexcept { return 0; };
 
     // flags used for orderly shutdown
-    std::atomic<bool> sender_thread_stop_flag   {false};
-    std::atomic<bool> receiver_thread_stop_flag {false};
+    std::atomic<bool> sender_thread_stop_flag{false};
+    std::atomic<bool> receiver_thread_stop_flag{false};
 
-    using transport_state = enum { TRANSPORT_UNINITIALIZED, TRANSPORT_STARTING, TRANSPORT_READY, TRANSPORT_SHUTDOWN, TRANSPORT_ERROR };
+    using transport_state = enum {
+        TRANSPORT_UNINITIALIZED,
+        TRANSPORT_STARTING,
+        TRANSPORT_READY,
+        TRANSPORT_SHUTDOWN,
+        TRANSPORT_ERROR
+    };
     // state of transport in each direction
-    std::atomic<transport_state> tx_state {TRANSPORT_UNINITIALIZED};
-    std::atomic<transport_state> rx_state {TRANSPORT_UNINITIALIZED};
+    std::atomic<transport_state> tx_state{TRANSPORT_UNINITIALIZED};
+    std::atomic<transport_state> rx_state{TRANSPORT_UNINITIALIZED};
 
     virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
 
@@ -92,14 +98,14 @@ class packet_transport {
         packet.hdr.sequence_counter = (uint16_t)(packets_sent++ % (UINT16_MAX + 1));
         packet_types_sent.at(packet.hdr.packet_type)++;
 
-        int err = 0;
+        int err      = 0;
         size_t bytes = packet_send(packet, err);
 
         if (err != 0) {
             tx_state = TRANSPORT_ERROR;
             LOG_ERROR("send error in {:s} {:s} tx: {:s}", get_transport_type(), get_payload_type(), strerror(err));
             send_errors++;
-            if(throw_on_tx_error) {
+            if (throw_on_tx_error) {
                 throw(std::runtime_error("send error in " + get_transport_type() + " " + get_payload_type() + " tx"));
             }
             return false;
@@ -107,8 +113,9 @@ class packet_transport {
             tx_state = TRANSPORT_ERROR;
             LOG_ERROR("send error in {:s} {:s} tx (size incorrect)", get_transport_type(), get_payload_type());
             send_errors++;
-            if(throw_on_tx_error) {
-                throw(std::runtime_error("send error in " + get_transport_type() + " " + get_payload_type() + " tx (size incorrect)"));
+            if (throw_on_tx_error) {
+                throw(std::runtime_error("send error in " + get_transport_type() + " " + get_payload_type() +
+                                         " tx (size incorrect)"));
             }
             return false;
         }
@@ -126,7 +133,7 @@ class packet_transport {
             }
         }
         LOG_INFO("   {:15d} bytes received", bytes_received);
-        if(sequence_errors == 0) {
+        if (sequence_errors == 0) {
             LOG_INFO("   {:15d} sequence errors", sequence_errors);
         } else {
             LOG_WARN("   {:15d} sequence errors", sequence_errors);
@@ -139,61 +146,53 @@ class packet_transport {
             }
         }
         LOG_INFO("   {:15d} bytes sent", bytes_sent);
-        if(send_errors == 0) {
+        if (send_errors == 0) {
             LOG_INFO("   {:15d} send errors", send_errors);
         } else {
             LOG_WARN("   {:15d} send errors", send_errors);
         }
     }
-    void set_log_stats_on_exit(const bool value) noexcept {
-        log_stats_on_exit = value;
-    }
+    void set_log_stats_on_exit(const bool value) noexcept { log_stats_on_exit = value; }
     void set_throw_on_error(const bool value) noexcept {
         throw_on_tx_error = value;
         throw_on_rx_error = value;
     }
     bool rx_usable() const noexcept {
-        if (rx_state != TRANSPORT_READY and
-            rx_state != TRANSPORT_ERROR) {
+        if (rx_state != TRANSPORT_READY and rx_state != TRANSPORT_ERROR) {
             return false;
         }
         return true;
     }
     bool tx_usable() const noexcept {
-        if (tx_state != TRANSPORT_READY and
-            tx_state != TRANSPORT_ERROR) {
+        if (tx_state != TRANSPORT_READY and tx_state != TRANSPORT_ERROR) {
             return false;
         }
         return true;
     }
-    bool tx_rx_usable() const noexcept {
-        return tx_usable() and rx_usable();
-    }
+    bool tx_rx_usable() const noexcept { return tx_usable() and rx_usable(); }
     virtual bool reset_rx() {
-        if (rx_state == TRANSPORT_UNINITIALIZED or
-            rx_state == TRANSPORT_SHUTDOWN) {
+        if (rx_state == TRANSPORT_UNINITIALIZED or rx_state == TRANSPORT_SHUTDOWN) {
             LOG_ERROR("reset rx failed: state is {:s}", transport_state_to_string(rx_state));
             return false;
         }
-        rx_state = TRANSPORT_READY;
-        sequence_errors                 = 0;
-        packets_received                = 0;
-        bytes_received                  = 0;
+        rx_state         = TRANSPORT_READY;
+        sequence_errors  = 0;
+        packets_received = 0;
+        bytes_received   = 0;
         for (unsigned j = 0; j < packet_types_received.size(); j++) {
             packet_types_received[j] = 0;
         }
         return true;
     }
     virtual bool reset_tx() {
-        if (tx_state == TRANSPORT_UNINITIALIZED or
-            tx_state == TRANSPORT_SHUTDOWN) {
+        if (tx_state == TRANSPORT_UNINITIALIZED or tx_state == TRANSPORT_SHUTDOWN) {
             LOG_ERROR("reset tx failed: state is {:s}", transport_state_to_string(tx_state));
             return false;
         }
-        tx_state = TRANSPORT_READY;
-        send_errors                 = 0;
-        packets_sent                = 0;
-        bytes_sent                  = 0;
+        tx_state     = TRANSPORT_READY;
+        send_errors  = 0;
+        packets_sent = 0;
+        bytes_sent   = 0;
         for (unsigned j = 0; j < packet_types_sent.size(); j++) {
             packet_types_sent[j] = 0;
         }
@@ -263,12 +262,12 @@ class packet_transport {
 
 class command_transport : public packet_transport {
   protected:
-    static constexpr unsigned command_send_wait_us  =   500;
-    static constexpr unsigned queue_push_wait_us    =   500;
-    static constexpr unsigned queue_push_tries      =    10;
+    static constexpr unsigned command_send_wait_us = 500;
+    static constexpr unsigned queue_push_wait_us   = 500;
+    static constexpr unsigned queue_push_tries     = 10;
 
   public:
-    command_transport() = default;
+    command_transport()          = default;
     virtual ~command_transport() = default;
 
     // because every command has a response, the command and
@@ -309,23 +308,22 @@ class data_transport : public packet_transport {
     unsigned max_samples_per_packet;
 
     // control over throttling for transports that use it
-    virtual bool use_tx_throttling() const noexcept         { return false; };
+    virtual bool use_tx_throttling() const noexcept { return false; };
     virtual unsigned throttle_hard_percent() const noexcept { return 100; };
-    virtual unsigned throttle_on_percent() const noexcept   { return 100; };
-    virtual unsigned throttle_off_percent() const noexcept  { return 100; };
+    virtual unsigned throttle_on_percent() const noexcept { return 100; };
+    virtual unsigned throttle_off_percent() const noexcept { return 100; };
 
     virtual unsigned data_throttle_wait_us() const noexcept { return 100; };
-    virtual unsigned data_send_wait_us() const noexcept     { return 100; };
-
+    virtual unsigned data_send_wait_us() const noexcept { return 100; };
 
     // how long to wait for a command response with stats at shutdown
     static constexpr vxsdr::duration final_stats_wait{20ms};
 
     // parameters used to monitor status of the radio's internal buffers
     // (on the other end of the network connection) for throttling
-    std::atomic<unsigned> tx_buffer_size_bytes   {0};
-    std::atomic<unsigned> tx_buffer_used_bytes   {0};
-    std::atomic<unsigned> tx_buffer_fill_percent {0};
+    std::atomic<unsigned> tx_buffer_size_bytes{0};
+    std::atomic<unsigned> tx_buffer_used_bytes{0};
+    std::atomic<unsigned> tx_buffer_fill_percent{0};
 
     // number of samples in current stream (0 if continuous)
     uint64_t samples_expected_tx_stream = 0;
@@ -340,12 +338,11 @@ class data_transport : public packet_transport {
     uint64_t sequence_errors_current_stream  = 0;
     uint64_t samples_received_current_stream = 0;
 
-    std::atomic<unsigned> tx_packet_oos_count {0};
+    std::atomic<unsigned> tx_packet_oos_count{0};
 
   public:
-
-    data_transport(const unsigned granularity, const unsigned n_rx_subdevs, const unsigned max_samps_per_packet) :
-                sample_granularity(granularity), num_rx_subdevs(n_rx_subdevs) {
+    data_transport(const unsigned granularity, const unsigned n_rx_subdevs, const unsigned max_samps_per_packet)
+        : sample_granularity(granularity), num_rx_subdevs(n_rx_subdevs) {
         max_samples_per_packet = sample_granularity * (max_samps_per_packet / sample_granularity);
     };
 
@@ -415,12 +412,10 @@ class data_transport : public packet_transport {
     }
 
     unsigned find_max_samples_per_packet(const unsigned payload_bytes) const {
-      return sample_granularity * ((payload_bytes / sizeof(vxsdr::wire_sample)) / sample_granularity);
+        return sample_granularity * ((payload_bytes / sizeof(vxsdr::wire_sample)) / sample_granularity);
     }
 
-    unsigned get_max_samples_per_packet() const noexcept {
-        return max_samples_per_packet;
-    }
+    unsigned get_max_samples_per_packet() const noexcept { return max_samples_per_packet; }
 
     bool set_max_samples_per_packet(const unsigned n_samples) noexcept {
         if (n_samples > 0 and n_samples <= MAX_DATA_LENGTH_SAMPLES) {
@@ -437,13 +432,13 @@ class udp_command_transport : public command_transport {
     std::map<std::string, int64_t> get_default_settings() const { return {}; };
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
-    static constexpr auto udp_ready_wait    =   1'000us;
+    static constexpr auto udp_ready_wait    = 1'000us;
 
     // net context and sockets
-    static constexpr unsigned udp_host_cmd_receive_port   =  1030;
-    static constexpr unsigned udp_device_cmd_receive_port =  1030;
+    static constexpr unsigned udp_host_cmd_receive_port   = 1030;
+    static constexpr unsigned udp_device_cmd_receive_port = 1030;
     static constexpr unsigned udp_host_cmd_send_port      = 55123;
-    static constexpr unsigned udp_device_cmd_send_port    =  1030;
+    static constexpr unsigned udp_device_cmd_send_port    = 1030;
 
     net::io_context context;
     net::ip::udp::socket sender_socket;
@@ -462,16 +457,16 @@ class udp_command_transport : public command_transport {
 class udp_data_transport : public data_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "udp"; };
-    std::map<std::string, int64_t> get_default_settings() const noexcept { return
-                                                      {{"udp_data_transport:tx_data_queue_packets",              512},
-                                                       {"udp_data_transport:rx_data_queue_packets",              512},
-                                                       {"udp_data_transport:mtu_bytes",                        9'000},
-                                                       {"udp_data_transport:network_send_buffer_bytes",      262'144},
-                                                       {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
-                                                       {"udp_data_transport:thread_priority",                      1},
-                                                       {"udp_data_transport:thread_affinity_offset",               0},
-                                                       {"udp_data_transport:sender_thread_affinity",               0},
-                                                       {"udp_data_transport:receiver_thread_affinity",             1}};
+    std::map<std::string, int64_t> get_default_settings() const noexcept {
+        return {{"udp_data_transport:tx_data_queue_packets", 512},
+                {"udp_data_transport:rx_data_queue_packets", 512},
+                {"udp_data_transport:mtu_bytes", 9'000},
+                {"udp_data_transport:network_send_buffer_bytes", 262'144},
+                {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
+                {"udp_data_transport:thread_priority", 1},
+                {"udp_data_transport:thread_affinity_offset", 0},
+                {"udp_data_transport:sender_thread_affinity", 0},
+                {"udp_data_transport:receiver_thread_affinity", 1}};
     };
 
     // used for computing how many samples fit within a MTU
@@ -479,12 +474,12 @@ class udp_data_transport : public data_transport {
 
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
-    static constexpr auto udp_ready_wait    =   1'000us;
+    static constexpr auto udp_ready_wait    = 1'000us;
 
-    static constexpr unsigned udp_host_data_receive_port   =  1031;
-    static constexpr unsigned udp_device_data_receive_port =  1031;
+    static constexpr unsigned udp_host_data_receive_port   = 1031;
+    static constexpr unsigned udp_device_data_receive_port = 1031;
     static constexpr unsigned udp_host_data_send_port      = 55124;
-    static constexpr unsigned udp_device_data_send_port    =  1031;
+    static constexpr unsigned udp_device_data_send_port    = 1031;
 
     // net context and sockets
     net::io_context context;
@@ -493,12 +488,12 @@ class udp_data_transport : public data_transport {
 
     // transmit throttling settings
     bool use_tx_throttling() const noexcept final { return true; };
-    unsigned throttle_hard_percent() const noexcept final { return  90; };
-    unsigned throttle_on_percent() const noexcept final   { return  80; };
-    unsigned throttle_off_percent() const noexcept final  { return  60; };
+    unsigned throttle_hard_percent() const noexcept final { return 90; };
+    unsigned throttle_on_percent() const noexcept final { return 80; };
+    unsigned throttle_off_percent() const noexcept final { return 60; };
 
-    unsigned data_send_wait_us() const noexcept final     { return 100; };
-    unsigned data_throttle_wait_us() const noexcept final { return  50; };
+    unsigned data_send_wait_us() const noexcept final { return 100; };
+    unsigned data_throttle_wait_us() const noexcept final { return 50; };
 
   public:
     explicit udp_data_transport(const std::map<std::string, int64_t>& settings,
@@ -519,7 +514,7 @@ class pcie_command_transport : public command_transport {
     std::map<std::string, int64_t> get_default_settings() const noexcept { return {}; };
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
-    static constexpr auto pcie_ready_wait    =   1'000us;
+    static constexpr auto pcie_ready_wait    = 1'000us;
 
     std::shared_ptr<pcie_dma_interface> pcie_if = nullptr;
 
@@ -536,18 +531,15 @@ class pcie_command_transport : public command_transport {
 class pcie_data_transport : public data_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "pcie"; };
-    std::map<std::string, int64_t> get_default_settings() const noexcept { return
-                                                      {{"pcie_data_transport:tx_data_queue_packets",              512},
-                                                       {"pcie_data_transport:rx_data_queue_packets",              512},
-                                                       {"pcie_data_transport:thread_priority",                      1},
-                                                       {"pcie_data_transport:thread_affinity_offset",               0},
-                                                       {"pcie_data_transport:sender_thread_affinity",               0},
-                                                       {"pcie_data_transport:receiver_thread_affinity",             1}};
+    std::map<std::string, int64_t> get_default_settings() const noexcept {
+        return {{"pcie_data_transport:tx_data_queue_packets", 512}, {"pcie_data_transport:rx_data_queue_packets", 512},
+                {"pcie_data_transport:thread_priority", 1},         {"pcie_data_transport:thread_affinity_offset", 0},
+                {"pcie_data_transport:sender_thread_affinity", 0},  {"pcie_data_transport:receiver_thread_affinity", 1}};
     };
 
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
-    static constexpr auto pcie_ready_wait    =   1'000us;
+    static constexpr auto pcie_ready_wait    = 1'000us;
 
     bool use_tx_throttling() const noexcept final { return false; };
 

@@ -5,10 +5,10 @@
 
 #include <charconv>
 #include <cstring>
-#include <iostream>
-#include <map>
 #include <fstream>
+#include <iostream>
 #include <iterator>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -40,10 +40,7 @@ struct option_as_string {
     supported_types type;
 
   public:
-    option_as_string(const std::string& nam,
-                     const std::string& val,
-                     const supported_types tp,
-                     const bool throw_except) {
+    option_as_string(const std::string& nam, const std::string& val, const supported_types tp, const bool throw_except) {
         name           = nam;
         value          = val;
         type           = tp;
@@ -51,10 +48,8 @@ struct option_as_string {
     }
     ~option_as_string() = default;
     template <typename T>
-    std::string incompatible_type_error_message(const std::string& name,
-                                                const supported_types type) const {
-        return "incompatible types for option \"" + name +
-               "\": cannot cast " + type_to_string(type) +
+    std::string incompatible_type_error_message(const std::string& name, const supported_types type) const {
+        return "incompatible types for option \"" + name + "\": cannot cast " + type_to_string(type) +
                " to (possibly mangled) type " + typeid(T).name();
     }
     void cast_error(const std::string& error_message) const {
@@ -65,7 +60,8 @@ struct option_as_string {
             exit(1);
         }
     }
-    template <typename T> T as() const {
+    template <typename T>
+    T as() const {
         if constexpr (std::is_same<T, bool>::value) {
             if (type == supported_types::BOOLEAN) {
                 if (std::toupper(value.c_str()[0]) == 'T') {
@@ -134,11 +130,11 @@ struct parsed_options {
 };
 class program_options {
   private:
-    std::string program_name = "";
-    std::string program_function = "";
-    bool throw_on_error = false;
+    std::string program_name       = "";
+    std::string program_function   = "";
+    bool throw_on_error            = false;
     std::string config_file_option = "";
-    std::string help_option = "";
+    std::string help_option        = "";
     std::map<std::string, std::string> allowed_values;
     std::map<std::string, supported_types> types;
     std::map<std::string, bool> is_required;
@@ -150,10 +146,10 @@ class program_options {
                              const bool throw_except                   = false,
                              const std::string help_option_name        = "help",
                              const std::string config_file_option_name = "config_file") {
-        program_name     = prog_name;
-        program_function = prog_function;
-        throw_on_error   = throw_except;
-        help_option = help_option_name;
+        program_name       = prog_name;
+        program_function   = prog_function;
+        throw_on_error     = throw_except;
+        help_option        = help_option_name;
         config_file_option = config_file_option_name;
     };
     ~program_options() = default;
@@ -179,11 +175,10 @@ class program_options {
         return {values, types, throw_on_error};
     };
     void process_tokens(std::vector<std::string>& tokens,
-                        std::map<std::string,
-                        std::string>& values,
+                        std::map<std::string, std::string>& values,
                         const std::string& current_config_file = "") {
-        unsigned i = 0;
-        unsigned n_tokens = (unsigned)tokens.size();
+        unsigned i                = 0;
+        unsigned n_tokens         = (unsigned)tokens.size();
         std::string filename_info = "";
         if (not current_config_file.empty()) {
             filename_info = " in configuration file " + current_config_file;
@@ -213,11 +208,11 @@ class program_options {
                     if (nextopt.empty() or nextopt.starts_with("--")) {
                         // this option needs a value, but there isn't one
                         parse_error("option requires a value: " + opt + filename_info);
-                    } else if(not current_config_file.empty()) {
+                    } else if (not current_config_file.empty()) {
                         parse_error("option cannot be used in file: " + opt + filename_info);
                     } else {
                         auto config_file_name = nextopt;
-                        auto file_tokens = read_tokens_from_file(config_file_name);
+                        auto file_tokens      = read_tokens_from_file(config_file_name);
                         process_tokens(file_tokens, values, config_file_name);
                         i += 2;
                     }
@@ -242,8 +237,7 @@ class program_options {
                     if (opt_name.starts_with("no")) {
                         // see if this is the --nosomething form of the --something flag
                         std::string test_flag = opt_name.substr(2);
-                        if (allowed_values.count(test_flag)
-                            and types[test_flag] == supported_types::BOOLEAN) {
+                        if (allowed_values.count(test_flag) and types[test_flag] == supported_types::BOOLEAN) {
                             values[test_flag] = "F";
                             i++;
                         }
@@ -262,9 +256,7 @@ class program_options {
         if (not infile.is_open()) {
             parse_error("cannot open config file: " + file_name);
         }
-        std::copy(std::istream_iterator<std::string>(infile),
-                  std::istream_iterator<std::string>(),
-                  std::back_inserter(tokens));
+        std::copy(std::istream_iterator<std::string>(infile), std::istream_iterator<std::string>(), std::back_inserter(tokens));
         return tokens;
     }
     void parse_error(const std::string& error_message) const {
@@ -278,15 +270,10 @@ class program_options {
     void add_flag(const std::string& long_name, const std::string& help_text) {
         add_option(long_name, help_text, supported_types::BOOLEAN);
     }
-    void add_flag(const std::string& long_name,
-                  const std::string& help_text,
-                  const bool required) {
+    void add_flag(const std::string& long_name, const std::string& help_text, const bool required) {
         add_option(long_name, help_text, supported_types::BOOLEAN, required);
     }
-    void add_flag(const std::string& long_name,
-                  const std::string& help_text,
-                  const bool required,
-                  const bool default_value) {
+    void add_flag(const std::string& long_name, const std::string& help_text, const bool required, const bool default_value) {
         if (default_value) {
             add_option(long_name, help_text, supported_types::BOOLEAN, required, "T");
         } else {
@@ -294,30 +281,27 @@ class program_options {
         }
     }
     void add_option(const std::string& long_name, const std::string& help_text, supported_types type) {
-        types[long_name]    = type;
-        allowed_values[long_name]   = "";
-        help_msg[long_name] = help_text;
-        is_required[long_name] = false;
+        types[long_name]          = type;
+        allowed_values[long_name] = "";
+        help_msg[long_name]       = help_text;
+        is_required[long_name]    = false;
     }
-    void add_option(const std::string& long_name,
-                    const std::string& help_text,
-                    supported_types type,
-                    const bool required) {
-        types[long_name]    = type;
-        allowed_values[long_name]   = "";
-        help_msg[long_name] = help_text;
-        is_required[long_name] = required;
+    void add_option(const std::string& long_name, const std::string& help_text, supported_types type, const bool required) {
+        types[long_name]          = type;
+        allowed_values[long_name] = "";
+        help_msg[long_name]       = help_text;
+        is_required[long_name]    = required;
     }
     void add_option(const std::string& long_name,
                     const std::string& help_text,
                     supported_types type,
                     const bool required,
                     const std::string& default_value) {
-        types[long_name]    = type;
-        allowed_values[long_name]   = default_value;
-        help_msg[long_name] = help_text;
+        types[long_name]          = type;
+        allowed_values[long_name] = default_value;
+        help_msg[long_name]       = help_text;
         // if an empty default is given, then it's still required on the command line, otherwise not
-        is_required[long_name] = default_value.empty();
+        is_required[long_name]    = default_value.empty();
     }
     std::string help() {
         std::stringstream outstr;
@@ -333,25 +317,21 @@ class program_options {
             outstr << format_help(key, types[key], help_msg[key], is_required[key]) << std::endl;
         }
         if (not config_file_option.empty()) {
-            outstr << format_help(config_file_option,
-                                  supported_types::STRING,
-                                  "read settings from the specified configuration file") << std::endl;
+            outstr << format_help(config_file_option, supported_types::STRING,
+                                  "read settings from the specified configuration file")
+                   << std::endl;
         }
         if (not help_option.empty()) {
-            outstr << format_help(help_option,
-                                  supported_types::BOOLEAN,
-                                  "show this help message",
-                                  false,
-                                  false) << std::endl;
+            outstr << format_help(help_option, supported_types::BOOLEAN, "show this help message", false, false) << std::endl;
         }
         return outstr.str();
     };
     std::string format_help(const std::string& name,
                             const supported_types type,
                             const std::string& help_msg,
-                            const bool required = false,
+                            const bool required     = false,
                             const bool has_bool_off = true) {
-        const std::string indent = "   ";
+        const std::string indent     = "   ";
         const std::string tab_indent = "                          ";
         std::string output_str;
         if (type == supported_types::BOOLEAN) {

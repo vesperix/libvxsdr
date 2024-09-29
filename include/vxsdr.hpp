@@ -3,18 +3,18 @@
 
 #pragma once
 
+#include <array>
+#include <chrono>
+#include <complex>
 #include <cstddef>
 #include <cstdint>
-#include <stdexcept>
-#include <complex>
-#include <optional>
-#include <vector>
-#include <array>
-#include <memory>
-#include <string>
-#include <ratio>
 #include <map>
-#include <chrono>
+#include <memory>
+#include <optional>
+#include <ratio>
+#include <stdexcept>
+#include <string>
+#include <vector>
 using namespace std::chrono_literals;
 
 #include "vxsdr_export.h"
@@ -26,78 +26,79 @@ using namespace std::chrono_literals;
 
 class LIBVXSDR_EXPORT vxsdr {
   public:
-  /*!
-    @enum transport_type
-    @brief The @p transport_type describes the transports used to send and receive data and commands.
-    (UDP is the default, and UDP and PCIE are currently the only transports supported.)
-  */
+    /*!
+      @enum transport_type
+      @brief The @p transport_type describes the transports used to send and receive data and commands.
+      (UDP is the default, and UDP and PCIE are currently the only transports supported.)
+    */
     enum transport_type { TRANSPORT_TYPE_UDP = 1, TRANSPORT_TYPE_PCIE };
-  /*!
-    @enum stream_state
-    @brief The @p stream_state type reports the status of TX or RX data streaming.
-  */
+    /*!
+      @enum stream_state
+      @brief The @p stream_state type reports the status of TX or RX data streaming.
+    */
     enum stream_state { STREAM_STOPPED = 0, STREAM_RUNNING, STREAM_WAITING_FOR_START, STREAM_ERROR };
 
-  /*!
-    @enum async_message_handler
-    @brief The @p async_message_handler type controls how asynchronous messages (including overflow, underflow, and sequence errors) are reported.
-  */
+    /*!
+      @enum async_message_handler
+      @brief The @p async_message_handler type controls how asynchronous messages (including overflow, underflow, and sequence
+      errors) are reported.
+    */
     enum async_message_handler { ASYNC_NULL = 0, ASYNC_BRIEF_STDERR, ASYNC_FULL_STDERR, ASYNC_FULL_LOG, ASYNC_THROW };
 
-  /*!
-    @struct async_message_exception
-    @brief The @p vxsdr::async_message_exception type is used to report asynchronous messages when the message handler is asked to throw exceptions by
-    specifying @p ASYNC_THROW as the reporting method. The user must define a handler for this type; otherwise, receipt of any async message will result
-    in an unhandled exception, which terminates the program.
-  */
-  struct async_message_exception : public std::runtime_error {
-    public:
-      explicit async_message_exception(const std::string& msg) : std::runtime_error{msg} {}
-  };
+    /*!
+      @struct async_message_exception
+      @brief The @p vxsdr::async_message_exception type is used to report asynchronous messages when the message handler is asked to
+      throw exceptions by specifying @p ASYNC_THROW as the reporting method. The user must define a handler for this type;
+      otherwise, receipt of any async message will result in an unhandled exception, which terminates the program.
+    */
+    struct async_message_exception : public std::runtime_error {
+      public:
+        explicit async_message_exception(const std::string& msg) : std::runtime_error{msg} {}
+    };
 
-  /*!
-    @brief The @p wire_sample type is used for data transfer between the host and device; wire samples may be translated
-    to and from other types by the host library.
-  */
+    /*!
+      @brief The @p wire_sample type is used for data transfer between the host and device; wire samples may be translated
+      to and from other types by the host library.
+    */
     using wire_sample = std::complex<int16_t>;
 
-  /*!
-    @brief The @p filter_coefficient type is used for representing filter coefficients.
-  */
+    /*!
+      @brief The @p filter_coefficient type is used for representing filter coefficients.
+    */
     using filter_coefficient = std::complex<int16_t>;
 
-  /*!
-    @brief The @p duration type is used for acquisition and wait durations; it has a 1 nanosecond resolution, although the
-    granularity of the device clock may be larger.
-  */
+    /*!
+      @brief The @p duration type is used for acquisition and wait durations; it has a 1 nanosecond resolution, although the
+      granularity of the device clock may be larger.
+    */
     using duration = std::chrono::duration<int64_t, std::ratio<1, 1000000000>>;
 
-  /*!
-    @brief The @p time_point type is used for start times.
-  */
+    /*!
+      @brief The @p time_point type is used for start times.
+    */
     using time_point = std::chrono::time_point<std::chrono::system_clock, duration>;
 
-  /*!
-      @brief Constructor for the @p vxsdr host interface class.
-      @param config a std::map<std::string, int64_t> containing configuration settings for the host interface;
-      if a setting is not included in this map, it is left at the default value.
+    /*!
+        @brief Constructor for the @p vxsdr host interface class.
+        @param config a std::map<std::string, int64_t> containing configuration settings for the host interface;
+        if a setting is not included in this map, it is left at the default value.
 
-      @details The @p config map must include information on how to
-      communicate with the VXSDR device; for example, with UDP transport,
-      the settings map must include the following key-value pairs, which are not
-      set by default:
-        - "udp_transport:local_address" = ipv4 local address in host order
-        - "udp_transport:device_address" = ipv4 device address in host order
-    */
+        @details The @p config map must include information on how to
+        communicate with the VXSDR device; for example, with UDP transport,
+        the settings map must include the following key-value pairs, which are not
+        set by default:
+          - "udp_transport:local_address" = ipv4 local address in host order
+          - "udp_transport:device_address" = ipv4 device address in host order
+      */
     explicit vxsdr(const std::map<std::string, int64_t>& config = {});
 
     //! Destructor for the vxsdr host interface class.
     ~vxsdr() noexcept;
 
-    vxsdr(const vxsdr&) = delete;
+    vxsdr(const vxsdr&)            = delete;
     vxsdr& operator=(const vxsdr&) = delete;
-    vxsdr(vxsdr&&) = delete;
-    vxsdr& operator=(vxsdr&&) = delete;
+    vxsdr(vxsdr&&)                 = delete;
+    vxsdr& operator=(vxsdr&&)      = delete;
 
     /*!
       @brief Gets the version number of this library.
@@ -285,8 +286,8 @@ class LIBVXSDR_EXPORT vxsdr {
       @param timeout_s the time in seconds to wait for responses
     */
     std::vector<std::string> discover_ipv4_addresses(const std::string& local_addr,
-                                                            const std::string& broadcast_addr,
-                                                            const double timeout_s = 10);
+                                                     const std::string& broadcast_addr,
+                                                     const double timeout_s = 10);
 
     /*!
       @brief Determine if the transmit RF section is enabled.
@@ -959,8 +960,8 @@ class LIBVXSDR_EXPORT vxsdr {
     /*!
       @brief Set the IQ correction for a receive channel to control image rejection.
       @details  Most devices have a fixed precision and restrictions on which coefficients can be nonzero (as discussed in the
-      @p set_tx_iq_corr() section). The actual coefficients used can be determined by reading the coefficients back after they are set
-      with the @p get_rx_iq_corr() command.
+      @p set_tx_iq_corr() section). The actual coefficients used can be determined by reading the coefficients back after they are
+      set with the @p get_rx_iq_corr() command.
       @returns @b true if the command succeeds, @b false otherwise
       @param corr    a std::array containing @f$a_{ii}, a_{iq}, a_{qi}, a_{qq}@f$ (in that order),
           which are the coefficients of the matrix which transforms the IQ data on reception
@@ -1000,9 +1001,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @param n the number of samples to send
       @param subdev the subdevice number
     */
-    bool tx_start(const vxsdr::time_point& t,
-                                        const uint64_t n = 0,
-                                        const uint8_t subdev = 0);
+    bool tx_start(const vxsdr::time_point& t, const uint64_t n = 0, const uint8_t subdev = 0);
 
     /*!
       @brief Start receiving at time @p t until @p n samples are received.
@@ -1013,9 +1012,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @param n the number of samples to receive
       @param subdev the subdevice number
     */
-    bool rx_start(const vxsdr::time_point& t,
-                                        const uint64_t n = 0,
-                                        const uint8_t subdev = 0);
+    bool rx_start(const vxsdr::time_point& t, const uint64_t n = 0, const uint8_t subdev = 0);
 
     /*!
       @brief Start transmitting at time @p t until @p n samples are sent,
@@ -1033,10 +1030,10 @@ class LIBVXSDR_EXPORT vxsdr {
       @param subdev the subdevice number
     */
     bool tx_loop(const vxsdr::time_point& t,
-                                        const uint64_t n,
-                                        const vxsdr::duration& t_delay = vxsdr::duration::zero(),
-                                        const uint32_t n_repeat = 0,
-                                        const uint8_t subdev = 0);
+                 const uint64_t n,
+                 const vxsdr::duration& t_delay = vxsdr::duration::zero(),
+                 const uint32_t n_repeat        = 0,
+                 const uint8_t subdev           = 0);
 
     /*!
       @brief Start receiving at time @p t until @p n samples are received,
@@ -1051,10 +1048,10 @@ class LIBVXSDR_EXPORT vxsdr {
       @param subdev the subdevice number
     */
     bool rx_loop(const vxsdr::time_point& t,
-                                        const uint64_t n,
-                                        const vxsdr::duration& t_delay = vxsdr::duration::zero(),
-                                        const uint32_t n_repeat = 0,
-                                        const uint8_t subdev = 0);
+                 const uint64_t n,
+                 const vxsdr::duration& t_delay = vxsdr::duration::zero(),
+                 const uint32_t n_repeat        = 0,
+                 const uint8_t subdev           = 0);
 
     /*!
       @brief Stop transmitting immediately.
@@ -1080,7 +1077,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @param timeout_s timeout in seconds
     */
     size_t put_tx_data(const std::vector<std::complex<int16_t>>& data,
-                       size_t n_requested = 0,
+                       size_t n_requested     = 0,
                        const uint8_t subdev   = 0,
                        const double timeout_s = 10);
 
@@ -1094,7 +1091,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @param timeout_s timeout in seconds
     */
     size_t put_tx_data(const std::vector<std::complex<float>>& data,
-                       size_t n_requested = 0,
+                       size_t n_requested     = 0,
                        const uint8_t subdev   = 0,
                        const double timeout_s = 10);
 
@@ -1109,8 +1106,8 @@ class LIBVXSDR_EXPORT vxsdr {
     */
     size_t get_rx_data(std::vector<std::complex<int16_t>>& data,
                        const size_t n_requested = 0,
-                       const uint8_t subdev = 0,
-                       const double timeout_s = 10);
+                       const uint8_t subdev     = 0,
+                       const double timeout_s   = 10);
 
     /*!
       @brief Receive data from the device and return it in a vector.
@@ -1123,15 +1120,15 @@ class LIBVXSDR_EXPORT vxsdr {
     */
     size_t get_rx_data(std::vector<std::complex<float>>& data,
                        const size_t n_requested = 0,
-                       const uint8_t subdev = 0,
-                       const double timeout_s = 10);
+                       const uint8_t subdev     = 0,
+                       const double timeout_s   = 10);
 
-   /*!
-      @brief Set the timeout used by the host for commands sent to the device.
-      We do not recommend values less than 0.5 seconds
-      @returns @p true if the timeout is set, @p false if it is out of range
-      @param timeout_s the timeout in seconds (must be greater than 0 and less than or equal to 3600)
-    */
+    /*!
+       @brief Set the timeout used by the host for commands sent to the device.
+       We do not recommend values less than 0.5 seconds
+       @returns @p true if the timeout is set, @p false if it is out of range
+       @param timeout_s the timeout in seconds (must be greater than 0 and less than or equal to 3600)
+     */
     bool set_host_command_timeout(const double timeout_s);
 
     /*!

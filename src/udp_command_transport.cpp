@@ -4,18 +4,18 @@
 #ifdef VXSDR_ENABLE_UDP
 
 #include <atomic>
-#include <cstdint>
-#include <cstddef>
 #include <compare>
+#include <cstddef>
+#include <cstdint>
 #include <map>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <system_error>
 #include <thread>
 
 #include "logging.hpp"
-#include "vxsdr_packets.hpp"
 #include "vxsdr_net.hpp"
+#include "vxsdr_packets.hpp"
 #include "vxsdr_transport.hpp"
 
 /*! @file udp_command_transport.cpp
@@ -37,7 +37,9 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     }
 
     if (config.count("udp_command_transport:local_address") == 0 or config.count("udp_command_transport:device_address") == 0) {
-        LOG_ERROR("udp command transport settings must include udp_command_transport:local_address and udp_command_transport:device_address");
+        LOG_ERROR(
+            "udp command transport settings must include udp_command_transport:local_address and "
+            "udp_command_transport:device_address");
         throw std::invalid_argument("udp command transport settings must include local address and device address");
     }
 
@@ -88,7 +90,8 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     LOG_DEBUG("connecting udp command receiver socket to address {:s} port {:d}", device_ip.to_string(), udp_device_cmd_send_port);
     receiver_socket.connect(net::ip::udp::endpoint(device_ip, udp_device_cmd_send_port), err);
     if (err) {
-        LOG_ERROR("error connecting udp command receiver socket to device address {:s} ({:s})", device_ip.to_string(), err.message());
+        LOG_ERROR("error connecting udp command receiver socket to device address {:s} ({:s})", device_ip.to_string(),
+                  err.message());
         throw std::runtime_error("error connecting udp command receiver socket to device address " + device_ip.to_string());
     }
 
@@ -110,7 +113,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
 
 udp_command_transport::~udp_command_transport() noexcept {
     LOG_DEBUG("udp command transport destructor entered");
-    rx_state = TRANSPORT_SHUTDOWN;
+    rx_state                  = TRANSPORT_SHUTDOWN;
     receiver_thread_stop_flag = true;
     net_error_code::error_code err;
     // use shutdown() to terminate the blocking read
@@ -131,7 +134,7 @@ udp_command_transport::~udp_command_transport() noexcept {
         receiver_thread.join();
     }
     LOG_DEBUG("joining udp command sender thread");
-    tx_state = TRANSPORT_SHUTDOWN;
+    tx_state                = TRANSPORT_SHUTDOWN;
     sender_thread_stop_flag = true;
     if (sender_thread.joinable()) {
         sender_thread.join();
@@ -150,17 +153,17 @@ size_t udp_command_transport::packet_send(const packet& packet, int& error_code)
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
     size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
-    error_code = err.value();
+    error_code   = err.value();
     return bytes;
 }
 
 size_t udp_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
-    packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
+    packet.hdr   = {0, 0, 0, 0, 0, 0, 0};
     size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
-    error_code = err.value();
+    error_code   = err.value();
     return bytes;
 }
 
-#endif // #ifdef VXSDR_ENABLE_UDP
+#endif  // #ifdef VXSDR_ENABLE_UDP

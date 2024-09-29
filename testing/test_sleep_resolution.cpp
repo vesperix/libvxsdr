@@ -1,15 +1,14 @@
 // Copyright (c) 2023 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <iostream>
-#include <chrono>
-#include <thread>
-#include <cstdint>
-#include <vector>
 #include <algorithm>
-#include <numeric>
+#include <chrono>
 #include <cmath>
-
+#include <cstdint>
+#include <iostream>
+#include <numeric>
+#include <thread>
+#include <vector>
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
@@ -18,7 +17,7 @@ int main(int argc, char* argv[]) {
     }
 
     double desired_delay = std::strtod(argv[1], nullptr);
-    auto delay_ns = std::chrono::nanoseconds(std::llround(1e9 * desired_delay));
+    auto delay_ns        = std::chrono::nanoseconds(std::llround(1e9 * desired_delay));
 
     int n_reps = atoi(argv[2]);
     if (n_reps < 1) {
@@ -32,10 +31,10 @@ int main(int argc, char* argv[]) {
     for (int n = 0; n < n_reps; n++) {
         auto t0 = std::chrono::high_resolution_clock::now();
         std::this_thread::sleep_for(delay_ns);
-        auto t1 = std::chrono::high_resolution_clock::now();
+        auto t1                         = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> d = t1 - t0;
-        delay[n] = d.count();
-        error[n] = d.count() - desired_delay;
+        delay[n]                        = d.count();
+        error[n]                        = d.count() - desired_delay;
     }
 
     double mean_delay = std::reduce(delay.begin(), delay.end()) / n_reps;
@@ -46,8 +45,7 @@ int main(int argc, char* argv[]) {
     double median_delay;
     if (n_reps < 2) {
         median_delay = 0;
-    }
-    else if (n_reps % 2 == 0) {
+    } else if (n_reps % 2 == 0) {
         median_delay = 0.5 * (delay[n_reps / 2 - 1] + delay[n_reps / 2]);
     } else {
         median_delay = delay[n_reps / 2];
@@ -63,8 +61,7 @@ int main(int argc, char* argv[]) {
     double median_error;
     if (n_reps < 2) {
         median_error = 0;
-    }
-    else if (n_reps % 2 == 0) {
+    } else if (n_reps % 2 == 0) {
         median_error = 0.5 * (error[n_reps / 2 - 1] + error[n_reps / 2]);
     } else {
         median_error = error[n_reps / 2];

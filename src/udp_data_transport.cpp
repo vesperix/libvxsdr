@@ -5,24 +5,23 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cstdint>
-#include <cstddef>
 #include <compare>
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <thread>
-#include <stdexcept>
 #include <vector>
 
 #include "logging.hpp"
+#include "vxsdr_net.hpp"
 #include "vxsdr_packets.hpp"
 #include "vxsdr_queues.hpp"
-#include "vxsdr_net.hpp"
 #include "vxsdr_threads.hpp"
 #include "vxsdr_transport.hpp"
-
 
 /*! @file udp_data_transport.cpp
     @brief Constructor, destructor, and utility functions for the @p vxsdr_udp data transport classes.
@@ -32,9 +31,9 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
                                        const unsigned granularity,
                                        const unsigned n_subdevs,
                                        const unsigned max_samps_per_packet)
-        : data_transport(granularity, n_subdevs, max_samps_per_packet),
-          sender_socket(context, net::ip::udp::v4()),
-          receiver_socket(context, net::ip::udp::v4()) {
+    : data_transport(granularity, n_subdevs, max_samps_per_packet),
+      sender_socket(context, net::ip::udp::v4()),
+      receiver_socket(context, net::ip::udp::v4()) {
     LOG_DEBUG("udp data transport constructor entered");
 
     auto config = apply_transport_settings(settings, get_default_settings());
@@ -48,7 +47,8 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     if (config.count("udp_data_transport:local_address") == 0 or config.count("udp_data_transport:device_address") == 0) {
-        LOG_ERROR("udp data transport settings must include udp_data_transport:local_address and udp_data_transport:device_address");
+        LOG_ERROR(
+            "udp data transport settings must include udp_data_transport:local_address and udp_data_transport:device_address");
         throw std::invalid_argument("udp data transport settings must include local address and device address");
     }
 
@@ -112,12 +112,15 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     LOG_DEBUG("checking udp_data_transport:mtu_bytes");
     if (config.count("udp_data_transport:mtu_bytes") > 0) {
         auto specified_mtu = config["udp_data_transport:mtu_bytes"];
-        unsigned specified_max_samples = find_max_samples_per_packet(specified_mtu - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
+        unsigned specified_max_samples =
+            find_max_samples_per_packet(specified_mtu - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
         if (specified_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(specified_max_samples)) {
-                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (udp_data_transport:mtu_bytes = {:d})", max_samples_per_packet, specified_mtu);
+                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (udp_data_transport:mtu_bytes = {:d})",
+                         max_samples_per_packet, specified_mtu);
             } else {
-                LOG_ERROR("error setting maximum samples per packet to {:d} (from udp_data_transport:mtu_bytes)", specified_max_samples);
+                LOG_ERROR("error setting maximum samples per packet to {:d} (from udp_data_transport:mtu_bytes)",
+                          specified_max_samples);
                 throw std::runtime_error("error setting maximum samples per packet from udp_data_transport:mtu_bytes");
             }
         }
@@ -131,10 +134,12 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         LOG_ERROR("error getting mtu for udp data sender socket");
         throw std::runtime_error("error getting mtu for udp data sender socket");
     } else if (mtu_est > 0) {
-        unsigned socket_max_samples = find_max_samples_per_packet(mtu_est - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
+        unsigned socket_max_samples =
+            find_max_samples_per_packet(mtu_est - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
         if (socket_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(socket_max_samples)) {
-                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (socket mtu = {:d})", max_samples_per_packet, mtu_est);
+                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (socket mtu = {:d})",
+                         max_samples_per_packet, mtu_est);
             } else {
                 LOG_ERROR("error setting maximum samples per packet to {:d} (from socket mtu)", socket_max_samples);
                 throw std::runtime_error("error setting maximum samples per packet from socket mtu");
@@ -162,7 +167,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
             LOG_DEBUG("network send buffer size set to {:d}", network_buffer_size);
         }
     }
-// FIXME: verify if this is needed -- multicast?
+    // FIXME: verify if this is needed -- multicast?
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
         LOG_ERROR("cannot set reuse address option on receive socket ({:s})", err.message());
@@ -192,11 +197,11 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     for (unsigned i = 0; i < num_rx_subdevs; i++) {
         rx_data_queue.push_back(
             std::make_unique<vxsdr_queue<data_queue_element>>(config["udp_data_transport:rx_data_queue_packets"]));
-        rx_sample_queue.push_back(
-            std::make_unique<vxsdr_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
+        rx_sample_queue.push_back(std::make_unique<vxsdr_queue<vxsdr::wire_sample>>(MAX_DATA_LENGTH_SAMPLES));
     }
 
-    LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs, config["udp_data_transport:rx_data_queue_packets"]);
+    LOG_DEBUG("using {:d} receive data buffers of {:d} packets", num_rx_subdevs,
+              config["udp_data_transport:rx_data_queue_packets"]);
     LOG_DEBUG("using {:d} receive sample buffers of {:d} samples", num_rx_subdevs, MAX_DATA_LENGTH_SAMPLES);
 
     rx_state        = TRANSPORT_STARTING;
@@ -255,13 +260,13 @@ udp_data_transport::~udp_data_transport() noexcept {
     LOG_DEBUG("udp data transport destructor entered");
     // tx must shut down before rx since tx sends a final ack request to update stats
     LOG_DEBUG("joining udp data sender thread");
-    tx_state = TRANSPORT_SHUTDOWN;
+    tx_state                = TRANSPORT_SHUTDOWN;
     sender_thread_stop_flag = true;
     if (sender_thread.joinable()) {
         sender_thread.join();
     }
     LOG_DEBUG("joining udp data receiver thread");
-    rx_state = TRANSPORT_SHUTDOWN;
+    rx_state                  = TRANSPORT_SHUTDOWN;
     receiver_thread_stop_flag = true;
     net_error_code::error_code err;
     // use shutdown() to terminate the blocking read
@@ -318,10 +323,10 @@ size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
 size_t udp_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
-    packet.hdr = { 0, 0, 0, 0, 0, 0, 0 };
+    packet.hdr   = {0, 0, 0, 0, 0, 0, 0};
     size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
-    error_code = err.value();
+    error_code   = err.value();
     return bytes;
 }
 
-#endif // #ifdef VXSDR_ENABLE_UDP
+#endif  // #ifdef VXSDR_ENABLE_UDP
