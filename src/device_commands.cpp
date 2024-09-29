@@ -195,9 +195,9 @@ std::optional<double> vxsdr::imp::get_timing_resolution() {
 std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& local_addr_str,
                                                              const std::string& broadcast_addr_str,
                                                              const double timeout_s) {
-    const unsigned destination_port    = 1030;
-    net::ip::address_v4 local_addr     = net::ip::address_v4::from_string(local_addr_str);
-    net::ip::address_v4 broadcast_addr = net::ip::address_v4::from_string(broadcast_addr_str);
+    const unsigned destination_port = 1030;
+    auto local_addr                 = net::ip::address_v4::from_string(local_addr_str);
+    auto broadcast_addr             = net::ip::address_v4::from_string(broadcast_addr_str);
     std::vector<std::string> ret_list;
 
     // wait 1 / 1000 of the timeout specified each rx
@@ -286,18 +286,18 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 }
 
 bool vxsdr::imp::set_ipv4_address(const std::string& device_address_str) {
-    net::ip::address_v4 device_address = net::ip::address_v4::from_string(device_address_str);
-    one_uint32_packet p                = {};
-    p.hdr                              = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SET_TRANSPORT_ADDR, 0, 0, 0, sizeof(p), 0};
-    p.value1                           = device_address.to_uint();
+    auto device_address = net::ip::address_v4::from_string(device_address_str);
+    one_uint32_packet p = {};
+    p.hdr               = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SET_TRANSPORT_ADDR, 0, 0, 0, sizeof(p), 0};
+    p.value1            = device_address.to_uint();
     return vxsdr::imp::send_command_and_check_response(p, "set_ipv4_address()");
 }
 
 bool vxsdr::imp::save_ipv4_address(const std::string& device_address_str) {
-    net::ip::address_v4 device_address = net::ip::address_v4::from_string(device_address_str);
-    one_uint32_packet p                = {};
-    p.hdr                              = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SAVE_TRANSPORT_ADDR, 0, 0, 0, sizeof(p), 0};
-    p.value1                           = device_address.to_uint();
+    auto device_address = net::ip::address_v4::from_string(device_address_str);
+    one_uint32_packet p = {};
+    p.hdr               = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_SAVE_TRANSPORT_ADDR, 0, 0, 0, sizeof(p), 0};
+    p.value1            = device_address.to_uint();
     return vxsdr::imp::send_command_and_check_response(p, "save_ipv4_address()");
 }
 
