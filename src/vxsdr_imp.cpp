@@ -34,6 +34,10 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         LOG_INFO("    {:s}", str);
     }
 
+    for (auto& [k, v] : input_config) {
+        LOG_DEBUG("vxsdr::imp input configuration setting {:30s} = {:d}", k, v);
+    }
+
     auto config = vxsdr::imp::apply_config(input_config);
 
     std::shared_ptr<pcie_dma_interface> pcie_iface = nullptr;

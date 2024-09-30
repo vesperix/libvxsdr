@@ -85,12 +85,20 @@ class packet_transport {
     std::atomic<transport_state> rx_state{TRANSPORT_UNINITIALIZED};
 
     virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
-
+    virtual std::map<std::string, int64_t> get_default_settings() const { return {}; };
     std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
-        std::map<std::string, int64_t> config = default_settings;
+        std::map<std::string, int64_t> config = get_default_settings();
         for (const auto& s : settings) {
-            config[s.first] = s.second;
+            if (config.count(s.first) > 0) {
+                if (config[s.first] != s.second) {
+                    config[s.first] = s.second;
+                    LOG_DEBUG("changed setting {:s} = {:d}", s.first, config[s.first]);
+                }
+            } else {
+                config[s.first] = s.second;
+                LOG_DEBUG("added setting {:s} = {:d}", s.first, config[s.first]);
+            }
         }
         return config;
     }
@@ -429,7 +437,7 @@ class data_transport : public packet_transport {
 class udp_command_transport : public command_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "udp"; };
-    std::map<std::string, int64_t> get_default_settings() const { return {}; };
+    std::map<std::string, int64_t> get_default_settings() const final { return {}; };
     // timeouts for the UDP transport to reach ready state
     static constexpr auto udp_ready_timeout = 100'000us;
     static constexpr auto udp_ready_wait    = 1'000us;
@@ -457,7 +465,7 @@ class udp_command_transport : public command_transport {
 class udp_data_transport : public data_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "udp"; };
-    std::map<std::string, int64_t> get_default_settings() const noexcept {
+    std::map<std::string, int64_t> get_default_settings() const final {
         return {{"udp_data_transport:tx_data_queue_packets", 512},
                 {"udp_data_transport:rx_data_queue_packets", 512},
                 {"udp_data_transport:mtu_bytes", 9'000},
@@ -511,7 +519,7 @@ class udp_data_transport : public data_transport {
 class pcie_command_transport : public command_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "pcie"; };
-    std::map<std::string, int64_t> get_default_settings() const noexcept { return {}; };
+    std::map<std::string, int64_t> get_default_settings() const final { return {}; };
     // timeouts for the PCIe transport to reach ready state
     static constexpr auto pcie_ready_timeout = 100'000us;
     static constexpr auto pcie_ready_wait    = 1'000us;
@@ -531,7 +539,7 @@ class pcie_command_transport : public command_transport {
 class pcie_data_transport : public data_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "pcie"; };
-    std::map<std::string, int64_t> get_default_settings() const noexcept {
+    std::map<std::string, int64_t> get_default_settings() const final {
         return {{"pcie_data_transport:tx_data_queue_packets", 512}, {"pcie_data_transport:rx_data_queue_packets", 512},
                 {"pcie_data_transport:thread_priority", 1},         {"pcie_data_transport:thread_affinity_offset", 0},
                 {"pcie_data_transport:sender_thread_affinity", 0},  {"pcie_data_transport:receiver_thread_affinity", 1}};

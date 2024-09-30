@@ -36,6 +36,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
         config["udp_command_transport:device_address"] = config["udp_transport:device_address"];
     }
 
+
     if (config.count("udp_command_transport:local_address") == 0 or config.count("udp_command_transport:device_address") == 0) {
         LOG_ERROR(
             "udp command transport settings must include udp_command_transport:local_address and "
