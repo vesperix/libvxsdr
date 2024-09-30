@@ -35,7 +35,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     for (auto& [k, v] : input_config) {
-        LOG_DEBUG("vxsdr::imp input configuration setting {:30s} = {:d}", k, v);
+        LOG_DEBUG("input configuration setting {:30s} = {:d}", k, v);
     }
 
     auto config = vxsdr::imp::apply_config(input_config);

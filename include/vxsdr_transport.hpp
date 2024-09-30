@@ -93,11 +93,17 @@ class packet_transport {
             if (config.count(s.first) > 0) {
                 if (config[s.first] != s.second) {
                     config[s.first] = s.second;
-                    LOG_DEBUG("changed setting {:s} = {:d}", s.first, config[s.first]);
+                    LOG_DEBUG("{:s} {:s} transport changed setting {:s} = {:d}", get_transport_type(),
+                                                                                 get_payload_type(),
+                                                                                 s.first,
+                                                                                 config[s.first]);
                 }
             } else {
                 config[s.first] = s.second;
-                LOG_DEBUG("added setting {:s} = {:d}", s.first, config[s.first]);
+                LOG_DEBUG("{:s} {:s} transport added setting {:s} = {:d}", get_transport_type(),
+                                                                           get_payload_type(),
+                                                                           s.first,
+                                                                           config[s.first]);
             }
         }
         return config;
