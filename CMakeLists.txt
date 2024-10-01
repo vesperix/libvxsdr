@@ -216,7 +216,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     set(vxsdr_warning_options -Wall)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(vxsdr_compiler_defs -DVXSDR_COMPILER_GCC)
-    set(vxsdr_warning_options -Wall -Wno-packed-bitfield-compat)
+    set(vxsdr_warning_options -Wall -Wno-packed-bitfield-compat -Wno-interference-size)
     if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
         # -fno-trapping-math is needed for gcc to properly optimize float32-int16 conversions
         set(vxsdr_optimization_options -fno-trapping-math)
@@ -234,7 +234,7 @@ if(VXSDR_PYTHON_BINDINGS)
     message(STATUS "Python bindings requested")
     # When multiple Python versions are installed, you may need to
     # need to specify the version to use by specifying the version number
-    # for example: -DVXSDR_PYTHON_VER=3.9:
+    # for example: -D VXSDR_PYTHON_VER=3.9:
     if(DEFINED VXSDR_PYTHON_VER)
         message(STATUS "Looking for specified version ${VXSDR_PYTHON_VER}")
         find_package(Python3 ${VXSDR_PYTHON_VER} EXACT COMPONENTS Interpreter Development)
