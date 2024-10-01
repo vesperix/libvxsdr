@@ -93,6 +93,7 @@ class vxsdr_queue : public rigtorp::SPSCQueue<Element> {
         auto* p = rigtorp::SPSCQueue<Element>::front();
         if (p != nullptr) {
             e = *p;
+            rigtorp::SPSCQueue<Element>::pop();
             return true;
         }
         return false;
