@@ -14,7 +14,7 @@
 
 class packet {
   public:
-    packet_header hdr = {0, 0, 0, 0, 0, 0, 0};
+    packet_header hdr{0, 0, 0, 0, 0, 0, 0};
 };
 
 class header_only_packet : public packet {};

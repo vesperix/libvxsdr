@@ -74,7 +74,7 @@ class vxsdr_queue : public folly::ProducerConsumerQueue<Element> {
 template <typename Element>
 class vxsdr_queue : public rigtorp::SPSCQueue<Element> {
   public:
-    explicit vxsdr_queue<Element>(const size_t size) : rigtorp::SPSCQueue<Element>(size) {};
+    explicit vxsdr_queue<Element>(const size_t size) : rigtorp::SPSCQueue<Element>{size} {};
 
     bool push(Element& e) { return rigtorp::SPSCQueue<Element>::try_push(e); };
     bool push(Element&& e) { return rigtorp::SPSCQueue<Element>::try_push(e); };
