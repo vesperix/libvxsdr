@@ -6,7 +6,7 @@
 #include <chrono>
 #include <thread>
 
-#ifdef VXSDR_USE_BOOST_QUEUES
+#ifdef VXSDR_USE_BOOST_QUEUE
 
 // Confines the boost specifics to this file
 
@@ -23,6 +23,10 @@ class vxsdr_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree:
     explicit vxsdr_queue<Element>(const size_t size)
         : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>{size - 1} {};
 };
+
+//#endif // #ifdef VXSDR_USE_BOOST_QUEUE
+
+//#ifdef VXSDR_USE_FOLLY_QUEUE
 
 #else
 
@@ -65,4 +69,55 @@ class vxsdr_queue : public folly::ProducerConsumerQueue<Element> {
     }
 };
 
-#endif
+#endif // #ifdef VXSDR_USE_FOLLY_QUEUE
+
+#ifdef VXSDR_USE_RIGTORP_QUEUE
+
+#include "third_party/SPSCQueue.h"
+
+template <typename Element>
+class vxsdr_queue : public rigtorp::SPSCQueue<Element> {
+  public:
+    explicit vxsdr_queue<Element>(const size_t size) : rigtorp::SPSCQueue<Element>(size) {};
+
+    bool push(Element& e) { return rigtorp::SPSCQueue<Element>::try_push(e); };
+    bool push(Element&& e) { return rigtorp::SPSCQueue<Element>::try_push(e); };
+    size_t push(Element* p, size_t n_max) {
+        size_t n_pushed = 0;
+        while (n_pushed < n_max) {
+            if (push(*(p + n_pushed))) {
+                n_pushed++;
+            } else {
+                break;
+            }
+        }
+        return n_pushed;
+    };
+    bool pop(Element& e) {
+        auto* p = rigtorp::SPSCQueue<Element>::front();
+        if (p != nullptr) {
+            e = *p;
+            return true;
+        }
+        return false;
+     };
+    size_t pop(Element* p, size_t n_max) {
+        size_t n_popped = 0;
+        while (n_popped < n_max) {
+            if (pop(*(p + n_popped))) {
+                n_popped++;
+            } else {
+                break;
+            }
+        }
+        return n_popped;
+    };
+    size_t read_available() { return rigtorp::SPSCQueue<Element>::size(); };
+    void reset() {
+        while (rigtorp::SPSCQueue<Element>::front() != nullptr) {
+            rigtorp::SPSCQueue<Element>::pop();
+        }
+    }
+};
+
+#endif // #ifdef VXSDR_USE_RIGTORP_QUEUE
