@@ -6,9 +6,7 @@
 #include <chrono>
 #include <thread>
 
-#ifdef VXSDR_USE_BOOST_QUEUE
-
-// Confines the boost specifics to this file
+#ifdef VXSDR_QUEUE_BOOST
 
 // use std::atomic so queues are header-only
 #ifndef BOOST_LOCKFREE_FORCE_STD_ATOMIC
@@ -24,11 +22,9 @@ class vxsdr_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree:
         : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>{size - 1} {};
 };
 
-//#endif // #ifdef VXSDR_USE_BOOST_QUEUE
+#endif // #ifdef VXSDR_QUEUE_BOOST
 
-//#ifdef VXSDR_USE_FOLLY_QUEUE
-
-#else
+#ifdef VXSDR_QUEUE_FOLLY
 
 #include "third_party/ProducerConsumerQueue.h"
 
@@ -69,9 +65,9 @@ class vxsdr_queue : public folly::ProducerConsumerQueue<Element> {
     }
 };
 
-#endif // #ifdef VXSDR_USE_FOLLY_QUEUE
+#endif // #ifdef VXSDR_QUEUE_FOLLY
 
-#ifdef VXSDR_USE_RIGTORP_QUEUE
+#ifdef VXSDR_QUEUE_RIGTORP
 
 #include "third_party/SPSCQueue.h"
 
@@ -120,4 +116,4 @@ class vxsdr_queue : public rigtorp::SPSCQueue<Element> {
     }
 };
 
-#endif // #ifdef VXSDR_USE_RIGTORP_QUEUE
+#endif // #ifdef VXSDR_QUEUE_RIGTORP
