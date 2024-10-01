@@ -48,8 +48,8 @@ struct option_as_string {
     }
     ~option_as_string() = default;
     template <typename T>
-    std::string incompatible_type_error_message(const std::string& name, const supported_types type) const {
-        return "incompatible types for option \"" + name + "\": cannot cast " + type_to_string(type) +
+    std::string incompatible_type_error_message(const std::string& err_name, const supported_types err_type) const {
+        return "incompatible types for option \"" + err_name + "\": cannot cast " + type_to_string(err_type) +
                " to (possibly mangled) type " + typeid(T).name();
     }
     void cast_error(const std::string& error_message) const {
@@ -328,7 +328,7 @@ class program_options {
     };
     std::string format_help(const std::string& name,
                             const supported_types type,
-                            const std::string& help_msg,
+                            const std::string& help_message,
                             const bool required     = false,
                             const bool has_bool_off = true) {
         const std::string indent     = "   ";
@@ -341,7 +341,7 @@ class program_options {
             } else {
                 key_part = key_part + "\n" + tab_indent;
             }
-            output_str = key_part + help_msg;
+            output_str = key_part + help_message;
             if (has_bool_off)
                 output_str += " (off is --no" + name + ")";
         } else {
@@ -351,7 +351,7 @@ class program_options {
             } else {
                 key_part = key_part + "\n" + tab_indent;
             }
-            output_str = key_part + help_msg;
+            output_str = key_part + help_message;
         }
         if (required) {
             output_str += " [REQUIRED]";
