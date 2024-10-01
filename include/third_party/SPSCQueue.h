@@ -26,7 +26,6 @@ SOFTWARE.
 #include <cassert>
 #include <cstddef>
 #include <memory> // std::allocator
-#include <new>    // std::hardware_destructive_interference_size
 #include <stdexcept>
 #include <type_traits> // std::enable_if, std::is_*_constructible
 
@@ -37,6 +36,20 @@ SOFTWARE.
 #endif
 #ifndef RIGTORP_NODISCARD
 #define RIGTORP_NODISCARD
+#endif
+
+/* This modification by Vesperix prevents erroneous values on MacOS with AArch64 */
+
+#include <new>
+#ifdef __cpp_lib_hardware_interference_size
+    inline constexpr size_t hardware_destructive_interference_size = std::hardware_destructive_interference_size;
+#else // ensure reasonable values if not defined
+    #ifdef VXSDR_TARGET_MACOS
+        // assuming AArch64; Intel Mac is not supported
+        inline constexpr size_t hardware_destructive_interference_size = 128;
+    #else
+        inline constexpr size_t hardware_destructive_interference_size = 64;
+    #endif
 #endif
 
 namespace rigtorp {
@@ -207,12 +220,8 @@ public:
   RIGTORP_NODISCARD size_t capacity() const noexcept { return capacity_ - 1; }
 
 private:
-#ifdef __cpp_lib_hardware_interference_size
-  static constexpr size_t kCacheLineSize =
-      std::hardware_destructive_interference_size;
-#else
-  static constexpr size_t kCacheLineSize = 64;
-#endif
+  // use Vesperix safer value defined above
+  static constexpr size_t kCacheLineSize = hardware_destructive_interference_size;
 
   // Padding to avoid false sharing between slots_ and adjacent allocations
   static constexpr size_t kPadding = (kCacheLineSize - 1) / sizeof(T) + 1;
