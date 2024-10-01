@@ -6,7 +6,7 @@
 #include <chrono>
 #include <thread>
 
-#ifdef VXSDR_USE_BOOST_QUEUES
+#ifdef VXSDR_QUEUE_BOOST
 
 // Confines the boost specifics to this file
 

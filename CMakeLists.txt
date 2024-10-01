@@ -85,7 +85,7 @@ else()
 endif()
 
 if(VXSDR_USE_BOOST_QUEUE)
-    list(APPEND vxsdr_dependency_defs "-DVXSDR_USE_BOOST_QUEUE")
+    list(APPEND vxsdr_dependency_defs "-DVXSDR_QUEUE_BOOST")
     message(STATUS "Using boost::spsc_queue for data and command queues")
 else()
     message(STATUS "Using folly::ProducerConsumerQueue for data and command queues")
