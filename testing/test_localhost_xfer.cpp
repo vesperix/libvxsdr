@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #include <mutex>
 #include <vector>
 using namespace std::chrono_literals;
@@ -67,7 +68,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
         }
         if (n_try >= n_tries) {
             std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "producer: timeout waiting for push" << std::endl;
+            std::cerr << "producer: timeout waiting for push" << std::endl;
             break;
         }
 
@@ -88,20 +89,20 @@ void tx_net_sender(net::ip::udp::socket& sender_socket) {
     sender_socket.set_option(net::socket_base::send_buffer_size((int)network_send_buffer_size), err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot set network send buffer size: " << err.message() << std::endl;
+        std::cerr << "cannot set network send buffer size: " << err.message() << std::endl;
         return;
     }
     net::socket_base::send_buffer_size option;
     sender_socket.get_option(option, err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot get network send buffer size: " << err.message() << std::endl;
+        std::cerr << "cannot get network send buffer size: " << err.message() << std::endl;
         return;
     }
     auto network_buffer_size = option.value();
     if (network_buffer_size != network_send_buffer_size) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot set network send buffer size: got " << network_buffer_size << std::endl;
+        std::cerr << "cannot set network send buffer size: got " << network_buffer_size << std::endl;
         return;
     }
 
@@ -114,18 +115,18 @@ void tx_net_sender(net::ip::udp::socket& sender_socket) {
         for (unsigned i = 0; i < n_popped; i++) {
             if (data_buffer[i].hdr.packet_size == 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "tx queue error: zero size packet popped" << std::endl;
+                std::cerr << "tx queue error: zero size packet popped" << std::endl;
                 return;
             }
             size_t bytes = sender_socket.send(net::buffer(&data_buffer[i], data_buffer[i].hdr.packet_size), flags, err);
             if (err) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "packet send error: " << err.message() << std::endl;
+                std::cerr << "packet send error: " << err.message() << std::endl;
                 return;
             }
             if (bytes != data_buffer[i].hdr.packet_size) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "send packet size error" << std::endl;
+                std::cerr << "send packet size error" << std::endl;
                 return;
             }
         }
@@ -140,25 +141,26 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot set reuse address option on receive socket: " << err.message() << std::endl;
+        std::cerr << "cannot set reuse address option on receive socket: " << err.message() << std::endl;
+        return;
     }
     receiver_socket.set_option(net::socket_base::receive_buffer_size((int)network_receive_buffer_size), err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot set network receive buffer size: " << err.message() << std::endl;
+        std::cerr << "cannot set network receive buffer size: " << err.message() << std::endl;
         return;
     }
     net::socket_base::receive_buffer_size option;
     receiver_socket.get_option(option, err);
     if (err) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot get network receive buffer size: " << err.message() << std::endl;
+        std::cerr << "cannot get network receive buffer size: " << err.message() << std::endl;
         return;
     }
     auto network_buffer_size = option.value();
     if (network_buffer_size != network_receive_buffer_size) {
         std::lock_guard<std::mutex> guard(console_mutex);
-        std::cout << "cannot set network receive buffer size: got " << network_buffer_size << std::endl;
+        std::cerr << "cannot set network receive buffer size: got " << network_buffer_size << std::endl;
         return;
     }
 
@@ -169,18 +171,18 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
         auto bytes_in_packet                  = receiver_socket.receive(net::buffer(&recv_buffer, sizeof(recv_buffer)), flags, err);
         if (err) {
             std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "packet receive error: " << err.message() << std::endl;
+            std::cerr << "packet receive error: " << err.message() << std::endl;
             return;
         }
         if (bytes_in_packet > 0 and not receiver_thread_stop_flag) {
             if (bytes_in_packet != recv_buffer.hdr.packet_size) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "packet receive size error" << std::endl;
+                std::cerr << "packet receive size error" << std::endl;
                 return;
             }
             if (not rx_queue.push(recv_buffer)) {
                 std::lock_guard<std::mutex> guard(console_mutex);
-                std::cout << "receive packet push error" << std::endl;
+                std::cerr << "receive packet push error" << std::endl;
                 return;
             }
         }
@@ -209,13 +211,13 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
         }
         if (n_try >= n_tries) {
             std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "consumer: timeout waiting for pop" << std::endl;
+            std::cerr << "consumer: timeout waiting for pop" << std::endl;
             break;
         }
 
         for (size_t j = 0; j < n_popped; j++) {
             if (p[j].hdr.sequence_counter != expected_seq) {
-                std::cout << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
+                std::cerr << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
                 expected_seq = p[j].hdr.sequence_counter;
                 seq_errors++;
             }
@@ -273,6 +275,7 @@ int main(int argc, char* argv[]) {
             if (set_thread_affinity(tx_thread, thread_affinity.at(0)) != 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
                 std::cout << "error setting tx thread affinity" << std::endl;
+                std::cout << "failed" << std::endl;
                 exit(-1);
             }
         }
@@ -280,6 +283,7 @@ int main(int argc, char* argv[]) {
             if (set_thread_priority_realtime(tx_thread, thread_priority.at(0)) != 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
                 std::cout << "error setting tx thread priority" << std::endl;
+                std::cout << "failed" << std::endl;
                 exit(-1);
             }
         }
@@ -288,6 +292,7 @@ int main(int argc, char* argv[]) {
             if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
                 std::cout << "error setting rx thread affinity" << std::endl;
+                std::cout << "failed" << std::endl;
                 exit(-1);
             }
         }
@@ -295,6 +300,7 @@ int main(int argc, char* argv[]) {
             if (set_thread_affinity(rx_thread, thread_affinity.at(1)) != 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
                 std::cout << "error setting ex thread affinity" << std::endl;
+                std::cout << "failed" << std::endl;
                 exit(-1);
             }
         }
@@ -319,7 +325,7 @@ int main(int argc, char* argv[]) {
         if (err and err != net_error_code_types::not_connected) {
             // the not connected error is expected since it's a UDP socket
             std::lock_guard<std::mutex> guard(console_mutex);
-            std::cout << "receiver socket shutdown: " << err.message() << std::endl;
+            std::cerr << "receiver socket shutdown: " << err.message() << std::endl;
         }
 
         if (tx_thread.joinable()) {
@@ -333,6 +339,8 @@ int main(int argc, char* argv[]) {
         pass = (pop_rate > minimum_rate) and (push_rate > minimum_rate) and seq_errors == 0;
 
         std::lock_guard<std::mutex> guard(console_mutex);
+        std::cout << "minimum rate = " << std::fixed << std::setprecision(2)
+                  << 1e-6 * std::min(push_rate, pop_rate) << std::endl;
         std::cout << (pass ? "passed" : "failed") << std::endl;
     } catch (std::exception& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;
