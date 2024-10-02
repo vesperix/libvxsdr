@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #include <mutex>
 #include <vector>
 
@@ -145,7 +146,8 @@ int main(int argc, char* argv[]) {
     producer_thread.join();
     consumer_thread.join();
 
-    std::cout << "minimum rate = " << 1e-6 * std::min(push_rate, pop_rate) << " Msamples/sec" << std::endl;
+    std::cout << "minimum rate = " << std::fixed << std::setprecision(2)
+                << 1e-6 * std::min(push_rate, pop_rate) << std::endl;
 
     bool pass = (pop_rate > minimum_rate) and (push_rate > minimum_rate);
     std::cout << (pass ? "passed" : "failed") << std::endl;
