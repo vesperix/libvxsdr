@@ -320,7 +320,7 @@ class data_transport : public packet_transport {
     unsigned sample_granularity;
     unsigned num_rx_subdevs;
     unsigned max_samples_per_packet;
-    unsigned send_buffer_size;
+    unsigned send_buffer_size = 256;
 
     // control over throttling for transports that use it
     virtual bool use_tx_throttling() const noexcept { return false; };
@@ -356,13 +356,8 @@ class data_transport : public packet_transport {
     std::atomic<unsigned> tx_packet_oos_count{0};
 
   public:
-    data_transport(const unsigned granularity,
-                   const unsigned n_rx_subdevs,
-                   const unsigned max_samps_per_packet,
-                   const unsigned send_buffer_pkts = 256)
-        : sample_granularity{granularity},
-          num_rx_subdevs{n_rx_subdevs},
-          send_buffer_size{send_buffer_pkts} {
+    data_transport(const unsigned granularity, const unsigned n_rx_subdevs, const unsigned max_samps_per_packet)
+        : sample_granularity{granularity}, num_rx_subdevs{n_rx_subdevs} {
         max_samples_per_packet = sample_granularity * (max_samps_per_packet / sample_granularity);
     };
 
@@ -480,6 +475,7 @@ class udp_data_transport : public data_transport {
     std::map<std::string, int64_t> get_default_settings() const final {
         return {{"udp_data_transport:tx_data_queue_packets", 512},
                 {"udp_data_transport:rx_data_queue_packets", 512},
+                {"udp_data_transport:tx_send_buffer_packets", 256},
                 {"udp_data_transport:mtu_bytes", 9'000},
                 {"udp_data_transport:network_send_buffer_bytes", 262'144},
                 {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
@@ -552,9 +548,13 @@ class pcie_data_transport : public data_transport {
   protected:
     std::string get_transport_type() const noexcept final { return "pcie"; };
     std::map<std::string, int64_t> get_default_settings() const final {
-        return {{"pcie_data_transport:tx_data_queue_packets", 512}, {"pcie_data_transport:rx_data_queue_packets", 512},
-                {"pcie_data_transport:thread_priority", 1},         {"pcie_data_transport:thread_affinity_offset", 0},
-                {"pcie_data_transport:sender_thread_affinity", 0},  {"pcie_data_transport:receiver_thread_affinity", 1}};
+        return {{"pcie_data_transport:tx_data_queue_packets", 512},
+                {"pcie_data_transport:rx_data_queue_packets", 512},
+                {"pcie_data_transport:tx_send_buffer_packets", 256},
+                {"pcie_data_transport:thread_priority", 1},
+                {"pcie_data_transport:thread_affinity_offset", 0},
+                {"pcie_data_transport:sender_thread_affinity", 0},
+                {"pcie_data_transport:receiver_thread_affinity", 1}};
     };
 
     // timeouts for the PCIe transport to reach ready state

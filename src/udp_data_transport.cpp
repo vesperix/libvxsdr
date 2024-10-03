@@ -224,6 +224,11 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         LOG_DEBUG("udp data receiver thread priority set to {:d}", config["udp_data_transport:thread_priority"]);
     }
 
+    if (config.count("udp_data_transport:tx_send_buffer_packets") > 0) {
+        send_buffer_size = config["udp_data_transport:tx_send_buffer_packets"];
+    }
+    LOG_DEBUG("using tx send buffer of {:d} packets", send_buffer_size);
+
     tx_state      = TRANSPORT_STARTING;
     sender_thread = vxsdr_thread([this] { data_send(); });
 
