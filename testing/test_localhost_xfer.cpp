@@ -56,10 +56,10 @@ std::atomic_bool receiver_thread_stop_flag = false;
 void tx_producer(const size_t n_items, double& push_rate) {
     auto t0 = std::chrono::steady_clock::now();
 
-    static data_queue_element p;
     size_t i = 0;
 
     for (i = 0; i < n_items; i++) {
+        data_queue_element p;
         p.hdr                  = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, 0, 0, data_packet_bytes, 0};
         p.hdr.sequence_counter = i % (UINT16_MAX + 1);
 
@@ -202,7 +202,7 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
 }
 
 void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
-    static std::array<data_queue_element, consumer_buffer_length> p;
+    std::vector<data_queue_element> p{consumer_buffer_length};
 
     auto t0 = std::chrono::steady_clock::now();
 
