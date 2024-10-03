@@ -23,7 +23,7 @@ static constexpr unsigned data_packet_samples = 2400;
 static constexpr unsigned data_packet_bytes   = 4 * data_packet_samples + 8;
 
 static constexpr size_t tx_queue_length =   512;
-static constexpr size_t rx_queue_length = 2'048;
+static constexpr size_t rx_queue_length =   512;
 
 static constexpr size_t sender_buffer_length   = 256;
 static constexpr size_t consumer_buffer_length = 512;
