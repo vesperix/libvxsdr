@@ -116,7 +116,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
             find_max_samples_per_packet(specified_mtu - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
         if (specified_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(specified_max_samples)) {
-                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (udp_data_transport:mtu_bytes = {:d})",
+                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (specified mtu)",
                          max_samples_per_packet, specified_mtu);
             } else {
                 LOG_ERROR("error setting maximum samples per packet to {:d} (from udp_data_transport:mtu_bytes)",
@@ -138,7 +138,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
             find_max_samples_per_packet(mtu_est - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
         if (socket_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(socket_max_samples)) {
-                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (socket mtu = {:d})",
+                LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (socket mtu)",
                          max_samples_per_packet, mtu_est);
             } else {
                 LOG_ERROR("error setting maximum samples per packet to {:d} (from socket mtu)", socket_max_samples);
