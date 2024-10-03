@@ -19,17 +19,17 @@ using namespace std::chrono_literals;
 #include "vxsdr_queues.hpp"
 #include "vxsdr_threads.hpp"
 
-static constexpr unsigned data_packet_samples = 2048;
+static constexpr unsigned data_packet_samples = 2400;
 static constexpr unsigned data_packet_bytes   = 4 * data_packet_samples + 8;
 
-static constexpr size_t tx_queue_length = 512;
-static constexpr size_t rx_queue_length = 512;
+static constexpr size_t tx_queue_length =   512;
+static constexpr size_t rx_queue_length = 2'048;
 
-const unsigned network_send_buffer_size    = 262'144;
+static constexpr size_t sender_buffer_length   = 256;
+static constexpr size_t consumer_buffer_length = 512;
+
+const unsigned network_send_buffer_size    =  262'144;
 const unsigned network_receive_buffer_size = 8'388'608;
-
-static constexpr unsigned udp_host_receive_port = 1030;
-static constexpr unsigned udp_host_send_port    = 55123;
 
 static constexpr unsigned push_queue_wait_us = 100;
 static constexpr unsigned pop_queue_wait_us  = 100;
@@ -39,6 +39,9 @@ static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
 
 static constexpr unsigned tx_net_wait_us = 100;
+
+static constexpr unsigned udp_host_receive_port = 1030;
+static constexpr unsigned udp_host_send_port    = 55123;
 
 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -106,9 +109,8 @@ void tx_net_sender(net::ip::udp::socket& sender_socket) {
         return;
     }
 
-    static constexpr unsigned data_buffer_size = 256;
-    unsigned buffer_read_size                  = std::min((unsigned)256, data_buffer_size);
-    static std::array<data_queue_element, data_buffer_size> data_buffer;
+    unsigned buffer_read_size = sender_buffer_length;
+    static std::array<data_queue_element, sender_buffer_length> data_buffer;
     net::socket_base::message_flags flags = 0;
     while (not sender_thread_stop_flag) {
         unsigned n_popped = tx_queue.pop(data_buffer.data(), buffer_read_size);
@@ -137,6 +139,8 @@ void tx_net_sender(net::ip::udp::socket& sender_socket) {
 }
 
 void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
+    uint16_t expected_seq = 0;
+
     net_error_code::error_code err;
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
@@ -180,6 +184,14 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
                 std::cerr << "packet receive size error" << std::endl;
                 return;
             }
+            if (recv_buffer.hdr.sequence_counter != expected_seq) {
+                std::cerr << "receiver: sequence error: "
+                        << std::setw(6) << recv_buffer.hdr.sequence_counter << " "
+                        << std::setw(6) << expected_seq
+                        << std::setw(6) << recv_buffer.hdr.sequence_counter - expected_seq << std::endl;
+                expected_seq = recv_buffer.hdr.sequence_counter;
+            }
+            expected_seq++;
             if (not rx_queue.push(recv_buffer)) {
                 std::lock_guard<std::mutex> guard(console_mutex);
                 std::cerr << "receive packet push error" << std::endl;
@@ -190,8 +202,7 @@ void rx_net_receiver(net::ip::udp::socket& receiver_socket) {
 }
 
 void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
-    constexpr size_t buffer_size = 512;
-    static std::array<data_queue_element, buffer_size> p;
+    static std::array<data_queue_element, consumer_buffer_length> p;
 
     auto t0 = std::chrono::steady_clock::now();
 
@@ -203,7 +214,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
         size_t n_popped = 0;
 
         while (n_popped == 0 and n_try < n_tries) {
-            n_popped = rx_queue.pop(&p.front(), buffer_size);
+            n_popped = rx_queue.pop(&p.front(), consumer_buffer_length);
             if (n_popped == 0) {
                 std::this_thread::sleep_for(std::chrono::microseconds(pop_queue_wait_us));
                 n_try++;
@@ -217,7 +228,10 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
 
         for (size_t j = 0; j < n_popped; j++) {
             if (p[j].hdr.sequence_counter != expected_seq) {
-                std::cerr << "consumer: sequence error: " << p[j].hdr.sequence_counter << " " << expected_seq << std::endl;
+                std::cerr << "consumer: sequence error: "
+                        << std::setw(6) << p[j].hdr.sequence_counter << " "
+                        << std::setw(6) << expected_seq
+                        << std::setw(6) << p[j].hdr.sequence_counter - expected_seq << std::endl;
                 expected_seq = p[j].hdr.sequence_counter;
                 seq_errors++;
             }
