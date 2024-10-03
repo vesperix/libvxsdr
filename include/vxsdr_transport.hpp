@@ -329,7 +329,7 @@ class data_transport : public packet_transport {
     virtual unsigned throttle_off_percent() const noexcept { return 100; };
 
     virtual unsigned data_throttle_wait_us() const noexcept { return 100; };
-    virtual unsigned data_send_wait_us() const noexcept { return 100; };
+    virtual unsigned data_send_wait_us() const noexcept { return 10; };
 
     // how long to wait for a command response with stats at shutdown
     static constexpr vxsdr::duration final_stats_wait{20ms};
