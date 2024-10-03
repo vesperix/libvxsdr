@@ -25,10 +25,10 @@ static constexpr unsigned data_packet_bytes   = 4 * data_packet_samples + 8;
 static constexpr size_t tx_queue_length =   512;
 static constexpr size_t rx_queue_length =   512;
 
-static constexpr size_t sender_buffer_length   = 256;
+static constexpr size_t sender_buffer_length   = 16;
 static constexpr size_t consumer_buffer_length = 512;
 
-const unsigned network_send_buffer_size    =  262'144;
+const unsigned network_send_buffer_size    = 1'048'576;
 const unsigned network_receive_buffer_size = 8'388'608;
 
 static constexpr unsigned push_queue_wait_us = 100;
@@ -38,7 +38,7 @@ static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
 static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
 
-static constexpr unsigned tx_net_wait_us = 100;
+static constexpr unsigned tx_net_wait_us = 10;
 
 static constexpr unsigned udp_host_receive_port = 1030;
 static constexpr unsigned udp_host_send_port    = 55123;

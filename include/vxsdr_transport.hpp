@@ -320,7 +320,7 @@ class data_transport : public packet_transport {
     unsigned sample_granularity;
     unsigned num_rx_subdevs;
     unsigned max_samples_per_packet;
-    unsigned send_buffer_size = 256;
+    unsigned send_buffer_size = 16;
 
     // control over throttling for transports that use it
     virtual bool use_tx_throttling() const noexcept { return false; };
@@ -475,9 +475,9 @@ class udp_data_transport : public data_transport {
     std::map<std::string, int64_t> get_default_settings() const final {
         return {{"udp_data_transport:tx_data_queue_packets", 512},
                 {"udp_data_transport:rx_data_queue_packets", 512},
-                {"udp_data_transport:tx_send_buffer_packets", 256},
+                {"udp_data_transport:tx_send_buffer_packets", 16},
                 {"udp_data_transport:mtu_bytes", 9'000},
-                {"udp_data_transport:network_send_buffer_bytes", 262'144},
+                {"udp_data_transport:network_send_buffer_bytes",    1'048'576},
                 {"udp_data_transport:network_receive_buffer_bytes", 8'388'608},
                 {"udp_data_transport:thread_priority", 1},
                 {"udp_data_transport:thread_affinity_offset", 0},
@@ -550,7 +550,7 @@ class pcie_data_transport : public data_transport {
     std::map<std::string, int64_t> get_default_settings() const final {
         return {{"pcie_data_transport:tx_data_queue_packets", 512},
                 {"pcie_data_transport:rx_data_queue_packets", 512},
-                {"pcie_data_transport:tx_send_buffer_packets", 256},
+                {"pcie_data_transport:tx_send_buffer_packets", 16},
                 {"pcie_data_transport:thread_priority", 1},
                 {"pcie_data_transport:thread_affinity_offset", 0},
                 {"pcie_data_transport:sender_thread_affinity", 0},
