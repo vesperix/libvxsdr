@@ -71,22 +71,21 @@ void data_transport::data_send() {
     LOG_DEBUG("{:s} data tx started", get_transport_type());
     const std::string transport_type = get_transport_type();
     enum throttling_state { NO_THROTTLING = 0, NORMAL_THROTTLING = 1, HARD_THROTTLING = 2 };
-    static constexpr unsigned data_buffer_size = 256;
-    static std::array<data_queue_element, data_buffer_size> data_buffer;
+    std::vector<data_queue_element> data_buffer{send_buffer_size};
 
     uint64_t data_packets_processed          = 0;
     uint64_t last_check                      = 0;
-    // Note: all of these must be less than or equal to data_buffer_size
-    //       since they are used for unchecked indexing into data_buffer!
-    unsigned buffer_low_packets_to_send      = data_buffer_size;
-    unsigned buffer_normal_packets_to_send   = data_buffer_size;
-    unsigned buffer_check_default_packets    = data_buffer_size;
-    unsigned buffer_check_throttling_packets = data_buffer_size / 2;
+    // Note: all of these must be less than or equal to send_buffer_size
+    //       since they are used for unchecked indexing!
+    unsigned buffer_low_packets_to_send      = send_buffer_size;
+    unsigned buffer_normal_packets_to_send   = send_buffer_size;
+    unsigned buffer_check_default_packets    = send_buffer_size;
+    unsigned buffer_check_throttling_packets = send_buffer_size / 2;
 
     throttling_state throttling_state = NO_THROTTLING;
     unsigned buffer_check_interval    = buffer_check_default_packets;
     // make sure the buffer doesn't overflow
-    unsigned max_packets_to_send      = std::min(data_buffer_size, buffer_normal_packets_to_send);
+    unsigned max_packets_to_send      = std::min(send_buffer_size, buffer_normal_packets_to_send);
 
     // get class-specific values
     const bool use_throttling        = use_tx_throttling();
@@ -152,11 +151,11 @@ void data_transport::data_send() {
             //    max_packets_to_send           = the maximum number of packets to send in a burst
             if (throttling_state == NORMAL_THROTTLING) {
                 buffer_check_interval = buffer_check_throttling_packets;
-                max_packets_to_send   = std::min(data_buffer_size, buffer_normal_packets_to_send);
+                max_packets_to_send   = std::min(send_buffer_size, buffer_normal_packets_to_send);
 
             } else if (throttling_state == NO_THROTTLING) {
                 buffer_check_interval = buffer_check_default_packets;
-                max_packets_to_send   = std::min(data_buffer_size, buffer_low_packets_to_send);
+                max_packets_to_send   = std::min(send_buffer_size, buffer_low_packets_to_send);
             }
         } else {
             throttling_state = NO_THROTTLING;
@@ -231,7 +230,7 @@ void data_transport::data_receive() {
     LOG_DEBUG("{:s} data rx in READY state", transport_type);
 
     while ((rx_state == TRANSPORT_READY or rx_state == TRANSPORT_ERROR) and not receiver_thread_stop_flag) {
-        static data_queue_element recv_buffer;
+        data_queue_element recv_buffer;
         int err                = 0;
         size_t bytes_in_packet = 0;
 

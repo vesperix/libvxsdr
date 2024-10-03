@@ -320,6 +320,7 @@ class data_transport : public packet_transport {
     unsigned sample_granularity;
     unsigned num_rx_subdevs;
     unsigned max_samples_per_packet;
+    unsigned send_buffer_size;
 
     // control over throttling for transports that use it
     virtual bool use_tx_throttling() const noexcept { return false; };
@@ -355,8 +356,13 @@ class data_transport : public packet_transport {
     std::atomic<unsigned> tx_packet_oos_count{0};
 
   public:
-    data_transport(const unsigned granularity, const unsigned n_rx_subdevs, const unsigned max_samps_per_packet)
-        : sample_granularity(granularity), num_rx_subdevs(n_rx_subdevs) {
+    data_transport(const unsigned granularity,
+                   const unsigned n_rx_subdevs,
+                   const unsigned max_samps_per_packet,
+                   const unsigned send_buffer_pkts = 256)
+        : sample_granularity{granularity},
+          num_rx_subdevs{n_rx_subdevs},
+          send_buffer_size{send_buffer_pkts} {
         max_samples_per_packet = sample_granularity * (max_samps_per_packet / sample_granularity);
     };
 
