@@ -84,7 +84,7 @@ class packet_transport {
     std::atomic<transport_state> tx_state{TRANSPORT_UNINITIALIZED};
     std::atomic<transport_state> rx_state{TRANSPORT_UNINITIALIZED};
 
-    virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
+    virtual size_t transport_send(const packet& packet, int& error_code) { return 0; };
     virtual std::map<std::string, int64_t> get_default_settings() const { return {}; };
     std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
@@ -113,7 +113,7 @@ class packet_transport {
         packet_types_sent.at(packet.hdr.packet_type)++;
 
         int err      = 0;
-        size_t bytes = packet_send(packet, err);
+        size_t bytes = transport_send(packet, err);
 
         if (err != 0) {
             tx_state = TRANSPORT_ERROR;
@@ -293,7 +293,7 @@ class command_transport : public packet_transport {
 
     std::string get_payload_type() const noexcept final { return "command"; };
 
-    virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
+    virtual size_t transport_receive(command_queue_element& packet, int& error_code) { return 0; };
 
     void command_send();
     void command_receive();
@@ -375,7 +375,7 @@ class data_transport : public packet_transport {
     std::string get_payload_type() const noexcept final { return "data"; };
 
     bool send_packet(packet& packet) final;
-    virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };
+    virtual size_t transport_receive(data_queue_element& packet, int& error_code) { return 0; };
 
     void data_send();
     void data_receive();
@@ -463,10 +463,9 @@ class udp_command_transport : public command_transport {
     explicit udp_command_transport(const std::map<std::string, int64_t>& settings);
     ~udp_command_transport() noexcept;
 
-  protected:
     unsigned get_transport_overhead_bytes() const noexcept final { return 28; };
-    size_t packet_send(const packet& packet, int& error_code) final;
-    size_t packet_receive(command_queue_element& packet, int& error_code) final;
+    size_t transport_send(const packet& packet, int& error_code) final;
+    size_t transport_receive(command_queue_element& packet, int& error_code) final;
 };
 
 class udp_data_transport : public data_transport {
@@ -518,10 +517,9 @@ class udp_data_transport : public data_transport {
                                 const unsigned max_samps_per_packet);
     ~udp_data_transport() noexcept;
 
-  protected:
     unsigned get_transport_overhead_bytes() const noexcept final { return 28; };
-    size_t packet_send(const packet& packet, int& error_code) final;
-    size_t packet_receive(data_queue_element& packet, int& error_code) final;
+    size_t transport_send(const packet& packet, int& error_code) final;
+    size_t transport_receive(data_queue_element& packet, int& error_code) final;
 };
 
 class pcie_command_transport : public command_transport {
@@ -538,10 +536,9 @@ class pcie_command_transport : public command_transport {
     explicit pcie_command_transport(const std::map<std::string, int64_t>& settings, std::shared_ptr<pcie_dma_interface> pcie_iface);
     ~pcie_command_transport() noexcept;
 
-  protected:
     unsigned get_transport_overhead_bytes() const noexcept final { return 0; };
-    size_t packet_send(const packet& packet, int& error_code) final;
-    size_t packet_receive(command_queue_element& packet, int& error_code) final;
+    size_t transport_send(const packet& packet, int& error_code) final;
+    size_t transport_receive(command_queue_element& packet, int& error_code) final;
 };
 
 class pcie_data_transport : public data_transport {
@@ -573,8 +570,7 @@ class pcie_data_transport : public data_transport {
                                  const unsigned max_samps_per_packet);
     ~pcie_data_transport() noexcept;
 
-  protected:
     unsigned get_transport_overhead_bytes() const noexcept final { return 0; };
-    size_t packet_send(const packet& packet, int& error_code) final;
-    size_t packet_receive(data_queue_element& packet, int& error_code) final;
+    size_t transport_send(const packet& packet, int& error_code) final;
+    size_t transport_receive(data_queue_element& packet, int& error_code) final;
 };

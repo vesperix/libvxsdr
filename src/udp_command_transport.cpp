@@ -150,7 +150,7 @@ udp_command_transport::~udp_command_transport() noexcept {
     LOG_DEBUG("udp command transport destructor complete");
 }
 
-size_t udp_command_transport::packet_send(const packet& packet, int& error_code) {
+size_t udp_command_transport::transport_send(const packet& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
     size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
@@ -158,7 +158,7 @@ size_t udp_command_transport::packet_send(const packet& packet, int& error_code)
     return bytes;
 }
 
-size_t udp_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
+size_t udp_command_transport::transport_receive(command_queue_element& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
     packet.hdr   = {0, 0, 0, 0, 0, 0, 0};

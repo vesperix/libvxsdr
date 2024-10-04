@@ -70,11 +70,11 @@ pcie_command_transport::~pcie_command_transport() noexcept {
     LOG_DEBUG("pcie command transport destructor complete");
 }
 
-size_t pcie_command_transport::packet_send(const packet& packet, int& error_code) {
+size_t pcie_command_transport::transport_send(const packet& packet, int& error_code) {
     return pcie_if->pcie_dma_command_send(&packet, packet.hdr.packet_size, error_code);
 }
 
-size_t pcie_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
+size_t pcie_command_transport::transport_receive(command_queue_element& packet, int& error_code) {
     packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     return pcie_if->pcie_dma_command_receive(&packet, sizeof(packet), error_code);
 }

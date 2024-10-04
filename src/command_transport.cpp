@@ -50,7 +50,7 @@ void command_transport::command_receive() {
         size_t bytes_in_packet = 0;
 
         // sync receive
-        bytes_in_packet = packet_receive(recv_buffer, err);
+        bytes_in_packet = transport_receive(recv_buffer, err);
 
         if (not receiver_thread_stop_flag) {
             if (err != 0 and err != ETIMEDOUT) {  // timeouts are ignored

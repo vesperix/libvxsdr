@@ -305,7 +305,7 @@ udp_data_transport::~udp_data_transport() noexcept {
 #define UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
 #endif
 
-size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
+size_t udp_data_transport::transport_send(const packet& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
 #ifdef UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
@@ -325,7 +325,7 @@ size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
     return bytes;
 }
 
-size_t udp_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
+size_t udp_data_transport::transport_receive(data_queue_element& packet, int& error_code) {
     net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
     packet.hdr   = {0, 0, 0, 0, 0, 0, 0};

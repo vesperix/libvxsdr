@@ -129,11 +129,11 @@ pcie_data_transport::~pcie_data_transport() noexcept {
     LOG_DEBUG("pcie data transport destructor complete");
 }
 
-size_t pcie_data_transport::packet_send(const packet& packet, int& error_code) {
+size_t pcie_data_transport::transport_send(const packet& packet, int& error_code) {
     return pcie_if->pcie_dma_data_send(&packet, packet.hdr.packet_size, error_code);
 }
 
-size_t pcie_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
+size_t pcie_data_transport::transport_receive(data_queue_element& packet, int& error_code) {
     packet.hdr = {0, 0, 0, 0, 0, 0, 0};
     return pcie_if->pcie_dma_data_receive(&packet, sizeof(packet), error_code);
 }
