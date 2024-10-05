@@ -118,3 +118,46 @@ class vxsdr_queue : public rigtorp::SPSCQueue<Element> {
 };
 
 #endif // #ifdef VXSDR_QUEUE_RIGTORP
+
+#ifdef VXSDR_QUEUE_MOODYCAMEL
+
+#include "third_party/readerwritercircularbuffer.h"
+
+template <typename Element>
+class vxsdr_queue : public moodycamel::BlockingReaderWriterCircularBuffer<Element> {
+  public:
+    explicit vxsdr_queue<Element>(const size_t size) : moodycamel::BlockingReaderWriterCircularBuffer<Element>{size} {};
+
+    bool push(Element& e) { return moodycamel::BlockingReaderWriterCircularBuffer<Element>::try_enqueue(e); };
+    bool push(Element&& e) { return moodycamel::BlockingReaderWriterCircularBuffer<Element>::try_enqueue(e); };
+    size_t push(Element* p, size_t n_max) {
+        size_t n_pushed = 0;
+        while (n_pushed < n_max) {
+            if (push(*(p + n_pushed))) {
+                n_pushed++;
+            } else {
+                break;
+            }
+        }
+        return n_pushed;
+    };
+    bool pop(Element& e)  { return moodycamel::BlockingReaderWriterCircularBuffer<Element>::try_dequeue(e); };
+    size_t pop(Element* p, size_t n_max) {
+        size_t n_popped = 0;
+        while (n_popped < n_max) {
+            if (pop(*(p + n_popped))) {
+                n_popped++;
+            } else {
+                break;
+            }
+        }
+        return n_popped;
+    };
+    size_t read_available() { return moodycamel::BlockingReaderWriterCircularBuffer<Element>::size_approx(); };
+    void reset() {
+        while (moodycamel::BlockingReaderWriterCircularBuffer<Element>::try_pop())
+            ;
+    }
+};
+
+#endif // #ifdef VXSDR_QUEUE_MOODYCAMEL
