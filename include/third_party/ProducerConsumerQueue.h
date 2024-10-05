@@ -24,7 +24,11 @@
 #include <type_traits>
 #include <utility>
 
-/* This modification by Vesperix removes the need to include #include <folly/concurrency/CacheLocality.h> */
+/*
+  This modification by Vesperix removes the need to include #include <folly/concurrency/CacheLocality.h>
+  It defers to the std::hardware_destructive_interference_size in <new> if present and otherwise gives
+  correct results on Apple AArch64 CPUs
+*/
 
 #include <new>
 #ifdef __cpp_lib_hardware_interference_size

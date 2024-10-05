@@ -38,7 +38,10 @@ SOFTWARE.
 #define RIGTORP_NODISCARD
 #endif
 
-/* This modification by Vesperix prevents erroneous values on MacOS with AArch64 */
+/*
+  This modification by Vesperix defers to the std::hardware_destructive_interference_size in <new> if present
+  and otherwise gives correct results on Apple AArch64 CPUs
+*/
 
 #include <new>
 #ifdef __cpp_lib_hardware_interference_size
