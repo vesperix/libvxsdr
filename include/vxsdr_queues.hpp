@@ -8,6 +8,8 @@
 
 #ifdef VXSDR_QUEUE_BOOST
 
+#define VXSDR_QUEUE_NAME "boost::lockfree::spsc_queue"
+
 // use std::atomic so queues are header-only
 #ifndef BOOST_LOCKFREE_FORCE_STD_ATOMIC
 #define BOOST_LOCKFREE_FORCE_STD_ATOMIC (1)
@@ -25,6 +27,8 @@ class vxsdr_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree:
 #endif // #ifdef VXSDR_QUEUE_BOOST
 
 #ifdef VXSDR_QUEUE_FOLLY
+
+#define VXSDR_QUEUE_NAME "folly::ProducerConsumerQueue"
 
 #include "third_party/ProducerConsumerQueue.h"
 
@@ -68,6 +72,8 @@ class vxsdr_queue : public folly::ProducerConsumerQueue<Element> {
 #endif // #ifdef VXSDR_QUEUE_FOLLY
 
 #ifdef VXSDR_QUEUE_RIGTORP
+
+#define VXSDR_QUEUE_NAME "rigtorp::SPSCQueue"
 
 #include "third_party/SPSCQueue.h"
 
@@ -120,6 +126,8 @@ class vxsdr_queue : public rigtorp::SPSCQueue<Element> {
 #endif // #ifdef VXSDR_QUEUE_RIGTORP
 
 #ifdef VXSDR_QUEUE_MOODYCAMEL
+
+#define VXSDR_QUEUE_NAME "moodycamel::BlockingReaderWriterCircularBuffer"
 
 #include "third_party/readerwritercircularbuffer.h"
 

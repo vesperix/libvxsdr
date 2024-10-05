@@ -128,6 +128,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    std::cout << "compiled with base queue " << VXSDR_QUEUE_NAME << std::endl;
     std::cout << "testing speed of queue used for data packets with " << max_data_length_samples << " samples/packet" << std::endl;
 
     double n_seconds    = std::strtod(argv[1], nullptr);
