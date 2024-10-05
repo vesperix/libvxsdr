@@ -95,8 +95,11 @@ if(VXSDR_QUEUE STREQUAL "Rigtorp")
     list(APPEND vxsdr_dependency_defs "-DVXSDR_QUEUE_RIGTORP")
     message(STATUS "Using rigtorp::SPSCQueue for data and command queues")
 endif()
-
-
+if(VXSDR_QUEUE STREQUAL "MoodyCamel")
+    set(VXSDR_USE_BOOST_QUEUE OFF)
+    list(APPEND vxsdr_dependency_defs "-DVXSDR_QUEUE_MOODYCAMEL")
+    message(STATUS "Using moodycamel::BlockingReaderWriterCircularBuffer for data and command queues")
+endif()
 
 if (NOT VXSDR_STANDALONE_ASIO OR VXSDR_USE_BOOST_QUEUE)
     find_package(Boost 1.67 REQUIRED)
