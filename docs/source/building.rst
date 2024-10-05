@@ -27,8 +27,9 @@ satisfy this is by using the boost::asio networking interface. Use of the standa
 is also possible, and is the default when downloading and building dependencies.
 
 A single-producer-single-consumer queue is also required; the default is Meta's folly::ProducerConsumerQueue,
-which is included with the library distribution. It is also possible to use boost::spsc_queue, using
-the option ``-D VXSDR_USE_BOOST_QUEUE=ON``.
+which is included with the library distribution. It is possible to choose other SPSC queues at build time, using
+the option ``-D VXSDR_QUEUE=queue_name``, where ``queue_name`` is one of ``Folly``, ``Boost``, ``Rigtorp``, or
+``MoodyCamel``.
 
 When logging from within the library is enabled (the default) the library also depends on spdlog
 version 1.5 or higher. Logging from within the library may be disabled by running the initial CMake
