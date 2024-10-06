@@ -38,8 +38,6 @@ static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
 static constexpr unsigned push_queue_interval_us = 0;
 static constexpr unsigned pop_queue_interval_us  = 0;
 
-static constexpr unsigned tx_net_wait_us = 10;
-
 static constexpr unsigned udp_host_receive_port = 1030;
 static constexpr unsigned udp_host_send_port    = 55123;
 
@@ -131,9 +129,6 @@ void tx_net_sender(net::ip::udp::socket& sender_socket) {
                 std::cerr << "send packet size error" << std::endl;
                 return;
             }
-        }
-        if constexpr (tx_net_wait_us > 0) {
-            std::this_thread::sleep_for(std::chrono::microseconds(tx_net_wait_us));
         }
     }
 }
