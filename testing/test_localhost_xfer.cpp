@@ -32,7 +32,7 @@ const unsigned network_send_buffer_size    = 1'048'576;
 const unsigned network_receive_buffer_size = 8'388'608;
 
 static constexpr unsigned push_queue_wait_us = 100;
-static constexpr unsigned pop_queue_wait_us  = 100;
+static constexpr unsigned data_send_wait_us  = 100;
 static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
 
 static constexpr unsigned push_queue_interval_us = 0;
@@ -86,6 +86,7 @@ void tx_producer(const size_t n_items, double& push_rate) {
 }
 
 void tx_net_sender(net::ip::udp::socket& sender_socket) {
+    const auto data_send_wait = std::chrono::microseconds(data_send_wait_us);
     net_error_code::error_code err;
     sender_socket.set_option(net::socket_base::send_buffer_size((int)network_send_buffer_size), err);
     if (err) {
@@ -112,6 +113,9 @@ void tx_net_sender(net::ip::udp::socket& sender_socket) {
     net::socket_base::message_flags flags = 0;
     while (not sender_thread_stop_flag) {
         unsigned n_popped = tx_queue.pop(data_buffer.data(), buffer_read_size);
+        if (n_popped == 0) {
+            std::this_thread::sleep_for(data_send_wait);
+        }
         for (unsigned i = 0; i < n_popped; i++) {
             if (data_buffer[i].hdr.packet_size == 0) {
                 std::lock_guard<std::mutex> guard(console_mutex);
