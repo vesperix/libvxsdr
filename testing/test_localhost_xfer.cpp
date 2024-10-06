@@ -31,6 +31,7 @@ static constexpr size_t consumer_buffer_length = 512;
 const unsigned network_send_buffer_size    = 1'048'576;
 const unsigned network_receive_buffer_size = 8'388'608;
 
+static constexpr unsigned pop_queue_wait_us  = 100;
 static constexpr unsigned push_queue_wait_us = 100;
 static constexpr unsigned data_send_wait_us  = 100;
 static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
