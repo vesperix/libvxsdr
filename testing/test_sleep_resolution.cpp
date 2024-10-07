@@ -42,7 +42,17 @@ int do_test(const double desired_delay, const int n_reps) {
     std::cout << std::setprecision(3) << std::scientific;
     std::cout << "delay:   requested " << desired_delay
               << "   mean " << mean_delay << "   median " << median_delay
-              << "   min " << min_delay << "   max " << max_delay << std::endl;
+              << "   min " << min_delay;
+
+    if (n_reps >= 1'000) {
+        std::cout << "   99% " << delay[std::llround(0.99 * (n_reps - 1))];
+    }
+
+    if (n_reps >= 10'000) {
+        std::cout << " 99.9% " << delay[std::llround(0.999 * (n_reps - 1))];
+    }
+
+    std::cout << "   max " << max_delay << std::endl;
 
     double mean_error = std::reduce(error.begin(), error.end()) / n_reps;
     std::sort(error.begin(), error.end());
@@ -59,7 +69,16 @@ int do_test(const double desired_delay, const int n_reps) {
     }
 
     std::cout << "error:                         mean " << mean_error << "   median " << median_error
-              << "   min " << min_error << "   max " << max_error << std::endl;
+              << "   min " << min_error; 
+    if (n_reps >= 1'000) {
+        std::cout << "   99% " << error[std::llround(0.99 * (n_reps - 1))];
+    }
+
+    if (n_reps >= 10'000) {
+        std::cout << " 99.9% " << error[std::llround(0.999 * (n_reps - 1))];
+    }
+
+    std::cout << "   max " << max_error << std::endl;
 
     bool pass = (median_error <= 0.5 * desired_delay) and (min_error >= 0.0) and (max_error <= desired_delay);
 
