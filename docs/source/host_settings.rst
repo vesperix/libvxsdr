@@ -15,7 +15,7 @@ what transport is used to communicate with the VXSDR, and providing any necessar
 (like IP addresses).
 
 Specifying the Transport
------------------------
+------------------------
 
 The default transport is UDP; for this case, the local (host) and device (VXSDR) IPv4
 addresses must be provided to the library at the time the interface is created (IPv6
