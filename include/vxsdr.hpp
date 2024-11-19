@@ -245,10 +245,12 @@ class LIBVXSDR_EXPORT vxsdr {
           - the external PPS status
           - external 10 MHz lock status
           - internal reference oscillator lock status
-        Where @b true means the device detects or is locked to that reference, and @b false means not
-        present or locked. Although the external PPS status indicates whether the PPS is present, the
+
+        where @b true means the device detects or is locked to that reference, and @b false means not
+        present or not locked. Although the external PPS status indicates whether the PPS is present, the
         @ref set_time_next_pps command must be used to align the internal clock with the external PPS.
-        Note that the first two will be false if no external PPS and 10 MHz are connected.
+        Note that the first two values returned will be false in normal operation
+        if no external PPS and 10 MHz are connected.
     */
     std::optional<std::array<bool, 3>> get_timing_status();
 
