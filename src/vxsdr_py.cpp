@@ -81,14 +81,14 @@ PYBIND11_MODULE(vxsdr_py, m) {
     // optional module docstring
     m.doc() = "VXSDR Python interface";
 
-    py::enum_<vxsdr_py::stream_state>(m, "stream_state", py::arithmetic())
+    py::enum_<vxsdr_py::stream_state>(m, "stream_state", "Enum describing the stream state", py::arithmetic())
         .value("Stopped", vxsdr_py::stream_state::STREAM_STOPPED)
         .value("Running", vxsdr_py::stream_state::STREAM_RUNNING)
         .value("Waiting", vxsdr_py::stream_state::STREAM_WAITING_FOR_START)
         .value("Error", vxsdr_py::stream_state::STREAM_ERROR)
         .export_values();
 
-    py::enum_<vxsdr_py::transport_type>(m, "transport_type", py::arithmetic())
+    py::enum_<vxsdr_py::transport_type>(m, "transport_type", "Enum describing the transport type", py::arithmetic())
         .value("UDP", vxsdr_py::transport_type::TRANSPORT_TYPE_UDP)
         .value("PCIE", vxsdr_py::transport_type::TRANSPORT_TYPE_PCIE)
         .export_values();
