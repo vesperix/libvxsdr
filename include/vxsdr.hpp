@@ -121,10 +121,10 @@ class LIBVXSDR_EXPORT vxsdr {
     /*!
       @brief Request basic information from the device.
       @returns a std::optional with a std::array containing:
-          - device identifier
+          - device type identifier
           - FPGA code version
           - MCU code version,
-          - device serial number,
+          - device unique id number,
           - packet version supported,
           - wire sample data format,
           - number of subdevices,
