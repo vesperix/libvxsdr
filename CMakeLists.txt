@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.28)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 20)
-set(libvxsdr_version_patch  5)
+set(libvxsdr_version_patch  6)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -20,6 +20,7 @@ option(VXSDR_BUILD_UTILITIES "Build VXSDR utility programs" ON)
 
 # developer options off by default
 option(VXSDR_STATIC_ANALYSIS "Run clang-tidy during libvxsdr builds" OFF)
+option(VXSDR_SANITIZE_ADDRESS "Use address sanitizer" OFF)
 
 option(VXSDR_BUILD_DEPENDENCIES "Download and build external dependencies" OFF)
 option(VXSDR_STANDALONE_ASIO "When building dependencies, use standalone ASIO instead of Boost::asio" ON)
@@ -200,15 +201,24 @@ endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(vxsdr_compiler_defs -DVXSDR_COMPILER_CLANG)
     set(vxsdr_warning_options -Wall)
+    if(VXSDR_SANITIZE_ADDRESS)
+        set(vxsdr_sanitize_options -fsanitize=address)
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     set(vxsdr_compiler_defs -DVXSDR_COMPILER_APPLECLANG)
     set(vxsdr_warning_options -Wall)
+    if(VXSDR_SANITIZE_ADDRESS)
+        set(vxsdr_sanitize_options -fsanitize=address)
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(vxsdr_compiler_defs -DVXSDR_COMPILER_GCC)
     set(vxsdr_warning_options -Wall -Wno-packed-bitfield-compat -Wno-interference-size)
     if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
         # -fno-trapping-math is needed for gcc to properly optimize float32-int16 conversions
         set(vxsdr_optimization_options -fno-trapping-math)
+    endif()
+    if(VXSDR_SANITIZE_ADDRESS)
+        set(vxsdr_sanitize_options -fsanitize=address)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     set(vxsdr_compiler_defs -DVXSDR_COMPILER_INTEL)
@@ -271,6 +281,7 @@ endif()
 
 target_compile_options(libvxsdr PRIVATE ${vxsdr_optimization_options}
                                         ${vxsdr_warning_options}
+                                        ${vxsdr_sanitize_options}
                                         ${vxsdr_misc_options})
 target_compile_definitions(libvxsdr PRIVATE ${vxsdr_build_defs}
                                             ${vxsdr_log_defs}
