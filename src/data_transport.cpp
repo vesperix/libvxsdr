@@ -227,6 +227,9 @@ void data_transport::data_receive() {
         return;
     }
 
+    auto queue_push_wait = std::chrono::microseconds(data_send_wait_us());
+    constexpr int max_push_tries = 32;
+
     rx_state = TRANSPORT_READY;
     LOG_DEBUG("{:s} data rx in READY state", transport_type);
 
@@ -282,7 +285,12 @@ void data_transport::data_receive() {
                             size_t n_samps         = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
                             samples_received += n_samps;
                             samples_received_current_stream += n_samps;
-                            if (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer)) {
+                            int n_push_tries = 0;
+                            while (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer) and n_push_tries < max_push_tries) {
+                                n_push_tries++;
+                                std::this_thread::sleep_for(queue_push_wait);
+                            }
+                            if (n_push_tries == max_push_tries) {
                                 rx_state = TRANSPORT_ERROR;
                                 LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
                                           transport_type, recv_buffer.hdr.subdevice, samples_received);
