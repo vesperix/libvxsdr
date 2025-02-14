@@ -226,8 +226,8 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
                                size_t n_requested,
                                const uint8_t subdev,
                                const double timeout_s) {
-    LOG_DEBUG("get_rx_data from subdevice {:d} entered", subdev);
 
+    LOG_DEBUG("get_rx_data() receiving {:d} samples from subdevice {:d}", n_requested, subdev);
     if (subdev >= data_tport->rx_data_queue.size()) {
         LOG_ERROR("incorrect subdevice {:d} in get_rx_data()", subdev);
         return 0;
@@ -264,8 +264,6 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
     }
 
     data.reserve(n_requested);
-
-    LOG_DEBUG("receiving {:d} samples from subdevice {:d}", n_requested, subdev);
 
     size_t n_received = 0;
 
@@ -336,7 +334,7 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
             }
         }
     }
-    LOG_DEBUG("get_rx_data complete from subdevice {:d} ({:d} samples)", subdev, n_received);
+    LOG_DEBUG("get_rx_data() got {:d} samples from subdevice {:d}", n_received, subdev);
     return n_received;
 }
 
@@ -355,7 +353,8 @@ size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data,
                                size_t n_requested,
                                const uint8_t subdev,
                                const double timeout_s) {
-    LOG_DEBUG("put_tx_data started");
+
+    LOG_DEBUG("put_tx_data() sending {:d} samples to subdevice {:d}", n_requested, subdev);
 
     if (timeout_s <= 0.0) {
         LOG_ERROR("timeout_s must be positive in put_tx_data()");
@@ -387,8 +386,6 @@ size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data,
             n_requested = data.size();
         }
     }
-
-    LOG_DEBUG("sending {:d} samples to subdevice {:d}", n_requested, subdev);
 
     // puts plain data_packets (no time, no stream)
     size_t n_put        = 0;
@@ -443,13 +440,13 @@ size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data,
         while (not data_tport->tx_data_queue->push(q)) {
             std::this_thread::sleep_for(data_tx_wait);
             if ((std::chrono::steady_clock::now() - start_time) > data_tx_timeout) {
-                LOG_ERROR("timeout pushing to tx data queue");
+                LOG_ERROR("timeout pushing to tx data queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_put, n_requested);
                 return n_put;
             }
         }
         n_put += n_samples;
     }
-    LOG_DEBUG("put_tx_data complete ({:d} samples)", n_put);
+    LOG_DEBUG("put_tx_data() sent {:d} samples to subdevice {:d}", n_put, subdev);
     return n_put;
 }
 
