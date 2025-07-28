@@ -44,28 +44,16 @@ void shutdown();
 
 #else  // VXSDR_LIB_DISABLE_LOGGING defined
 
-#define LOG_INIT() \
-    {}
-#define LOG_SHUTDOWN() \
-    {}
-
-#define LOG_TRACE(...) \
-    {}
-#define LOG_DEBUG(...) \
-    {}
-#define LOG_INFO(...) \
-    {}
-#define LOG_WARN(...) \
-    {}
-#define LOG_ERROR(...) \
-    {}
-#define LOG_FATAL(...) \
-    {}
-
-#define LOG_ASYNC(...) \
-    {}
-#define LOG_ASYNC_OOS(...) \
-    {}
+#define LOG_INIT()         {}
+#define LOG_SHUTDOWN()     {}
+#define LOG_TRACE(...)     {}
+#define LOG_DEBUG(...)     {}
+#define LOG_INFO(...)      {}
+#define LOG_WARN(...)      {}
+#define LOG_ERROR(...)     {}
+#define LOG_FATAL(...)     {}
+#define LOG_ASYNC(...)     {}
+#define LOG_ASYNC_OOS(...) {}
 
 #undef VXSDR_SEQ_ERR_DIAG
 #undef VXSDR_RESPONSE_TIME_DIAG
