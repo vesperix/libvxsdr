@@ -118,8 +118,8 @@ int main(int argc, char* argv[]) {
 
         auto vm = desc.parse(argc, argv);
 
-        auto local_addr           = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
-        auto new_destination_addr = net::ip::address_v4::from_string(vm["new_device_address"].as<std::string>());
+        auto local_addr           = net::ip::make_address_v4(vm["local_address"].as<std::string>());
+        auto new_destination_addr = net::ip::make_address_v4(vm["new_device_address"].as<std::string>());
 
         net::ip::udp::endpoint local_send_endpoint(local_addr, udp_host_send_port);
         net::ip::udp::endpoint local_receive_endpoint(local_addr, udp_host_receive_port);

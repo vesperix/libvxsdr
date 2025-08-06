@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
 
     bool pass = true;
     try {
-        auto localhost_addr = net::ip::address_v4::from_string("127.0.0.1");
+        auto localhost_addr = net::ip::make_address_v4("127.0.0.1");
 
         net::ip::udp::endpoint local_send_endpoint(localhost_addr, udp_host_send_port);
         net::ip::udp::endpoint local_receive_endpoint(localhost_addr, udp_host_receive_port);

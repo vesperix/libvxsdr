@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
 
         auto vm = desc.parse(argc, argv);
 
-        auto local_addr = net::ip::address_v4::from_string(vm["local_address"].as<std::string>());
-        auto netmask    = net::ip::address_v4::from_string(vm["netmask"].as<std::string>());
+        auto local_addr = net::ip::make_address_v4(vm["local_address"].as<std::string>());
+        auto netmask    = net::ip::make_address_v4(vm["netmask"].as<std::string>());
         net::ip::network_v4 local_net(local_addr, netmask);
 
         net::ip::udp::endpoint local_send_endpoint(local_addr, udp_host_send_port);
