@@ -31,7 +31,7 @@ static constexpr unsigned udp_host_receive_port = 1030;
 static constexpr unsigned udp_host_send_port    = 55123;
 
 static constexpr unsigned push_queue_wait_us = 100;
-static constexpr unsigned pop_queue_wait_us  = 100;
+static constexpr unsigned data_send_wait_us  = 50;
 static constexpr unsigned n_tries            = 10'000;  // ~1s timeout
 
 static constexpr unsigned push_queue_interval_us = 0;
@@ -203,7 +203,7 @@ void rx_consumer(const size_t n_items, double& pop_rate, unsigned& seq_errors) {
         while (n_popped == 0 and n_try < n_tries) {
             n_popped = rx_queue.pop(&p.front(), buffer_size);
             if (n_popped == 0) {
-                std::this_thread::sleep_for(std::chrono::microseconds(pop_queue_wait_us));
+                std::this_thread::sleep_for(std::chrono::microseconds(data_send_wait_us));
                 n_try++;
             }
         }
