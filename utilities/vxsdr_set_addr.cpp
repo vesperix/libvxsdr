@@ -16,7 +16,7 @@
 
 void add_setup_options(option_utils::program_options& desc) {
     desc.add_option("local_address", "IPv4 address of local interface", option_utils::supported_types::STRING, true);
-    desc.add_option("device_address", "current IPv4 address of device", option_utils::supported_types::STRING, true);
+    desc.add_option("current_device_address", "current IPv4 address of device", option_utils::supported_types::STRING, true);
     desc.add_option("new_device_address", "new IPv4 address of device", option_utils::supported_types::STRING, true);
     desc.add_option("netmask", "IPv4 netmask of local interface", option_utils::supported_types::STRING, false, "255.255.255.0");
     desc.add_flag("help", "print usage");
