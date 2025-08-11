@@ -40,11 +40,6 @@ bool receive_packet(net::ip::udp::socket& receiver_socket,
     auto result =
         receiver_socket.async_receive_from(net::buffer(&recv_buffer, sizeof(recv_buffer)), remote_endpoint, net::use_future);
     if (result.wait_for(std::chrono::milliseconds(receive_timeout_ms)) == std::future_status::ready) {
-        //    std::cerr << "type = 0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') <<
-        //    (unsigned)recv_buffer.hdr.packet_type << " "
-        //              << "cmd  = 0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') <<
-        //              (unsigned)recv_buffer.hdr.command  << " "
-        //              << "size =   " << std::setw(6) << std::setfill(' ') << (unsigned)recv_buffer.hdr.packet_size  << std::endl;
         return true;
     }
     return false;
