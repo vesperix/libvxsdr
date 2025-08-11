@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Power cycle the device, then run vxsdr_find to confirm that the new address" << std::endl;
             std::cout << "has been properly saved to nonvolatile memory." << std::endl;
         } else {
-            std::cerr << "Error saving address. Power cycle the device to retrun to the original address." << std::endl;
+            std::cerr << "Error saving address. Power cycle the device to return to the original address." << std::endl;
         }
 
         ctx.stop();
