@@ -1142,7 +1142,7 @@ class LIBVXSDR_EXPORT vxsdr {
     [[nodiscard]] double get_host_command_timeout() const;
 
     /*!
-      @brief Helper function to compute the sample granularity from the wire format returned by hello().
+      @brief Helper function to compute the sample granularity from the wire sample data format returned by hello().
       @returns the sample granularity
     */
     unsigned compute_sample_granularity(const uint32_t wire_format) const;
