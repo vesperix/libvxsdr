@@ -137,7 +137,7 @@ class packet_transport {
 
         return true;
     }
-    virtual void log_stats() const {
+    virtual void log_stats() const noexcept {
         LOG_INFO("{:s} {:s} transport:", get_transport_type(), get_payload_type());
         LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
         LOG_INFO("   {:15d} packets received", packets_received);
@@ -379,7 +379,7 @@ class data_transport : public packet_transport {
     void data_send();
     void data_receive();
 
-    void log_stats() const final;
+    void log_stats() const noexcept final;
 
     bool reset_rx() final {
         if (not packet_transport::reset_rx()) {

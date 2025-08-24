@@ -19,7 +19,7 @@ using namespace std::chrono_literals;
 #include "vxsdr_queues.hpp"
 #include "vxsdr_transport.hpp"
 
-void data_transport::log_stats() const {
+void data_transport::log_stats() const noexcept {
     // add
     LOG_INFO("{:s} {:s} transport:", get_transport_type(), get_payload_type());
     LOG_INFO("       rx state is {:s}", transport_state_to_string(rx_state));
