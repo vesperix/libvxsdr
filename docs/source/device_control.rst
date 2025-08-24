@@ -11,6 +11,7 @@ The hello function provides device information, including the packet version
 used by the device (which may be checked against the version supported by the library)
 
 .. doxygenfunction:: hello
+.. doxygenfunction:: compute_sample_granularity
 
 The reset function performs a hard reset of the device.
 
