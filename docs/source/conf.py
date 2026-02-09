@@ -14,11 +14,11 @@ subprocess.call('doxygen', shell=True)
 # -- Project information -----------------------------------------------------
 
 project = 'libvxsdr'
-copyright = '2025, Vesperix Corporation'
+copyright = '2026, Vesperix Corporation'
 author = 'Vesperix Corporation'
 
 # The full version, including alpha/beta/rc tags
-release = '0.20.11'
+release = '0.20.12'
 
 # -- General configuration ---------------------------------------------------
 

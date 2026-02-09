@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.16..3.28)
+cmake_minimum_required(VERSION 3.16..3.31)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 20)
-set(libvxsdr_version_patch 11)
+set(libvxsdr_version_patch 12)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -75,7 +75,10 @@ else()
 endif()
 
 if (NOT VXSDR_STANDALONE_ASIO OR VXSDR_USE_BOOST_QUEUE)
-    find_package(Boost 1.67 REQUIRED)
+    if(POLICY CMP0167)
+        cmake_policy(SET CMP0167 NEW)
+    endif()
+    find_package(Boost 1.70 REQUIRED)
 endif()
 
 if(VXSDR_STANDALONE_ASIO)
