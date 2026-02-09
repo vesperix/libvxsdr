@@ -44,9 +44,9 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Install Prerequisites
-      run: sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev python3-dev pybind11-dev
+      run: sudo apt install g++ make git cmake python3-dev
 
       # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -58,7 +58,7 @@ jobs:
     - name: Install Prerequisites
       run: sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev python3-dev pybind11-dev
     - name: Configure
-      run: cmake -S ${{github.workspace}} -B ${{github.workspace}}/build
+      run: cmake -D VXSDR_BUILD_DEPENDENCIES=ON -S ${{github.workspace}} -B ${{github.workspace}}/build
     - name: Build
       run: cmake --build ${{github.workspace}}/build
 
