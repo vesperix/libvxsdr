@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Prerequisites
       run: sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev python3-dev pybind11-dev
