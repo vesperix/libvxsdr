@@ -56,7 +56,7 @@ jobs:
 
       # Setup and build
     - name: Install Prerequisites
-      run: sudo apt install g++ make git cmake libboost-all-dev libspdlog-dev python3-dev pybind11-dev
+      run: sudo apt install g++ make git cmake python3-dev
     - name: Configure
       run: cmake -D VXSDR_BUILD_DEPENDENCIES=ON -S ${{github.workspace}} -B ${{github.workspace}}/build
     - name: Build
