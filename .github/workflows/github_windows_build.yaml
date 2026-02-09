@@ -29,12 +29,8 @@ jobs:
       run: |
         & "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
 
-    - name: Install Prerequisites
-      run: vcpkg install asio:x64-windows boost-lockfree:x64-windows spdlog:x64-windows pybind11:x64-windows --binarysource="clear;x-gha,readwrite"
-      # run: vcpkg install boost-program-options:x64-windows boost-asio:x64-windows boost-lockfree:x64-windows spdlog:x64-windows pybind11:x64-windows --binarysource="clear;x-gha,readwrite"
-
     - name: Configure
-      run: cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVXSDR_STANDALONE_ASIO=ON -DVXSDR_BUILD_UTILITIES=OFF -S ${{github.workspace}} -B ${{github.workspace}}/build
+      run: cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D VXSDR_BUILD_DEPENDENCIES=ON -D VXSDR_BUILD_UTILITIES=OFF -S ${{github.workspace}} -B ${{github.workspace}}/build
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
