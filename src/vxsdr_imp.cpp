@@ -62,7 +62,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    while (command_tport->tx_state != packet_transport::TRANSPORT_READY and
+    while (command_tport->tx_state != packet_transport::TRANSPORT_READY or
            command_tport->rx_state != packet_transport::TRANSPORT_READY) {
         std::this_thread::sleep_for(transport_ready_wait);
         if ((std::chrono::steady_clock::now() - start_time) > transport_ready_timeout) {
