@@ -79,7 +79,7 @@ void init() {
 
         Console variables:
             VXSDR_LIB_LOG_CONSOLE_LEVEL          default is warn
-            VXSDR_LIB_LOG_CONSOLE_PATTERN        default is "[%n:%L] %v"  =
+            VXSDR_LIB_LOG_CONSOLE_PATTERN        default is "[%n:%l] %v"  =
                         [libvxsdr:<full log level>] <message>
 
         Logfile variables:
@@ -163,8 +163,10 @@ void init() {
         if (!logfile_name_time_format.empty()) {
             std::stringstream timestr;
             std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            struct tm tmp;
-            timestr << std::put_time(localtime_r(&t, &tmp), logfile_name_time_format.c_str());
+            struct tm *tmp = localtime(&t);
+            if (tmp != NULL) {
+                timestr << std::put_time(tmp, logfile_name_time_format.c_str());
+            }
             logfile_full_name = logfile_name + "-" + timestr.str() + ".log";
         } else {
             logfile_full_name = logfile_name + ".log";
