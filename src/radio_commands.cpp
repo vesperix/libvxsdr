@@ -367,7 +367,7 @@ std::optional<std::string> vxsdr::imp::get_tx_freq_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }
@@ -380,7 +380,7 @@ std::optional<std::string> vxsdr::imp::get_rx_freq_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }
@@ -553,7 +553,7 @@ std::optional<std::string> vxsdr::imp::get_tx_gain_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }
@@ -566,7 +566,7 @@ std::optional<std::string> vxsdr::imp::get_rx_gain_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }
@@ -948,7 +948,7 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }
@@ -961,7 +961,7 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, std::min(strlen(r->name1), (size_t)(MAX_NAME_LENGTH_BYTES - 1)));
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }
