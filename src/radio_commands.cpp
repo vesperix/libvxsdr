@@ -5,9 +5,9 @@
 #include <array>
 #include <bit>
 #include <cstdint>
-#include <cstring>
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <string.h>
 #include <memory>
-//#include <atomic>
 #include <complex>
 #include <optional>
 #include <string>
