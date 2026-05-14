@@ -281,10 +281,12 @@ void data_transport::data_receive() {
                         // check subdevice
                         if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
                             uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
-                            // update sample stats
-                            size_t n_samps         = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
-                            samples_received += n_samps;
-                            samples_received_current_stream += n_samps;
+                            if (recv_buffer.hdr.packet_size >= preamble_size) {
+                                // update sample stats
+                                size_t n_samps   = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
+                                samples_received += n_samps;
+                                samples_received_current_stream += n_samps;
+                            }
                             int n_push_tries = 0;
                             while (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer) and n_push_tries < max_push_tries) {
                                 n_push_tries++;
