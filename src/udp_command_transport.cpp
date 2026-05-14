@@ -49,18 +49,18 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
 
     net_error_code::error_code err;
 
-    LOG_DEBUG("setting udp command sender socket to non-blocking");
+    LOG_DEBUG("setting udp command sender socket to blocking");
     sender_socket.non_blocking(false, err);
     if (err) {
-        LOG_ERROR("error setting udp command sender socket to non-blocking ({:s})", err.message());
-        throw std::runtime_error("error setting udp command sender socket to non-blocking");
+        LOG_ERROR("error setting udp command sender socket to blocking ({:s})", err.message());
+        throw std::runtime_error("error setting udp command sender socket to blocking");
     }
 
-    LOG_DEBUG("setting udp command receiver socket to non-blocking");
+    LOG_DEBUG("setting udp command receiver socket to blocking");
     receiver_socket.non_blocking(false, err);
     if (err) {
-        LOG_ERROR("error setting udp command receiver socket to non-blocking ({:s})", err.message());
-        throw std::runtime_error("error setting udp command receiver socket to non-blocking");
+        LOG_ERROR("error setting udp command receiver socket to blocking ({:s})", err.message());
+        throw std::runtime_error("error setting udp command receiver socket to blocking");
     }
 
     LOG_DEBUG("binding udp command sender socket to address {:s} port {:d}", local_ip.to_string(), udp_host_cmd_send_port);
