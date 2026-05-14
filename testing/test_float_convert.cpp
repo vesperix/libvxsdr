@@ -31,7 +31,7 @@ void random_float(std::vector<std::complex<float>>& x) {
 
 void int_to_float(const std::vector<std::complex<int16_t>>& v_int, std::vector<std::complex<float>>& v_float) {
     const float scale = 1.0 / 32'767.0;
-    v_float.clear();
+    v_float.resize(v_int.size());
     for (size_t i = 0; i < v_int.size(); i++) {
         v_float[i] = std::complex<float>(scale * (float)v_int[i].real(), scale * (float)v_int[i].imag());
     }
