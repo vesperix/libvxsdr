@@ -124,7 +124,7 @@ class LIBVXSDR_EXPORT vxsdr {
           - device type identifier
           - FPGA code version
           - MCU code version,
-          - device unique id number,
+          - device unique identifier,
           - packet version supported,
           - wire sample data format,
           - number of subdevices,
@@ -794,7 +794,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @brief Enable or disable the receive external LO input.
       If the receive external LO is enabled, all receive tuning commands which adjust the internal LO
       will return an error; you must disable the external LO in order to tune the internal LO.
-      When switching from external to internal LO inputs, you will need to set the transmit
+      When switching from external to internal LO inputs, you will need to set the receive
       frequency again so that the internal LO is properly configured. The radio does not necessarily
       retain previously tuned internal frequencies when the LO is switched from internal to external and back.
       @returns @b true if the command succeeds, @b false otherwise

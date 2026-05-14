@@ -19,7 +19,7 @@ The top level of the device model is the VXSDR device, which has the following c
     * Frequency Reference
 
 A device is linked to an instance of the VXSDR class on the host by a transport layer;
-currently Ethernet UDP is the only supported transport. Each device also has a
+currently Ethernet UDP and PCIe are supported. Each device also has a
 time and frequency reference for use by its subdevices. Current devices all have the ability
 to generate internal signals or accept external pulse-per-second and 10 MHz to align with other
 devices.
