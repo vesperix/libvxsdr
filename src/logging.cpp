@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Vesperix Corporation
+// Copyright (c) 2023-26 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -80,7 +80,7 @@ void init() {
         Console variables:
             VXSDR_LIB_LOG_CONSOLE_LEVEL          default is warn
             VXSDR_LIB_LOG_CONSOLE_PATTERN        default is "[%n:%l] %v"  =
-                        [libvxsdr:<full log level>] <message>
+                        [libvxsdr:<short log level>] <message>
 
         Logfile variables:
             VXSDR_LIB_LOG_FILE_LEVEL             default is none
