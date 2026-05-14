@@ -37,7 +37,7 @@ int set_thread_priority_realtime(vxsdr_thread& thread, int priority) {
 #include <windows.h>
 
 int set_thread_affinity(vxsdr_thread& thread, const unsigned cpunum) {
-    if (SetThreadAffinityMask(thread.native_handle(), 1ULL << cpunum) != 0) {
+    if (cppnum < 64 and SetThreadAffinityMask(thread.native_handle(), 1ULL << cpunum) != 0) {
         return 0;
     }
     return -1;
