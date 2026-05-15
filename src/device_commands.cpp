@@ -237,7 +237,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_DISCOVER, 0, 0, 0, sizeof(p), 0};
-    auto bytes_sent      = discover_socket.send_to(net::buffer(&p, sizeof(p)), device_endpoint);
+    auto bytes_sent      = discover_socket.send_to(net::buffer(&p, sizeof(p)), device_endpoint, 0, error);
     if (bytes_sent != sizeof(p)) {
         LOG_ERROR("error sending discover packet in discover_ipv4_addresses()");
         work.reset();
@@ -266,6 +266,9 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
             } else {
                 LOG_WARN("extraneous response received in discover_ipv4_addresses()");
             }
+        } else {
+            discover_socket.cancel(error);
+            result.wait();
         }
         t = std::chrono::steady_clock::now() - t_start;
     } while (t.count() <= timeout_s);
