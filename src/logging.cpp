@@ -25,6 +25,10 @@ namespace vxsdr_lib_logging {
 spdlog::level::level_enum string_to_log_level(const std::string& s, spdlog::level::level_enum def) {
     spdlog::level::level_enum lev = def;
 
+    if (s.empty()) {
+        return def;
+    }
+
     char f = (char)std::toupper(s[0]);
 
     if (f == 'O' or f == 'N') {  // "OFF" or "NONE"
@@ -149,7 +153,7 @@ void init() {
 
     // make the logger(s)
     std::shared_ptr<spdlog::logger> lib_logger = nullptr;
-    spdlog::level::level_enum overall_level    = spdlog::level::trace;
+    spdlog::level::level_enum overall_level    = spdlog::level::err;
 
     if (logfile_level == spdlog::level::off) {
         // just set up the console log
@@ -163,8 +167,9 @@ void init() {
         if (!logfile_name_time_format.empty()) {
             std::stringstream timestr;
             std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            struct tm *tmp = localtime(&t);
-            if (tmp != NULL) {
+            struct tm tmp_tm;
+            struct tm *tmp = localtime_r(&t, &tmp_tm);
+            if (tmp != nullptr) {
                 timestr << std::put_time(tmp, logfile_name_time_format.c_str());
             }
             logfile_full_name = logfile_name + "-" + timestr.str() + ".log";
@@ -175,6 +180,8 @@ void init() {
             std::filesystem::path pth(logfile_path);
             pth.append(logfile_full_name);
             logfile_full_path = pth.string();
+        } else {
+            logfile_full_path = logfile_full_name;
         }
         auto file_log = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logfile_full_path);
         file_log->set_pattern(logfile_pattern);
@@ -184,13 +191,14 @@ void init() {
         overall_level = std::min(logfile_level, console_level);
     }
     spdlog::register_logger(lib_logger);
-    lib_logger->flush_on(spdlog::level::debug);
+    lib_logger->flush_on(spdlog::level::warn);
     lib_logger->set_level(overall_level);
     spdlog::set_default_logger(std::move(lib_logger));
 }
 
 void shutdown() {
     spdlog::drop(VXSDR_LIB_LOGGER_NAME);
+    spdlog::set_default_logger(std::make_shared<spdlog::logger>(""));
 }
 }  // namespace vxsdr_lib_logging
 #endif  // #ifndef VXSDR_LIB_DISABLE_LOGGING
