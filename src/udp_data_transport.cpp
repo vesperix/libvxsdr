@@ -57,18 +57,18 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
 
     net_error_code::error_code err;
 
-    LOG_DEBUG("setting udp data sender socket to non-blocking");
+    LOG_DEBUG("setting udp data sender socket to blocking");
     sender_socket.non_blocking(false, err);
     if (err) {
-        LOG_ERROR("error setting udp data sender socket to non-blocking ({:s})", err.message());
-        throw std::runtime_error("error setting udp data sender socket to non-blocking");
+        LOG_ERROR("error setting udp data sender socket to blocking ({:s})", err.message());
+        throw std::runtime_error("error setting udp data sender socket to blocking");
     }
 
-    LOG_DEBUG("setting udp data receiver socket to non-blocking");
+    LOG_DEBUG("setting udp data receiver socket to blocking");
     receiver_socket.non_blocking(false, err);
     if (err) {
-        LOG_ERROR("error setting udp data receiver socket to non-blocking ({:s})", err.message());
-        throw std::runtime_error("error setting udp data receiver socket to non-blocking");
+        LOG_ERROR("error setting udp data receiver socket to blocking ({:s})", err.message());
+        throw std::runtime_error("error setting udp data receiver socket to blocking");
     }
 
     LOG_DEBUG("binding udp data sender socket to address {:s} port {:d}", local_ip.to_string(), udp_host_data_send_port);
