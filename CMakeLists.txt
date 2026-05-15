@@ -281,7 +281,7 @@ set_target_properties(libvxsdr PROPERTIES PUBLIC_HEADER ${libvxsdr_header})
 
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
-    set_target_properties(libvxsdr PROPERTIES CMAKE_CXX_CLANG_TIDY ${clang_tidy})
+    set_target_properties(libvxsdr PROPERTIES CXX_CLANG_TIDY ${clang_tidy})
     message(STATUS "Running clang-tidy during build")
 endif()
 
@@ -335,10 +335,6 @@ if(Make_Python_Bindings)
     target_compile_definitions(vxsdr_py PRIVATE ${vxsdr_build_python})
     target_include_directories(vxsdr_py PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
     target_link_libraries(vxsdr_py PRIVATE libvxsdr ${pybind11_LIBRARIES})
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        target_include_directories(vxsdr_py PRIVATE ${spdlog_INCLUDE_DIRS})
-        target_link_libraries(vxsdr_py PRIVATE spdlog::spdlog_header_only)
-    endif()
     set_target_properties(vxsdr_py PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
@@ -393,7 +389,7 @@ if(VXSDR_BUILD_TESTS)
         target_link_libraries(${target_name} PRIVATE Threads::Threads)
     endforeach()
     add_test(sleep_resolution test_sleep_resolution 2e-4 1000)
-    add_test(queue_speed test_spsc_queue 10 160e6)
+    add_test(queue_speed test_data_queue 10 160e6)
     add_test(float_convert_speed test_float_convert 0.2 160e6)
 endif()
 
@@ -428,7 +424,7 @@ install(EXPORT vxsdrTargets
 )
 
 export(EXPORT vxsdrTargets
-    FILE ${libvxsdr_INSTALL_CMAKEDIR}/vxsdrTargets.cmake
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/vxsdrTargets.cmake
     NAMESPACE vxsdr::
 )
 
@@ -441,7 +437,7 @@ configure_package_config_file(vxsdrConfig.cmake.in
                               ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
                               INSTALL_DESTINATION ${libvxsdr_INSTALL_CMAKEDIR})
 write_basic_package_version_file(vxsdrConfigVersion.cmake
-                                 VERSION ${vxsdr_version}
+                                 VERSION ${libvxsdr_version}
                                  COMPATIBILITY SameMajorVersion)
 
 set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS WORLD_READ WORLD_EXECUTE)
