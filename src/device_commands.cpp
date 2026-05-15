@@ -5,6 +5,8 @@
 #include <array>
 #include <bit>
 #include <cmath>
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <string.h>
 #include <cstddef>
 #include <cstdint>
 #include <future>
@@ -214,18 +216,10 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     net::ip::udp::socket discover_socket(discover_context, local_endpoint);
 
-    discover_socket.open(net::ip::udp::v4(), error);
-    if (error) {
-        LOG_ERROR("unable to open socket in discover_ipv4_addresses()");
-        if (context_thread.joinable()) {
-            context_thread.join();
-        }
-        return ret_list;
-    }
-
     discover_socket.set_option(net::ip::udp::socket::reuse_address(true), error);
     if (error) {
         LOG_ERROR("unable to set reuse_address option in discover_ipv4_addresses()");
+        work.reset();
         if (context_thread.joinable()) {
             context_thread.join();
         }
@@ -234,6 +228,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     discover_socket.set_option(net::socket_base::broadcast(true), error);
     if (error) {
         LOG_ERROR("unable to set broadcast option in discover_ipv4_addresses()");
+        work.reset();
         if (context_thread.joinable()) {
             context_thread.join();
         }
@@ -245,6 +240,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     auto bytes_sent      = discover_socket.send_to(net::buffer(&p, sizeof(p)), device_endpoint);
     if (bytes_sent != sizeof(p)) {
         LOG_ERROR("error sending discover packet in discover_ipv4_addresses()");
+        work.reset();
         if (context_thread.joinable()) {
             context_thread.join();
         }
@@ -278,6 +274,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     if (error) {
         LOG_ERROR("error closing socket in discover_ipv4_addresses()");
     }
+    work.reset();
     if (context_thread.joinable()) {
         context_thread.join();
     }
@@ -356,7 +353,7 @@ std::optional<std::string> vxsdr::imp::get_sensor_name(const unsigned sensor_num
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return (std::string)r->name1;
+        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
     }
     return std::nullopt;
 }

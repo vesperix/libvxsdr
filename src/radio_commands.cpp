@@ -612,7 +612,6 @@ bool vxsdr::imp::set_rx_gain_stage(const double gain_db, const unsigned stage_nu
     p.hdr    = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_SET_RF_GAIN_STAGE, 0, subdev, channel, sizeof(p), 0};
     p.value1 = stage_num;
     p.value2 = gain_db;
-    ;
     return vxsdr::imp::send_command_and_check_response(p, "set_rx_gain_stage()");
 }
 
