@@ -1,5 +1,10 @@
-// Copyright (c) 2023 Vesperix Corporation
+// Copyright (c) 2023-6 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+/*
+    NOTE: this is the Python interface definition; it is not part of the library and contains only interface code.
+    DO NOT call library logging functions in this code; any interface errors must throw Python exceptions instead.
+*/
 
 #include <vxsdr.hpp>
 
