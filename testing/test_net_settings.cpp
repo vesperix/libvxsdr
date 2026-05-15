@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Vesperix Corporation
+// Copyright (c) 2023-6 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
@@ -10,13 +10,6 @@
 #include <mutex>
 #include <vector>
 using namespace std::chrono_literals;
-
-// disable exceptions
-#define FMT_EXCEPTIONS (0)
-// force header only
-#define FMT_HEADER_ONLY
-
-#include <spdlog/fmt/fmt.h>
 
 #include "thread_utils.hpp"
 #include "vxsdr_net.hpp"
@@ -349,10 +342,9 @@ int main(int argc, char* argv[]) {
     bool pass           = true;
     try {
         run_test(n_seconds, min_rate, delay_us, chunk_size, push_rate, pop_rate, seq_errors);
-        std::cout << fmt::format(" {:10.1f} {:10d} {:10d} {:12.2e} {:12.2e} {:12.2e} {:10d}", n_seconds, delay_us, chunk_size,
-                                 min_rate, push_rate, pop_rate, seq_errors)
-                  << std::endl;
-
+        std::cout << std::setw(10) << std::fixed << n_seconds << delay_us << chunk_size
+                  << std::setw(12) << std::scientific << min_rate << push_rate << pop_rate
+                  << std::setw(10) << std::fixed << seq_errors << std::endl;
         pass = (seq_errors > 0) || (push_rate < min_rate) || (pop_rate < min_rate);
     } catch (std::exception& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;
