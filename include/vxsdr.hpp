@@ -411,7 +411,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a receive tuning stage.
-      @returns a std::optional with a a std::string containing the name
+      @returns a std::optional with a std::string containing the name
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
@@ -998,7 +998,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Start transmitting at time @p t until @p n samples are sent.
-      If @p t is less than the current time, start immediately;
+      If @p t is less or equal to the current time, start immediately;
       if @p n is 0, continue until a @ref tx_stop(uint8_t) "tx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
@@ -1009,7 +1009,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Start receiving at time @p t until @p n samples are received.
-      If @p t is less than the current time, start immediately;
+      If @p t is less or equal to the current time, start immediately;
       if @p n is 0, continue until a @ref rx_stop(uint8_t) "rx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
