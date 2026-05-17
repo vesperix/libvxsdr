@@ -24,7 +24,7 @@ int set_thread_priority_realtime(vxsdr_thread& thread, int priority) {
     } else if (priority < min_priority) {
         priority = min_priority;
     }
-    int policy = SCHED_RR;
+    const int policy = SCHED_RR;
     struct sched_param param {};
 
     param.sched_priority = priority;

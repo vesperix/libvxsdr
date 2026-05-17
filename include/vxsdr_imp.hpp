@@ -239,6 +239,7 @@ class vxsdr::imp {
     void stderr_async_message_handler(const command_queue_element& a) const;
     void log_async_message_handler(const command_queue_element& a) const;
     void throw_async_message_handler(const command_queue_element& a) const;
+    std::string extract_string_from_name_packet(const name_packet* r) const;
     std::map<std::string, int64_t> apply_config(const std::map<std::string, int64_t>& input_config) const;
     template <typename SampleType>
     std::span<SampleType> get_packet_data_span(packet& q) const {

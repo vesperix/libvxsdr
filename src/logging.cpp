@@ -29,7 +29,7 @@ spdlog::level::level_enum string_to_log_level(const std::string& s, spdlog::leve
         return def;
     }
 
-    char f = (char)std::toupper(s[0]);
+    const char f = (char)std::toupper(s[0]);
 
     if (f == 'O' or f == 'N') {  // "OFF" or "NONE"
         lev = spdlog::level::off;
@@ -166,8 +166,8 @@ void init() {
         std::string logfile_full_path;
         if (!logfile_name_time_format.empty()) {
             std::stringstream timestr;
-            std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            struct tm tmp_tm;
+            const std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            struct tm tmp_tm{};
             struct tm *tmp = localtime_r(&t, &tmp_tm);
             if (tmp != nullptr) {
                 timestr << std::put_time(tmp, logfile_name_time_format.c_str());

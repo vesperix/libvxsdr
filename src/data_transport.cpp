@@ -2,6 +2,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <cerrno>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
@@ -12,7 +13,6 @@
 #include <vector>
 using namespace std::chrono_literals;
 
-#include <errno.h>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
@@ -70,6 +70,7 @@ bool data_transport::send_packet(packet& packet) {
 void data_transport::data_send() {
     LOG_DEBUG("{:s} data tx started", get_transport_type());
     const std::string transport_type = get_transport_type();
+    // NOLINTNEXTLINE(performance-enum-size)
     enum throttling_state { NO_THROTTLING = 0, NORMAL_THROTTLING = 1, HARD_THROTTLING = 2 };
     static constexpr unsigned data_buffer_size = 256;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
@@ -78,10 +79,10 @@ void data_transport::data_send() {
     uint64_t last_check                      = 0;
     // Note: all of these must be less than or equal to data_buffer_size
     //       since they are used for unchecked indexing into data_buffer!
-    unsigned buffer_low_packets_to_send      = data_buffer_size;
-    unsigned buffer_normal_packets_to_send   = data_buffer_size;
-    unsigned buffer_check_default_packets    = data_buffer_size;
-    unsigned buffer_check_throttling_packets = data_buffer_size / 2;
+    const unsigned buffer_low_packets_to_send      = data_buffer_size;
+    const unsigned buffer_normal_packets_to_send   = data_buffer_size;
+    const unsigned buffer_check_default_packets    = data_buffer_size;
+    const unsigned buffer_check_throttling_packets = data_buffer_size / 2;
 
     throttling_state throttling_state = NO_THROTTLING;
     unsigned buffer_check_interval    = buffer_check_default_packets;
@@ -170,7 +171,7 @@ void data_transport::data_send() {
         } else {
             // when not hard throttling, send at most max_packets_to_send packets and update buffer fills
             // by requesting an ack every buffer_check_interval packets
-            unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
+            const unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
             if (n_popped == 0) {
                 std::this_thread::sleep_for(data_send_wait);
             }
@@ -280,10 +281,10 @@ void data_transport::data_receive() {
                     if (recv_buffer.hdr.packet_type == PACKET_TYPE_RX_SIGNAL_DATA) {
                         // check subdevice
                         if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
-                            uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
+                            const uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
                             if (recv_buffer.hdr.packet_size >= preamble_size) {
                                 // update sample stats
-                                size_t n_samps   = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
+                                const size_t n_samps   = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
                                 samples_received += n_samps;
                                 samples_received_current_stream += n_samps;
                             }

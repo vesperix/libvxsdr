@@ -12,7 +12,7 @@ int get_socket_mtu(net::ip::udp::socket& sock) {
     int mtu        = 0;
     // FIXME: test this
     socklen_t size = sizeof(mtu);
-    int retval     = getsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU, (void*)&mtu, &size);
+    const int retval     = getsockopt(sock.native_handle(), IPPROTO_IP, IP_MTU, (void*)&mtu, &size);
     if (retval == 0) {
         return mtu;
     }

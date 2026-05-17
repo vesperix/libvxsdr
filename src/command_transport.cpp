@@ -1,11 +1,11 @@
 #include <array>
 #include <atomic>
+#include <cerrno>
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <string>
 
-#include <errno.h>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"

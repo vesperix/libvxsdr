@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16..3.31)
 
 set(libvxsdr_version_major  0)
 set(libvxsdr_version_minor 21)
-set(libvxsdr_version_patch  4)
+set(libvxsdr_version_patch  5)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -281,6 +281,7 @@ set_target_properties(libvxsdr PROPERTIES PUBLIC_HEADER ${libvxsdr_header})
 
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
+    #set(CMAKE_CXX_CLANG_TIDY ${clang_tidy})
     set_target_properties(libvxsdr PROPERTIES CXX_CLANG_TIDY ${clang_tidy})
     message(STATUS "Running clang-tidy during build")
 endif()

@@ -52,12 +52,13 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         throw std::invalid_argument("udp data transport settings must include local address and device address");
     }
 
-    net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_data_transport:local_address"]);
-    net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_data_transport:device_address"]);
+    const net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_data_transport:local_address"]);
+    const net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_data_transport:device_address"]);
 
     net_error_code::error_code err;
 
     LOG_DEBUG("setting udp data sender socket to blocking");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.non_blocking(false, err);
     if (err) {
         LOG_ERROR("error setting udp data sender socket to blocking ({:s})", err.message());
@@ -65,6 +66,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     LOG_DEBUG("setting udp data receiver socket to blocking");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.non_blocking(false, err);
     if (err) {
         LOG_ERROR("error setting udp data receiver socket to blocking ({:s})", err.message());
@@ -72,6 +74,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     LOG_DEBUG("binding udp data sender socket to address {:s} port {:d}", local_ip.to_string(), udp_host_data_send_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.bind(net::ip::udp::endpoint(local_ip, udp_host_data_send_port), err);
     if (err) {
         LOG_ERROR("error binding udp data sender socket on local address {:s}; check that network interface is up ({:s})",
@@ -81,6 +84,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     LOG_DEBUG("binding udp data receiver socket to address {:s} port {:d}", local_ip.to_string(), udp_host_data_receive_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.bind(net::ip::udp::endpoint(local_ip, udp_host_data_receive_port), err);
     if (err) {
         LOG_ERROR("error binding udp data receiver socket on local address {:s}; check that network interface is up ({:s})",
@@ -90,6 +94,7 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     LOG_DEBUG("connecting udp data sender socket to address {:s} port {:d}", device_ip.to_string(), udp_device_data_receive_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.connect(net::ip::udp::endpoint(device_ip, udp_device_data_receive_port), err);
     if (err) {
         LOG_ERROR("error connecting udp data sender socket to device address {:s} ({:s})", device_ip.to_string(), err.message());
@@ -97,12 +102,13 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     }
 
     LOG_DEBUG("setting do-not-fragment flag for udp data sender socket");
-    if (set_socket_dontfrag(sender_socket)) {
+    if (set_socket_dontfrag(sender_socket) != 0) {
         LOG_ERROR("error setting do-not-fragment flag for udp data sender socket");
         throw std::runtime_error("error setting do-not-fragment flag for udp data sender socket");
     }
 
     LOG_DEBUG("connecting udp data receiver socket to address {:s} port {:d}", device_ip.to_string(), udp_device_data_send_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.connect(net::ip::udp::endpoint(device_ip, udp_device_data_send_port), err);
     if (err) {
         LOG_ERROR("error connecting udp data receiver socket to device address {:s} ({:s})", device_ip.to_string(), err.message());
@@ -129,17 +135,19 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
     LOG_DEBUG("checking mtu for udp data sender socket");
     // the size returned is an estimate, so this check is not a guarantee
     auto mtu_est = get_socket_mtu(sender_socket);
-    // mtu_est == 0 means this isn't supported on the current platform (eg Mac OS), so skip the checks
     if (mtu_est < 0) {
-        LOG_ERROR("error getting mtu for udp data sender socket");
-        throw std::runtime_error("error getting mtu for udp data sender socket");
-    } else if (mtu_est > 0) {
+        LOG_WARN("error getting mtu for udp data sender socket, skipping mtu checks");
+    } else if (mtu_est == 0) {
+        // mtu_est == 0 means this isn't supported on the current platform (eg Mac OS), so skip the checks
+        LOG_INFO("get_socket_mtu() returned zero (not supported), skipping mtu checks");
+    } else {
+        // do the  checks
         unsigned socket_max_samples =
             find_max_samples_per_packet(mtu_est - VXSDR_MAX_PACKET_OVERHEAD - get_transport_overhead_bytes());
         if (socket_max_samples < max_samples_per_packet) {
             if (set_max_samples_per_packet(socket_max_samples)) {
                 LOG_INFO("reducing max_samples_per_packet to {:d} on udp data sender socket (socket mtu = {:d})",
-                         max_samples_per_packet, mtu_est);
+                            max_samples_per_packet, mtu_est);
             } else {
                 LOG_ERROR("error setting maximum samples per packet to {:d} (from socket mtu)", socket_max_samples);
                 throw std::runtime_error("error setting maximum samples per packet from socket mtu");
@@ -149,12 +157,13 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
 
     size_t network_send_buffer_bytes    = config["udp_data_transport:network_send_buffer_bytes"];
     size_t network_receive_buffer_bytes = config["udp_data_transport:network_receive_buffer_bytes"];
-
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.set_option(net::socket_base::send_buffer_size((int)network_send_buffer_bytes), err);
     if (err) {
         LOG_ERROR("cannot set network send buffer size to {:d} ({:s})", network_send_buffer_bytes, err.message());
     }
     net::socket_base::send_buffer_size sb_option;
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.get_option(sb_option, err);
     if (err) {
         LOG_ERROR("cannot get network send buffer size ({:s})", err.message());
@@ -168,16 +177,18 @@ udp_data_transport::udp_data_transport(const std::map<std::string, int64_t>& set
         }
     }
     // FIXME: verify if this is needed -- multicast?
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.set_option(net::ip::udp::socket::reuse_address(true), err);
     if (err) {
         LOG_ERROR("cannot set reuse address option on receive socket ({:s})", err.message());
     }
-
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.set_option(net::socket_base::receive_buffer_size((int)network_receive_buffer_bytes), err);
     if (err) {
         LOG_ERROR("cannot set network receive buffer size to {:d} ({:s})", network_receive_buffer_bytes, err.message());
     }
     net::socket_base::receive_buffer_size rb_option;
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.get_option(rb_option, err);
     if (err) {
         LOG_ERROR("cannot get network receive buffer size ({:s})", err.message());
@@ -271,6 +282,7 @@ udp_data_transport::~udp_data_transport() noexcept {
     net_error_code::error_code err;
     // use shutdown() to terminate the blocking read
     LOG_DEBUG("shutting down udp data receiver socket");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
     if (err and err != net_error_code_types::not_connected) {
         // the not connected error is expected since it's a UDP socket
@@ -278,6 +290,7 @@ udp_data_transport::~udp_data_transport() noexcept {
         LOG_ERROR("udp data receiver socket shutdown: {:s}", err.message());
     }
     LOG_DEBUG("closing udp data receiver socket");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.close(err);
     if (err) {
         LOG_ERROR("udp data receiver socket close: {:s}", err.message());
@@ -286,6 +299,7 @@ udp_data_transport::~udp_data_transport() noexcept {
     if (receiver_thread.joinable()) {
         receiver_thread.join();
     }
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.close(err);
     if (err) {
         LOG_ERROR("udp data sender socket close: {:s}", err.message());
@@ -301,7 +315,7 @@ udp_data_transport::~udp_data_transport() noexcept {
 #endif
 
 size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
-    net::socket_base::message_flags flags = 0;
+    const net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
 #ifdef UDP_SEND_DOES_NOT_BLOCK_ON_FULL_BUFFER
     size_t bytes = 0;
@@ -314,17 +328,17 @@ size_t udp_data_transport::packet_send(const packet& packet, int& error_code) {
         }
     }
 #else
-    size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
+    const size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
 #endif
     error_code = err.value();
     return bytes;
 }
 
 size_t udp_data_transport::packet_receive(data_queue_element& packet, int& error_code) {
-    net::socket_base::message_flags flags = 0;
+    const net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
     packet.hdr   = {0, 0, 0, 0, 0, 0, 0};
-    size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
+    const size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
     error_code   = err.value();
     return bytes;
 }

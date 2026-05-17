@@ -5,8 +5,7 @@
 #include <array>
 #include <bit>
 #include <cstdint>
-#define __STDC_WANT_LIB_EXT1__ 1
-#include <string.h>
+#include <cstring>
 #include <memory>
 #include <complex>
 #include <optional>
@@ -40,11 +39,7 @@ bool vxsdr::imp::tx_start(const vxsdr::time_point& t, const uint64_t n, const ui
     p.hdr = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_START, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
     p.n_samples  = n;
-    auto resp_ok = vxsdr::imp::send_command_and_check_response(p, "tx_start()");
-    if (resp_ok) {
-        return true;
-    }
-    return false;
+    return vxsdr::imp::send_command_and_check_response(p, "tx_start()");
 }
 
 bool vxsdr::imp::rx_start(const vxsdr::time_point& t, const uint64_t n, const uint8_t subdev) {
@@ -66,11 +61,7 @@ bool vxsdr::imp::rx_start(const vxsdr::time_point& t, const uint64_t n, const ui
     p.hdr = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_START, FLAGS_TIME_PRESENT, subdev, 0, sizeof(p), 0};
     vxsdr::imp::time_point_to_time_spec_t(t, p.time);
     p.n_samples  = n;
-    auto resp_ok = vxsdr::imp::send_command_and_check_response(p, "rx_start()");
-    if (resp_ok) {
-        return true;
-    }
-    return false;
+    return vxsdr::imp::send_command_and_check_response(p, "rx_start()");
 }
 
 bool vxsdr::imp::tx_loop(const vxsdr::time_point& t,
@@ -98,11 +89,7 @@ bool vxsdr::imp::tx_loop(const vxsdr::time_point& t,
     p.n_samples = n;
     vxsdr::imp::duration_to_time_spec_t(t_delay, p.t_delay);
     p.n_repeat   = n_repeat;
-    auto resp_ok = vxsdr::imp::send_command_and_check_response(p, "tx_loop()");
-    if (resp_ok) {
-        return true;
-    }
-    return false;
+    return vxsdr::imp::send_command_and_check_response(p, "tx_loop()");
 }
 
 bool vxsdr::imp::rx_loop(const vxsdr::time_point& t,
@@ -130,31 +117,19 @@ bool vxsdr::imp::rx_loop(const vxsdr::time_point& t,
     p.n_samples = n;
     vxsdr::imp::duration_to_time_spec_t(t_delay, p.t_delay);
     p.n_repeat   = n_repeat;
-    auto resp_ok = vxsdr::imp::send_command_and_check_response(p, "rx_loop()");
-    if (resp_ok) {
-        return true;
-    }
-    return false;
+    return vxsdr::imp::send_command_and_check_response(p, "rx_loop()");
 }
 
 bool vxsdr::imp::tx_stop(const uint8_t subdev) {
     header_only_packet p;
     p.hdr        = {PACKET_TYPE_TX_RADIO_CMD, RADIO_CMD_STOP, 0, subdev, 0, sizeof(p), 0};
-    auto resp_ok = vxsdr::imp::send_command_and_check_response(p, "tx_stop()");
-    if (resp_ok) {
-        return true;
-    }
-    return false;
+    return vxsdr::imp::send_command_and_check_response(p, "tx_stop()");
 }
 
 bool vxsdr::imp::rx_stop(const uint8_t subdev) {
     header_only_packet p;
     p.hdr        = {PACKET_TYPE_RX_RADIO_CMD, RADIO_CMD_STOP, 0, subdev, 0, sizeof(p), 0};
-    auto resp_ok = vxsdr::imp::send_command_and_check_response(p, "rx_stop()");
-    if (resp_ok) {
-        return true;
-    }
-    return false;
+    return vxsdr::imp::send_command_and_check_response(p, "rx_stop()");
 }
 
 bool vxsdr::imp::set_tx_iq_bias(const std::array<double, 2> bias, const uint8_t subdev, const uint8_t channel) {
@@ -367,7 +342,7 @@ std::optional<std::string> vxsdr::imp::get_tx_freq_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }
@@ -380,7 +355,7 @@ std::optional<std::string> vxsdr::imp::get_rx_freq_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }
@@ -553,7 +528,7 @@ std::optional<std::string> vxsdr::imp::get_tx_gain_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }
@@ -566,7 +541,7 @@ std::optional<std::string> vxsdr::imp::get_rx_gain_stage_name(const unsigned sta
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }
@@ -947,7 +922,7 @@ std::optional<std::string> vxsdr::imp::get_tx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }
@@ -960,7 +935,7 @@ std::optional<std::string> vxsdr::imp::get_rx_port_name(const unsigned port_num,
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }

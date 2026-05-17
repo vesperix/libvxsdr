@@ -5,8 +5,7 @@
 #include <array>
 #include <bit>
 #include <cmath>
-#define __STDC_WANT_LIB_EXT1__ 1
-#include <string.h>
+#include <cstring>
 #include <cstddef>
 #include <cstdint>
 #include <future>
@@ -127,17 +126,15 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_tx_stream_state(const uint8_t
     if (res) {
         auto q            = res.value();
         auto* r           = std::bit_cast<one_uint64_packet*>(&q);
-        bool running_flag = (r->value1 & STREAM_STATE_TX_RUNNING_FLAG) != 0;
-        bool waiting_flag = (r->value1 & STREAM_STATE_TX_WAITING_FLAG) != 0;
-        vxsdr::stream_state tx_stream_state;
+        const bool running_flag = (r->value1 & STREAM_STATE_TX_RUNNING_FLAG) != 0;
+        const bool waiting_flag = (r->value1 & STREAM_STATE_TX_WAITING_FLAG) != 0;
+        vxsdr::stream_state tx_stream_state = STREAM_ERROR;
         if (not running_flag and not waiting_flag) {
             tx_stream_state = STREAM_STOPPED;
         } else if (not running_flag and waiting_flag) {
             tx_stream_state = STREAM_WAITING_FOR_START;
         } else if (running_flag and not waiting_flag) {
             tx_stream_state = STREAM_RUNNING;
-        } else {
-            tx_stream_state = STREAM_ERROR;
         }
         return tx_stream_state;
     }
@@ -151,17 +148,15 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_rx_stream_state(const uint8_t
     if (res) {
         auto q            = res.value();
         auto* r           = std::bit_cast<one_uint64_packet*>(&q);
-        bool running_flag = (r->value1 & STREAM_STATE_RX_RUNNING_FLAG) != 0;
-        bool waiting_flag = (r->value1 & STREAM_STATE_RX_WAITING_FLAG) != 0;
-        vxsdr::stream_state rx_stream_state;
+        const bool running_flag = (r->value1 & STREAM_STATE_RX_RUNNING_FLAG) != 0;
+        const bool waiting_flag = (r->value1 & STREAM_STATE_RX_WAITING_FLAG) != 0;
+        vxsdr::stream_state rx_stream_state = STREAM_ERROR;
         if (not running_flag and not waiting_flag) {
             rx_stream_state = STREAM_STOPPED;
         } else if (not running_flag and waiting_flag) {
             rx_stream_state = STREAM_WAITING_FOR_START;
         } else if (running_flag and not waiting_flag) {
             rx_stream_state = STREAM_RUNNING;
-        } else {
-            rx_stream_state = STREAM_ERROR;
         }
         return rx_stream_state;
     }
@@ -203,7 +198,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     std::vector<std::string> ret_list;
 
     // wait 1 / 1000 of the timeout specified each rx
-    unsigned discover_wait_ms = lround(timeout_s);
+    const unsigned discover_wait_ms = lround(timeout_s);
 
     net_error_code::error_code error;
     net::io_context discover_context;
@@ -211,11 +206,11 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     auto work           = net::make_work_guard(discover_context);
     auto context_thread = vxsdr_thread([&discover_context] { discover_context.run(); });
 
-    net::ip::udp::endpoint local_endpoint(local_addr, destination_port);
-    net::ip::udp::endpoint device_endpoint(broadcast_addr, destination_port);
+    const net::ip::udp::endpoint local_endpoint(local_addr, destination_port);
+    const net::ip::udp::endpoint device_endpoint(broadcast_addr, destination_port);
 
     net::ip::udp::socket discover_socket(discover_context, local_endpoint);
-
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     discover_socket.set_option(net::ip::udp::socket::reuse_address(true), error);
     if (error) {
         LOG_ERROR("unable to set reuse_address option in discover_ipv4_addresses()");
@@ -225,6 +220,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
         }
         return ret_list;
     }
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     discover_socket.set_option(net::socket_base::broadcast(true), error);
     if (error) {
         LOG_ERROR("unable to set broadcast option in discover_ipv4_addresses()");
@@ -249,7 +245,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     auto t_start                    = std::chrono::steady_clock::now();
     std::chrono::duration<double> t = {};
-
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
     do {
         one_uint32_packet q = {};
         net::ip::udp::endpoint remote_endpoint;
@@ -267,12 +263,16 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
                 LOG_WARN("extraneous response received in discover_ipv4_addresses()");
             }
         } else {
+            // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
             discover_socket.cancel(error);
+            if (error) {
+                LOG_ERROR("error cancelling socket in discover_ipv4_addresses()");
+            }
             result.wait();
         }
         t = std::chrono::steady_clock::now() - t_start;
     } while (t.count() <= timeout_s);
-
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     discover_socket.close(error);
     if (error) {
         LOG_ERROR("error closing socket in discover_ipv4_addresses()");
@@ -356,7 +356,7 @@ std::optional<std::string> vxsdr::imp::get_sensor_name(const unsigned sensor_num
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return std::string(r->name1, strnlen(r->name1, MAX_NAME_LENGTH_BYTES));
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }

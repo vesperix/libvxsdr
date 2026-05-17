@@ -44,12 +44,13 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
         throw std::invalid_argument("udp command transport settings must include local address and device address");
     }
 
-    net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_command_transport:local_address"]);
-    net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_command_transport:device_address"]);
+    const net::ip::address_v4 local_ip  = net::ip::address_v4(config["udp_command_transport:local_address"]);
+    const net::ip::address_v4 device_ip = net::ip::address_v4(config["udp_command_transport:device_address"]);
 
     net_error_code::error_code err;
 
     LOG_DEBUG("setting udp command sender socket to blocking");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.non_blocking(false, err);
     if (err) {
         LOG_ERROR("error setting udp command sender socket to blocking ({:s})", err.message());
@@ -57,6 +58,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     }
 
     LOG_DEBUG("setting udp command receiver socket to blocking");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.non_blocking(false, err);
     if (err) {
         LOG_ERROR("error setting udp command receiver socket to blocking ({:s})", err.message());
@@ -64,6 +66,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     }
 
     LOG_DEBUG("binding udp command sender socket to address {:s} port {:d}", local_ip.to_string(), udp_host_cmd_send_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.bind(net::ip::udp::endpoint(local_ip, udp_host_cmd_send_port), err);
     if (err) {
         LOG_ERROR("error binding udp command sender socket on local address {:s}; check that network interface is up ({:s})",
@@ -73,6 +76,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     }
 
     LOG_DEBUG("binding udp command receiver socket to address {:s} port {:d}", local_ip.to_string(), udp_host_cmd_receive_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.bind(net::ip::udp::endpoint(local_ip, udp_host_cmd_receive_port), err);
     if (err) {
         LOG_ERROR("error binding udp command receiver socket on local address {:s}; check that network interface is up ({:s})",
@@ -82,6 +86,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     }
 
     LOG_DEBUG("connecting udp command sender socket to address {:s} port {:d}", device_ip.to_string(), udp_device_cmd_receive_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.connect(net::ip::udp::endpoint(device_ip, udp_device_cmd_receive_port), err);
     if (err) {
         LOG_ERROR("error connecting udp command sender socket to device address {:s} ({:s})", device_ip.to_string(), err.message());
@@ -89,6 +94,7 @@ udp_command_transport::udp_command_transport(const std::map<std::string, int64_t
     }
 
     LOG_DEBUG("connecting udp command receiver socket to address {:s} port {:d}", device_ip.to_string(), udp_device_cmd_send_port);
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.connect(net::ip::udp::endpoint(device_ip, udp_device_cmd_send_port), err);
     if (err) {
         LOG_ERROR("error connecting udp command receiver socket to device address {:s} ({:s})", device_ip.to_string(),
@@ -119,6 +125,7 @@ udp_command_transport::~udp_command_transport() noexcept {
     net_error_code::error_code err;
     // use shutdown() to terminate the blocking read
     LOG_DEBUG("shutting down udp command receiver socket");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.shutdown(net::ip::udp::socket::shutdown_receive, err);
     if (err and err != net_error_code_types::not_connected) {
         // the not connected error is expected since it's a UDP socket
@@ -126,6 +133,7 @@ udp_command_transport::~udp_command_transport() noexcept {
         LOG_ERROR("udp command receiver socket shutdown: {:s}", err.message());
     }
     LOG_DEBUG("closing udp command receiver socket");
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     receiver_socket.close(err);
     if (err) {
         LOG_ERROR("udp command receiver socket close: {:s}", err.message());
@@ -140,6 +148,7 @@ udp_command_transport::~udp_command_transport() noexcept {
     if (sender_thread.joinable()) {
         sender_thread.join();
     }
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     sender_socket.close(err);
     if (err) {
         LOG_ERROR("udp command sender socket close: {:s}", err.message());
@@ -151,18 +160,18 @@ udp_command_transport::~udp_command_transport() noexcept {
 }
 
 size_t udp_command_transport::packet_send(const packet& packet, int& error_code) {
-    net::socket_base::message_flags flags = 0;
+    const net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
-    size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
+    const size_t bytes = sender_socket.send(net::buffer(&packet, packet.hdr.packet_size), flags, err);
     error_code   = err.value();
     return bytes;
 }
 
 size_t udp_command_transport::packet_receive(command_queue_element& packet, int& error_code) {
-    net::socket_base::message_flags flags = 0;
+    const net::socket_base::message_flags flags = 0;
     net_error_code::error_code err;
     packet.hdr   = {0, 0, 0, 0, 0, 0, 0};
-    size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
+    const size_t bytes = receiver_socket.receive(net::buffer(&packet, sizeof(packet)), flags, err);
     error_code   = err.value();
     return bytes;
 }
