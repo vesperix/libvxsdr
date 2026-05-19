@@ -20,7 +20,7 @@
 template <typename Element>
 class vxsdr_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>> {
   public:
-    explicit vxsdr_queue<Element>(const size_t size)
+    explicit vxsdr_queue(const size_t size)
         : boost::lockfree::spsc_queue<Element, boost::lockfree::fixed_sized<true>>{size - 1} {};
 };
 
@@ -31,7 +31,7 @@ class vxsdr_queue : public boost::lockfree::spsc_queue<Element, boost::lockfree:
 template <typename Element>
 class vxsdr_queue : public folly::ProducerConsumerQueue<Element> {
   public:
-    explicit vxsdr_queue<Element>(const uint32_t size) : folly::ProducerConsumerQueue<Element>(size){};
+    explicit vxsdr_queue(const uint32_t size) : folly::ProducerConsumerQueue<Element>(size){};
 
     bool push(Element& e) { return folly::ProducerConsumerQueue<Element>::write(e); };
     size_t push(Element* p, size_t n_max) {

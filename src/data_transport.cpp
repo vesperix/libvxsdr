@@ -2,6 +2,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <cerrno>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
@@ -12,7 +13,6 @@
 #include <vector>
 using namespace std::chrono_literals;
 
-#include <errno.h>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
@@ -70,6 +70,7 @@ bool data_transport::send_packet(packet& packet) {
 void data_transport::data_send() {
     LOG_DEBUG("{:s} data tx started", get_transport_type());
     const std::string transport_type = get_transport_type();
+    // NOLINTNEXTLINE(performance-enum-size)
     enum throttling_state { NO_THROTTLING = 0, NORMAL_THROTTLING = 1, HARD_THROTTLING = 2 };
     static constexpr unsigned data_buffer_size = 256;
     static std::array<data_queue_element, data_buffer_size> data_buffer;
@@ -78,10 +79,10 @@ void data_transport::data_send() {
     uint64_t last_check                      = 0;
     // Note: all of these must be less than or equal to data_buffer_size
     //       since they are used for unchecked indexing into data_buffer!
-    unsigned buffer_low_packets_to_send      = data_buffer_size;
-    unsigned buffer_normal_packets_to_send   = data_buffer_size;
-    unsigned buffer_check_default_packets    = data_buffer_size;
-    unsigned buffer_check_throttling_packets = data_buffer_size / 2;
+    const unsigned buffer_low_packets_to_send      = data_buffer_size;
+    const unsigned buffer_normal_packets_to_send   = data_buffer_size;
+    const unsigned buffer_check_default_packets    = data_buffer_size;
+    const unsigned buffer_check_throttling_packets = data_buffer_size / 2;
 
     throttling_state throttling_state = NO_THROTTLING;
     unsigned buffer_check_interval    = buffer_check_default_packets;
@@ -100,7 +101,6 @@ void data_transport::data_send() {
         tx_state = TRANSPORT_SHUTDOWN;
         LOG_FATAL("queue not initialized in {:s} data tx", transport_type);
         throw(std::runtime_error("queue not initialized in " + transport_type + " data tx"));
-        return;
     }
 
     tx_state = TRANSPORT_READY;
@@ -170,7 +170,7 @@ void data_transport::data_send() {
         } else {
             // when not hard throttling, send at most max_packets_to_send packets and update buffer fills
             // by requesting an ack every buffer_check_interval packets
-            unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
+            const unsigned n_popped = tx_data_queue->pop(data_buffer.data(), max_packets_to_send);
             if (n_popped == 0) {
                 std::this_thread::sleep_for(data_send_wait);
             }
@@ -224,7 +224,6 @@ void data_transport::data_receive() {
         rx_state = TRANSPORT_SHUTDOWN;
         LOG_FATAL("queues not initialized in {:s} data rx", transport_type);
         throw(std::runtime_error("queues not initialized in " + transport_type + " data rx"));
-        return;
     }
 
     auto queue_push_wait = std::chrono::microseconds(data_send_wait_us());
@@ -257,6 +256,12 @@ void data_transport::data_receive() {
                     if (throw_on_rx_error) {
                         throw(std::runtime_error("packet size error in " + transport_type + " data rx"));
                     }
+                } else if (recv_buffer.hdr.packet_type >= packet_types_received.size()) {
+                    LOG_ERROR("packet type error in {:s} command rx (unknown type {:d})", transport_type,
+                              (uint16_t)recv_buffer.hdr.packet_type);
+                    if (throw_on_rx_error) {
+                        throw(std::runtime_error("packet type error in " + transport_type + " data rx"));
+                    }
                 } else {
                     // update stats
                     packets_received++;
@@ -278,40 +283,52 @@ void data_transport::data_receive() {
                     last_seq = recv_buffer.hdr.sequence_counter;
 
                     if (recv_buffer.hdr.packet_type == PACKET_TYPE_RX_SIGNAL_DATA) {
-                        // check subdevice
+                        // check subdevice valid
                         if (recv_buffer.hdr.subdevice < num_rx_subdevs) {
-                            uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
-                            // update sample stats
-                            size_t n_samps         = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
-                            samples_received += n_samps;
-                            samples_received_current_stream += n_samps;
-                            int n_push_tries = 0;
-                            while (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer) and n_push_tries < max_push_tries) {
-                                n_push_tries++;
-                                std::this_thread::sleep_for(queue_push_wait);
-                            }
-                            if (n_push_tries == max_push_tries) {
-                                rx_state = TRANSPORT_ERROR;
-                                LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
-                                          transport_type, recv_buffer.hdr.subdevice, samples_received);
-                                if (throw_on_rx_error) {
-                                    throw(std::runtime_error("error pushing to data queue in " + transport_type + " data rx"));
+                            // check size large enough to contain data
+                            const uint16_t preamble_size = get_packet_preamble_size(recv_buffer.hdr);
+                            if (recv_buffer.hdr.packet_size >= preamble_size) {
+                                // update sample stats
+                                const size_t n_samps   = (recv_buffer.hdr.packet_size - preamble_size) / sizeof(vxsdr::wire_sample);
+                                samples_received += n_samps;
+                                samples_received_current_stream += n_samps;
+                                // push data to queue
+                                int n_push_tries = 0;
+                                while (not rx_data_queue[recv_buffer.hdr.subdevice]->push(recv_buffer) and n_push_tries < max_push_tries) {
+                                    n_push_tries++;
+                                    std::this_thread::sleep_for(queue_push_wait);
                                 }
+                                if (n_push_tries == max_push_tries) {
+                                    rx_state = TRANSPORT_ERROR;
+                                    LOG_ERROR("error pushing to data queue in {:s} data rx (subdevice {:d} sample {:d})",
+                                            transport_type, recv_buffer.hdr.subdevice, samples_received);
+                                    if (throw_on_rx_error) {
+                                        throw(std::runtime_error("error pushing to data queue in " + transport_type + " data rx"));
+                                    }
+                                }
+                            } else {
+                                LOG_WARN("{:s} data rx discarded rx data packet too small to contain data ({:d} bytes with {:d} byte preamble)",
+                                         transport_type, recv_buffer.hdr.packet_size, preamble_size);
                             }
                         } else {
                             LOG_WARN("{:s} data rx discarded rx data packet from unknown subdevice {:d}", transport_type,
                                      recv_buffer.hdr.subdevice);
                         }
                     } else if (recv_buffer.hdr.packet_type == PACKET_TYPE_TX_SIGNAL_DATA_ACK) {
-                        auto* r              = std::bit_cast<six_uint32_packet*>(&recv_buffer);
-                        tx_buffer_used_bytes = r->value3;
-                        tx_buffer_size_bytes = r->value4;
-                        tx_packet_oos_count  = r->value5;
-                        if (tx_buffer_size_bytes > 0) {
-                            tx_buffer_fill_percent =
-                                (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
+                        if (recv_buffer.hdr.packet_size == sizeof(six_uint32_packet)) {
+                            auto* r              = std::bit_cast<six_uint32_packet*>(&recv_buffer);
+                            tx_buffer_used_bytes = r->value3;
+                            tx_buffer_size_bytes = r->value4;
+                            tx_packet_oos_count  = r->value5;
+                            if (tx_buffer_size_bytes > 0) {
+                                tx_buffer_fill_percent =
+                                    (unsigned)std::min(100ULL, (100ULL * tx_buffer_used_bytes) / tx_buffer_size_bytes);
+                            } else {
+                                tx_buffer_fill_percent = 0;
+                            }
                         } else {
-                            tx_buffer_fill_percent = 0;
+                                LOG_WARN("{:s} data rx discarded incorrect size ack packet ({:d} bytes)", transport_type,
+                                         (int)recv_buffer.hdr.packet_size);
                         }
                     } else {
                         LOG_WARN("{:s} data rx discarded incorrect packet (type {:d})", transport_type,

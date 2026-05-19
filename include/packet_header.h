@@ -291,8 +291,8 @@ typedef uint64_t capabilities_t;
 // Stream State
 #define STREAM_STATE_RX_RUNNING_FLAG         (0x1ULL)
 #define STREAM_STATE_RX_WAITING_FLAG         (0x2ULL)
-#define STREAM_STATE_TX_RUNNING_FLAG         (0x1ULL << 32)
-#define STREAM_STATE_TX_WAITING_FLAG         (0x2ULL << 32)
+#define STREAM_STATE_TX_RUNNING_FLAG         (0x1ULL << 32U)
+#define STREAM_STATE_TX_WAITING_FLAG         (0x2ULL << 32U)
 
 // Device Capabilities
 #define DEV_CAP_HAS_REF_LOCK_DETECT          (0x0001ULL)
@@ -333,7 +333,7 @@ typedef uint64_t capabilities_t;
 #define SAMPLE_FORMAT_MASK                   (0x00000200UL)
 #define SAMPLE_DATATYPE_MASK                 (SAMPLE_TYPE_MASK | SAMPLE_FORMAT_MASK | SAMPLE_LENGTH_MASK)  // type, format, and length
 #define SAMPLE_GRANULARITY_MASK              (0xFF000000UL)
-#define SAMPLE_GRANULARITY_SHIFT             (24)
+#define SAMPLE_GRANULARITY_SHIFT             (24U)
 #define SAMPLE_TYPE_REAL_I8                  (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 8UL))
 #define SAMPLE_TYPE_REAL_I12                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 12UL))
 #define SAMPLE_TYPE_REAL_I16                 (SAMPLE_TYPE_REAL | SAMPLE_FORMAT_INT | (SAMPLE_LENGTH_MASK & 16UL))

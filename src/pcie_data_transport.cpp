@@ -34,7 +34,7 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
     num_rx_subdevs = n_rx_subdevs;
 
     auto config = apply_transport_settings(settings, get_default_settings());
-
+    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
     pcie_if = std::move(pcie_iface);
 
     LOG_DEBUG("using transmit data buffer of {:d} packets", config["pcie_data_transport:tx_data_queue_packets"]);

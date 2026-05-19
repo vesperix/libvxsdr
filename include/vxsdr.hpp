@@ -124,7 +124,7 @@ class LIBVXSDR_EXPORT vxsdr {
           - device type identifier
           - FPGA code version
           - MCU code version,
-          - device unique id number,
+          - device unique identifier,
           - packet version supported,
           - wire sample data format,
           - number of subdevices,
@@ -411,7 +411,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Get the name of a receive tuning stage.
-      @returns a std::optional with a a std::string containing the name
+      @returns a std::optional with a std::string containing the name
       @param stage_num the number of the stage
       @param subdev the subdevice number
     */
@@ -794,7 +794,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @brief Enable or disable the receive external LO input.
       If the receive external LO is enabled, all receive tuning commands which adjust the internal LO
       will return an error; you must disable the external LO in order to tune the internal LO.
-      When switching from external to internal LO inputs, you will need to set the transmit
+      When switching from external to internal LO inputs, you will need to set the receive
       frequency again so that the internal LO is properly configured. The radio does not necessarily
       retain previously tuned internal frequencies when the LO is switched from internal to external and back.
       @returns @b true if the command succeeds, @b false otherwise
@@ -998,7 +998,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Start transmitting at time @p t until @p n samples are sent.
-      If @p t is less than the current time, start immediately;
+      If @p t is less or equal to the current time, start immediately;
       if @p n is 0, continue until a @ref tx_stop(uint8_t) "tx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
@@ -1009,7 +1009,7 @@ class LIBVXSDR_EXPORT vxsdr {
 
     /*!
       @brief Start receiving at time @p t until @p n samples are received.
-      If @p t is less than the current time, start immediately;
+      If @p t is less or equal to the current time, start immediately;
       if @p n is 0, continue until a @ref rx_stop(uint8_t) "rx_stop" command is received.
       @returns @b true if the command succeeds, @b false otherwise
       @param t the start time
@@ -1104,7 +1104,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
       @param data the @p complex<int16_t> vector for the received data
       @param n_requested the number of samples to be received (0 means use data.size();
-          if data.size() \< n_requested, only data.size() will be received)
+          if data.size() \< n_requested, the vector will be resized to n_requested)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -1118,7 +1118,7 @@ class LIBVXSDR_EXPORT vxsdr {
       @returns the number of samples received before a sequence error, or @p n_desired if no sequence errors occur
       @param data the @p complex<float> vector for the received data
       @param n_requested the number of samples to be received (0 means use data.size();
-          if data.size() \< n_requested, only data.size() will be acquired)
+          if data.size() \< n_requested, the vector will be resized to n_requested)
       @param subdev the subdevice number
       @param timeout_s timeout in seconds
     */
@@ -1131,7 +1131,7 @@ class LIBVXSDR_EXPORT vxsdr {
        @brief Set the timeout used by the host for commands sent to the device.
        We do not recommend values less than 0.5 seconds
        @returns @p true if the timeout is set, @p false if it is out of range
-       @param timeout_s the timeout in seconds (must be greater than 0 and less than or equal to 3600)
+       @param timeout_s the timeout in seconds (must be at least 1e-3 and less than or equal to 3600)
      */
     bool set_host_command_timeout(const double timeout_s);
 

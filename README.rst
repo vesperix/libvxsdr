@@ -112,7 +112,7 @@ Downloading, building, and installing the library
    cmake --build build
    sudo cmake --install build
 
-Linking your program to the host llbrary
+Linking your program to the host library
 ----------------------------------------
 
 The host library will be installed in the default location for your system by CMake.

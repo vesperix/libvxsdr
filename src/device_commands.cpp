@@ -5,6 +5,7 @@
 #include <array>
 #include <bit>
 #include <cmath>
+#include <cstring>
 #include <cstddef>
 #include <cstdint>
 #include <future>
@@ -25,7 +26,7 @@
 std::optional<std::array<uint32_t, 8>> vxsdr::imp::hello() {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_HELLO, 0, 0, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "hello()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "hello()", sizeof(eight_uint32_packet));
     if (res) {
         auto q                      = res.value();
         auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
@@ -50,7 +51,7 @@ bool vxsdr::imp::clear_status(const uint8_t subdev) {
 std::optional<std::array<uint32_t, 8>> vxsdr::imp::get_status(const uint8_t subdev) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_STATUS, 0, subdev, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "get_status()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "get_status()", sizeof(eight_uint32_packet));
     if (res) {
         auto q                      = res.value();
         auto* r                     = std::bit_cast<eight_uint32_packet*>(&q);
@@ -77,7 +78,7 @@ bool vxsdr::imp::set_time_next_pps(const vxsdr::time_point& t) {
 std::optional<vxsdr::time_point> vxsdr::imp::get_time_now() {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_TIME, 0, 0, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "get_time_now()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "get_time_now()", sizeof(time_packet));
     if (res) {
         auto q = res.value();
         if ((q.hdr.flags & FLAGS_TIME_PRESENT) != 0) {
@@ -93,7 +94,7 @@ std::optional<vxsdr::time_point> vxsdr::imp::get_time_now() {
 std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_info(const uint8_t subdev) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_BUFFER_INFO, 0, subdev, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "get_buffer_info()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "get_buffer_info()", sizeof(two_uint32_packet));
     if (res) {
         auto q                      = res.value();
         auto* r                     = std::bit_cast<two_uint32_packet*>(&q);
@@ -107,7 +108,7 @@ std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_info(const uint8_t
 std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_use(const uint8_t subdev) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_BUFFER_USE, 0, subdev, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "get_buffer_use()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "get_buffer_use()", sizeof(two_uint32_packet));
     if (res) {
         auto q                      = res.value();
         auto* r                     = std::bit_cast<two_uint32_packet*>(&q);
@@ -121,21 +122,19 @@ std::optional<std::array<uint32_t, 2>> vxsdr::imp::get_buffer_use(const uint8_t 
 std::optional<vxsdr::stream_state> vxsdr::imp::get_tx_stream_state(const uint8_t subdev) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_STREAM_STATE, 0, subdev, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "get_tx_stream_state()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "get_tx_stream_state()", sizeof(one_uint64_packet));
     if (res) {
         auto q            = res.value();
         auto* r           = std::bit_cast<one_uint64_packet*>(&q);
-        bool running_flag = (r->value1 & STREAM_STATE_TX_RUNNING_FLAG) != 0;
-        bool waiting_flag = (r->value1 & STREAM_STATE_TX_WAITING_FLAG) != 0;
-        vxsdr::stream_state tx_stream_state;
+        const bool running_flag = (r->value1 & STREAM_STATE_TX_RUNNING_FLAG) != 0;
+        const bool waiting_flag = (r->value1 & STREAM_STATE_TX_WAITING_FLAG) != 0;
+        vxsdr::stream_state tx_stream_state = STREAM_ERROR;
         if (not running_flag and not waiting_flag) {
             tx_stream_state = STREAM_STOPPED;
         } else if (not running_flag and waiting_flag) {
             tx_stream_state = STREAM_WAITING_FOR_START;
         } else if (running_flag and not waiting_flag) {
             tx_stream_state = STREAM_RUNNING;
-        } else {
-            tx_stream_state = STREAM_ERROR;
         }
         return tx_stream_state;
     }
@@ -145,21 +144,19 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_tx_stream_state(const uint8_t
 std::optional<vxsdr::stream_state> vxsdr::imp::get_rx_stream_state(const uint8_t subdev) {
     header_only_packet p;
     p.hdr    = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_STREAM_STATE, 0, subdev, 0, sizeof(p), 0};
-    auto res = vxsdr::imp::send_command_and_return_response(p, "get_rx_stream_state()");
+    auto res = vxsdr::imp::send_command_and_return_response(p, "get_rx_stream_state()", sizeof(one_uint64_packet));
     if (res) {
         auto q            = res.value();
         auto* r           = std::bit_cast<one_uint64_packet*>(&q);
-        bool running_flag = (r->value1 & STREAM_STATE_RX_RUNNING_FLAG) != 0;
-        bool waiting_flag = (r->value1 & STREAM_STATE_RX_WAITING_FLAG) != 0;
-        vxsdr::stream_state rx_stream_state;
+        const bool running_flag = (r->value1 & STREAM_STATE_RX_RUNNING_FLAG) != 0;
+        const bool waiting_flag = (r->value1 & STREAM_STATE_RX_WAITING_FLAG) != 0;
+        vxsdr::stream_state rx_stream_state = STREAM_ERROR;
         if (not running_flag and not waiting_flag) {
             rx_stream_state = STREAM_STOPPED;
         } else if (not running_flag and waiting_flag) {
             rx_stream_state = STREAM_WAITING_FOR_START;
         } else if (running_flag and not waiting_flag) {
             rx_stream_state = STREAM_RUNNING;
-        } else {
-            rx_stream_state = STREAM_ERROR;
         }
         return rx_stream_state;
     }
@@ -169,7 +166,7 @@ std::optional<vxsdr::stream_state> vxsdr::imp::get_rx_stream_state(const uint8_t
 std::optional<std::array<bool, 3>> vxsdr::imp::get_timing_status() {
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_TIMING_STATUS, 0, 0, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_timing_status()");
+    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_timing_status()", sizeof(one_uint32_packet));
     if (res) {
         auto q                  = res.value();
         auto* r                 = std::bit_cast<one_uint32_packet*>(&q);
@@ -183,7 +180,7 @@ std::optional<std::array<bool, 3>> vxsdr::imp::get_timing_status() {
 std::optional<double> vxsdr::imp::get_timing_resolution() {
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_TIMING_RESOLUTION, 0, 0, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_timing_resolution()");
+    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_timing_resolution()", sizeof(one_double_packet));
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_double_packet*>(&q);
@@ -200,8 +197,17 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     auto broadcast_addr             = net::ip::make_address_v4(broadcast_addr_str);
     std::vector<std::string> ret_list;
 
-    // wait 1 / 1000 of the timeout specified each rx
-    unsigned discover_wait_ms = lround(timeout_s);
+    double used_timeout_s = timeout_s;
+
+    if (used_timeout_s < 1e-3) {
+        used_timeout_s = 1e-3;
+    }
+    if (used_timeout_s > 600.0) {
+        used_timeout_s = 600.0;
+    }
+
+    // wait 1 / 1000 of the timeout specified each rx or 1 ms
+    const unsigned discover_wait_ms = std::max(1, lround(used_timeout_s));
 
     net_error_code::error_code error;
     net::io_context discover_context;
@@ -209,31 +215,25 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
     auto work           = net::make_work_guard(discover_context);
     auto context_thread = vxsdr_thread([&discover_context] { discover_context.run(); });
 
-    net::ip::udp::endpoint local_endpoint(local_addr, destination_port);
-    net::ip::udp::endpoint device_endpoint(broadcast_addr, destination_port);
+    const net::ip::udp::endpoint local_endpoint(local_addr, destination_port);
+    const net::ip::udp::endpoint device_endpoint(broadcast_addr, destination_port);
 
     net::ip::udp::socket discover_socket(discover_context, local_endpoint);
-
-    discover_socket.open(net::ip::udp::v4(), error);
-    if (error) {
-        LOG_ERROR("unable to open socket in discover_ipv4_addresses()");
-        if (context_thread.joinable()) {
-            context_thread.join();
-        }
-        return ret_list;
-    }
-
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     discover_socket.set_option(net::ip::udp::socket::reuse_address(true), error);
     if (error) {
         LOG_ERROR("unable to set reuse_address option in discover_ipv4_addresses()");
+        work.reset();
         if (context_thread.joinable()) {
             context_thread.join();
         }
         return ret_list;
     }
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     discover_socket.set_option(net::socket_base::broadcast(true), error);
     if (error) {
         LOG_ERROR("unable to set broadcast option in discover_ipv4_addresses()");
+        work.reset();
         if (context_thread.joinable()) {
             context_thread.join();
         }
@@ -242,9 +242,10 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_DISCOVER, 0, 0, 0, sizeof(p), 0};
-    auto bytes_sent      = discover_socket.send_to(net::buffer(&p, sizeof(p)), device_endpoint);
+    auto bytes_sent      = discover_socket.send_to(net::buffer(&p, sizeof(p)), device_endpoint, 0, error);
     if (bytes_sent != sizeof(p)) {
         LOG_ERROR("error sending discover packet in discover_ipv4_addresses()");
+        work.reset();
         if (context_thread.joinable()) {
             context_thread.join();
         }
@@ -253,7 +254,7 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     auto t_start                    = std::chrono::steady_clock::now();
     std::chrono::duration<double> t = {};
-
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
     do {
         one_uint32_packet q = {};
         net::ip::udp::endpoint remote_endpoint;
@@ -270,14 +271,22 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
             } else {
                 LOG_WARN("extraneous response received in discover_ipv4_addresses()");
             }
+        } else {
+            // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
+            discover_socket.cancel(error);
+            if (error) {
+                LOG_ERROR("error cancelling socket in discover_ipv4_addresses()");
+            }
+            result.wait();
         }
         t = std::chrono::steady_clock::now() - t_start;
     } while (t.count() <= timeout_s);
-
+    // NOLINTNEXTLINE(bugprone-unused-return-value,cert-err33-c)
     discover_socket.close(error);
     if (error) {
         LOG_ERROR("error closing socket in discover_ipv4_addresses()");
     }
+    work.reset();
     if (context_thread.joinable()) {
         context_thread.join();
     }
@@ -304,7 +313,7 @@ bool vxsdr::imp::save_ipv4_address(const std::string& device_address_str) {
 std::optional<unsigned> vxsdr::imp::get_max_payload_bytes() {
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_MAX_PAYLOAD, 0, 0, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_max_payload_bytes()");
+    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_max_payload_bytes()", sizeof(one_uint32_packet));
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_uint32_packet*>(&q);
@@ -327,7 +336,7 @@ bool vxsdr::imp::set_max_payload_bytes(const unsigned max_payload_bytes) {
 std::optional<unsigned> vxsdr::imp::get_num_subdevices() {
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_NUM_SUBDEVS, 0, 0, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_num_subdevices()");
+    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_num_subdevices()", sizeof(one_uint32_packet));
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_uint32_packet*>(&q);
@@ -339,7 +348,7 @@ std::optional<unsigned> vxsdr::imp::get_num_subdevices() {
 std::optional<unsigned> vxsdr::imp::get_num_sensors(const uint8_t subdev) {
     header_only_packet p = {};
     p.hdr                = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_NUM_SENSORS, 0, subdev, 0, sizeof(p), 0};
-    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_num_sensors()");
+    auto res             = vxsdr::imp::send_command_and_return_response(p, "get_num_sensors()", sizeof(one_uint32_packet));
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_uint32_packet*>(&q);
@@ -352,11 +361,11 @@ std::optional<std::string> vxsdr::imp::get_sensor_name(const unsigned sensor_num
     one_uint32_packet p = {};
     p.hdr               = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR_NAME, 0, subdev, 0, sizeof(p), 0};
     p.value1            = sensor_number;
-    auto res            = vxsdr::imp::send_command_and_return_response(p, "get_sensor_names()");
+    auto res            = vxsdr::imp::send_command_and_return_response(p, "get_sensor_names()", sizeof(name_packet));
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<name_packet*>(&q);
-        return (std::string)r->name1;
+        return vxsdr::imp::extract_string_from_name_packet(r);
     }
     return std::nullopt;
 }
@@ -365,7 +374,7 @@ std::optional<double> vxsdr::imp::get_sensor_reading(const unsigned sensor_numbe
     one_uint32_packet p = {};
     p.hdr               = {PACKET_TYPE_DEVICE_CMD, DEVICE_CMD_GET_SENSOR_READING, 0, subdev, 0, sizeof(p), 0};
     p.value1            = sensor_number;
-    auto res            = vxsdr::imp::send_command_and_return_response(p, "get_sensor_reading()");
+    auto res            = vxsdr::imp::send_command_and_return_response(p, "get_sensor_reading()", sizeof(one_double_packet));
     if (res) {
         auto q  = res.value();
         auto* r = std::bit_cast<one_double_packet*>(&q);

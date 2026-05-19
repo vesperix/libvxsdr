@@ -24,7 +24,7 @@ int set_thread_priority_realtime(vxsdr_thread& thread, int priority) {
     } else if (priority < min_priority) {
         priority = min_priority;
     }
-    int policy = SCHED_RR;
+    const int policy = SCHED_RR;
     struct sched_param param {};
 
     param.sched_priority = priority;
@@ -37,7 +37,7 @@ int set_thread_priority_realtime(vxsdr_thread& thread, int priority) {
 #include <windows.h>
 
 int set_thread_affinity(vxsdr_thread& thread, const unsigned cpunum) {
-    if (SetThreadAffinityMask(thread.native_handle(), 1ULL << cpunum) != 0) {
+    if (cppnum < 64 and SetThreadAffinityMask(thread.native_handle(), 1ULL << cpunum) != 0) {
         return 0;
     }
     return -1;

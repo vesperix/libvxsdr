@@ -1,5 +1,10 @@
-// Copyright (c) 2023 Vesperix Corporation
+// Copyright (c) 2023-6 Vesperix Corporation
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+/*
+    NOTE: this is the Python interface definition; it is not part of the library and contains only interface code.
+    DO NOT call library logging functions in this code; any interface errors must throw Python exceptions instead.
+*/
 
 #include <vxsdr.hpp>
 
@@ -124,8 +129,8 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_SIMPLE(get_timing_resolution, "Get the resolution of the device's clock.")
 
         // ip addressing
-        PYBIND_DEF_SUBDEV(set_ipv4_address, "Set the IPv4 address of the device (will end communication with this instance; read the docs first!).")
-        PYBIND_DEF_SUBDEV(save_ipv4_address, "Save the IPv4 address of the device to nonvolatile memory in the device (read the docs first!).")
+        PYBIND_DEF_ARGS(set_ipv4_address, "Set the IPv4 address of the device (will end communication with this instance; read the docs first!).", py::arg("device_address"))
+        PYBIND_DEF_ARGS(save_ipv4_address, "Save the IPv4 address of the device to nonvolatile memory in the device (read the docs first!).", py::arg("device_address"))
         PYBIND_DEF_ARGS(discover_ipv4_addresses, "Broadcast a device discovery packet to the given IPv4 broadcast address; return the addresses of devices which respond.",
                                 py::arg("local_addr"), py::arg("broadcast_addr"), py::arg("timeout_s") = 10)
         // enable and disable
@@ -215,12 +220,12 @@ PYBIND11_MODULE(vxsdr_py, m) {
         PYBIND_DEF_ARGS(set_rx_iq_corr, "Set the IQ correction for a receive channel to control image rejection.", py::arg("corr"), py::arg("subdev") = 0, py::arg("channel") = 0)
         // setup transmit and received
         PYBIND_DEF_ARGS(tx_start, "Start transmitting at specified time until the specified number of samples are sent.", py::arg("t"), py::arg("n") = 0, py::arg("subdev") = 0)
-        PYBIND_DEF_ARGS(rx_start, "Start receiving at specified time until the specified number of samples are sent.", py::arg("t"), py::arg("n") = 0, py::arg("subdev") = 0)
+        PYBIND_DEF_ARGS(rx_start, "Start receiving at specified time until the specified number of samples are received.", py::arg("t"), py::arg("n") = 0, py::arg("subdev") = 0)
         // repeating transmit and receive
-        PYBIND_DEF_ARGS(tx_loop, "Start transmitting at specified time until the specified number of samples are sent, repeating n_repeat times at intervals of t_repeat",
-                        py::arg("t"), py::arg("n"), py::arg("t_repeat") = vxsdr::duration::zero(), py::arg("n_repeat") = 0, py::arg("subdev") = 0)
-        PYBIND_DEF_ARGS(rx_loop, "Start receiving at specified time until the specified number of samples are sent, repeating n_repeat times at intervals of t_repeat",
-                        py::arg("t"), py::arg("n"), py::arg("t_repeat") = vxsdr::duration::zero(), py::arg("n_repeat") = 0, py::arg("subdev") = 0)
+        PYBIND_DEF_ARGS(tx_loop, "Start transmitting at specified time until the specified number of samples are sent, repeating n_repeat times at intervals of t_delay",
+                        py::arg("t"), py::arg("n"), py::arg("t_delay") = vxsdr::duration::zero(), py::arg("n_repeat") = 0, py::arg("subdev") = 0)
+        PYBIND_DEF_ARGS(rx_loop, "Start receiving at specified time until the specified number of samples are sent, repeating n_repeat times at intervals of t_delay",
+                        py::arg("t"), py::arg("n"), py::arg("t_delay") = vxsdr::duration::zero(), py::arg("n_repeat") = 0, py::arg("subdev") = 0)
         // interrupting transmit and receive
         PYBIND_DEF_SUBDEV(tx_stop, "Stop transmitting immediately.") PYBIND_DEF_SUBDEV(rx_stop, "Stop receiving immediately.")
         // sending and receiving samples

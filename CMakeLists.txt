@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.16..3.28)
+cmake_minimum_required(VERSION 3.16..3.31)
 
 set(libvxsdr_version_major  0)
-set(libvxsdr_version_minor 20)
-set(libvxsdr_version_patch 12)
+set(libvxsdr_version_minor 21)
+set(libvxsdr_version_patch  8)
 
 set(libvxsdr_version ${libvxsdr_version_major}.${libvxsdr_version_minor}.${libvxsdr_version_patch})
 
@@ -75,7 +75,10 @@ else()
 endif()
 
 if (NOT VXSDR_STANDALONE_ASIO OR VXSDR_USE_BOOST_QUEUE)
-    find_package(Boost 1.67 REQUIRED)
+    if(POLICY CMP0167)
+        cmake_policy(SET CMP0167 NEW)
+    endif()
+    find_package(Boost 1.70 REQUIRED COMPONENTS headers)
 endif()
 
 if(VXSDR_STANDALONE_ASIO)
@@ -170,7 +173,7 @@ if(UNIX)
             set(vxsdr_system_defs -DVXSDR_TARGET_LINUX -DTARGET_OS=Unsupported)
             set(vxsdr_transport_defs -DVXSDR_ENABLE_UDP)
         endif()
-    elseif(APPLE)
+    else() # APPLE
         message(WARNING "macOS target is experimental")
         #message(STATUS "Using macOS target")
         set(vxsdr_system_defs -DVXSDR_TARGET_MACOS -DTARGET_OS=macOS)
@@ -278,7 +281,8 @@ set_target_properties(libvxsdr PROPERTIES PUBLIC_HEADER ${libvxsdr_header})
 
 if(VXSDR_STATIC_ANALYSIS)
     find_program(clang_tidy NAMES clang-tidy REQUIRED)
-    set_target_properties(libvxsdr PROPERTIES CMAKE_CXX_CLANG_TIDY ${clang_tidy})
+    #set(CMAKE_CXX_CLANG_TIDY ${clang_tidy})
+    set_target_properties(libvxsdr PROPERTIES CXX_CLANG_TIDY ${clang_tidy})
     message(STATUS "Running clang-tidy during build")
 endif()
 
@@ -301,12 +305,12 @@ if(VXSDR_STANDALONE_ASIO)
     # FIXME: does asio have a better definition?
     # target_link_libraries(libvxsdr INTERFACE asio::asio_header_only)
 else()
-    target_include_directories(libvxsdr PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(libvxsdr PRIVATE ${Boost_headers})
     #target_link_libraries(libvxsdr INTERFACE Boost::asio)
 endif()
 
 if(VXSDR_USE_BOOST_QUEUE)
-    target_include_directories(libvxsdr PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(libvxsdr PRIVATE ${Boost_headers})
     #target_link_libraries(libvxsdr PRIVATE Boost::lockfree)
 endif()
 
@@ -332,10 +336,6 @@ if(Make_Python_Bindings)
     target_compile_definitions(vxsdr_py PRIVATE ${vxsdr_build_python})
     target_include_directories(vxsdr_py PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
     target_link_libraries(vxsdr_py PRIVATE libvxsdr ${pybind11_LIBRARIES})
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        target_include_directories(vxsdr_py PRIVATE ${spdlog_INCLUDE_DIRS})
-        target_link_libraries(vxsdr_py PRIVATE spdlog::spdlog_header_only)
-    endif()
     set_target_properties(vxsdr_py PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
@@ -357,7 +357,7 @@ if(VXSDR_BUILD_UTILITIES)
             target_include_directories(${target_name} PRIVATE ${asio_SOURCE_DIR}/asio/include)
         endif()
         if(VXSDR_USE_BOOST_QUEUE OR NOT VXSDR_STANDALONE_ASIO)
-            target_include_directories(${target_name} PRIVATE ${Boost_INCLUDE_DIRS})
+            target_include_directories(${target_name} PRIVATE ${Boost_headers})
         endif()
         target_link_libraries(${target_name} PRIVATE Threads::Threads)
     endforeach()
@@ -378,19 +378,16 @@ if(VXSDR_BUILD_TESTS)
                                                           ${vxsdr_compiler_defs}
                                                           ${vxsdr_system_defs})
         target_include_directories(${target_name} PRIVATE include)
-        # include spdlog only to allow use of its included fmtlib
-        target_include_directories(${target_name} PRIVATE ${spdlog_INCLUDE_DIRS})
-        target_link_libraries(${target_name} PRIVATE spdlog::spdlog_header_only)
         if(VXSDR_STANDALONE_ASIO)
             target_include_directories(${target_name} PRIVATE ${asio_SOURCE_DIR}/asio/include)
         endif()
         if(VXSDR_USE_BOOST_QUEUE OR NOT VXSDR_STANDALONE_ASIO)
-            target_include_directories(${target_name} PRIVATE ${Boost_INCLUDE_DIRS})
+            target_include_directories(${target_name} PRIVATE ${Boost_headers})
         endif()
         target_link_libraries(${target_name} PRIVATE Threads::Threads)
     endforeach()
     add_test(sleep_resolution test_sleep_resolution 2e-4 1000)
-    add_test(queue_speed test_spsc_queue 10 160e6)
+    add_test(queue_speed test_data_queue 10 160e6)
     add_test(float_convert_speed test_float_convert 0.2 160e6)
 endif()
 
@@ -425,7 +422,7 @@ install(EXPORT vxsdrTargets
 )
 
 export(EXPORT vxsdrTargets
-    FILE ${libvxsdr_INSTALL_CMAKEDIR}/vxsdrTargets.cmake
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/vxsdrTargets.cmake
     NAMESPACE vxsdr::
 )
 
@@ -438,10 +435,13 @@ configure_package_config_file(vxsdrConfig.cmake.in
                               ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
                               INSTALL_DESTINATION ${libvxsdr_INSTALL_CMAKEDIR})
 write_basic_package_version_file(vxsdrConfigVersion.cmake
-                                 VERSION ${vxsdr_version}
+                                 VERSION ${libvxsdr_version}
                                  COMPATIBILITY SameMajorVersion)
 
-set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS WORLD_READ WORLD_EXECUTE)
+set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE)
 # otherwise files created below have default permissions for the installer (who can be root)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfig.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/vxsdrConfigVersion.cmake

@@ -27,7 +27,7 @@ pcie_command_transport::pcie_command_transport(const std::map<std::string, int64
     LOG_DEBUG("pcie command transport constructor entered");
 
     auto config = apply_transport_settings(settings, get_default_settings());
-
+    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
     pcie_if = std::move(pcie_iface);
 
     rx_state        = TRANSPORT_STARTING;

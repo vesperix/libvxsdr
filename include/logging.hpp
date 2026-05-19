@@ -21,7 +21,7 @@
 
 #include <spdlog/spdlog.h>
 
-static const std::string VXSDR_LIB_LOGGER_NAME = "libvxsdr";
+inline const std::string VXSDR_LIB_LOGGER_NAME = "libvxsdr";
 
 namespace vxsdr_lib_logging {
 void init();
@@ -31,16 +31,16 @@ void shutdown();
 #define LOG_INIT()         vxsdr_lib_logging::init()
 #define LOG_SHUTDOWN()     vxsdr_lib_logging::shutdown()
 
-#define LOG_TRACE(...)     spdlog::trace(__VA_ARGS__)
-#define LOG_DEBUG(...)     spdlog::debug(__VA_ARGS__)
-#define LOG_INFO(...)      spdlog::info(__VA_ARGS__)
-#define LOG_WARN(...)      spdlog::warn(__VA_ARGS__)
-#define LOG_ERROR(...)     spdlog::error(__VA_ARGS__)
-#define LOG_FATAL(...)     spdlog::critical(__VA_ARGS__)
+#define LOG_TRACE(...)     spdlog::get(VXSDR_LIB_LOGGER_NAME)->trace(__VA_ARGS__)
+#define LOG_DEBUG(...)     spdlog::get(VXSDR_LIB_LOGGER_NAME)->debug(__VA_ARGS__)
+#define LOG_INFO(...)      spdlog::get(VXSDR_LIB_LOGGER_NAME)->info(__VA_ARGS__)
+#define LOG_WARN(...)      spdlog::get(VXSDR_LIB_LOGGER_NAME)->warn(__VA_ARGS__)
+#define LOG_ERROR(...)     spdlog::get(VXSDR_LIB_LOGGER_NAME)->error(__VA_ARGS__)
+#define LOG_FATAL(...)     spdlog::get(VXSDR_LIB_LOGGER_NAME)->critical(__VA_ARGS__)
 
 // what level to use for async messages
-#define LOG_ASYNC(...)     spdlog::error(__VA_ARGS__)
-#define LOG_ASYNC_OOS(...) spdlog::warn(__VA_ARGS__)
+#define LOG_ASYNC(...)     spdlog::get(VXSDR_LIB_LOGGER_NAME)->error(__VA_ARGS__)
+#define LOG_ASYNC_OOS(...) spdlog::get(VXSDR_LIB_LOGGER_NAME)->warn(__VA_ARGS__)
 
 #else  // VXSDR_LIB_DISABLE_LOGGING defined
 

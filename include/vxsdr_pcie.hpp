@@ -197,7 +197,9 @@ class pcie_dma_interface {
             error_code = errno;
             return 0;
         }
-        memcpy(tx_buffer_ptrs[idx], buf_ptr, std::min(buf_size, pcie_buffer_size));
+        if (idx < (int)tx_buffer_ptrs.size()) {
+            memcpy(tx_buffer_ptrs[idx], buf_ptr, std::min(buf_size, pcie_buffer_size));
+        }
         if (ioctl(dma_filedes, IOCTL_UPLOAD_TX_BUFFER_BLOCKING, buf_size) < 0) {
             error_code = errno;
             ioctl(dma_filedes, IOCTL_RELEASE_TX_BUFFER, 0);

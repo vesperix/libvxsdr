@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <compare>
 #include <fstream>
 #include <iostream>
@@ -34,7 +35,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
         LOG_INFO("    {:s}", str);
     }
 
-    for (auto& [k, v] : input_config) {
+    for (const auto& [k, v] : input_config) {
         LOG_DEBUG("input configuration setting {:30s} = {:d}", k, v);
     }
 
@@ -62,7 +63,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    while (command_tport->tx_state != packet_transport::TRANSPORT_READY and
+    while (command_tport->tx_state != packet_transport::TRANSPORT_READY or
            command_tport->rx_state != packet_transport::TRANSPORT_READY) {
         std::this_thread::sleep_for(transport_ready_wait);
         if ((std::chrono::steady_clock::now() - start_time) > transport_ready_timeout) {
@@ -83,7 +84,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INFO("   device ID: {:d}", res->at(0));
     LOG_INFO("   device FPGA code version: {:s}", vxsdr::imp::version_number_to_string(res->at(1)));
     LOG_INFO("   device MCU code version: {:s}", vxsdr::imp::version_number_to_string(res->at(2)));
-    LOG_INFO("   device serial number: {:d}", res->at(3));
+    LOG_INFO("   device unique identifier: {:d}", res->at(3));
     LOG_INFO("   device supported packet version: {:s}", vxsdr::imp::version_number_to_string(res->at(4)));
     // check that library and device support the same packet version
     if (get_library_packet_version() != res->at(4)) {
@@ -96,7 +97,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     LOG_INFO("   maximum data payload bytes: {:d}", res->at(7));
 
     // check that the library's wire sample type and the device's are the same
-    if (std::is_same<vxsdr::wire_sample, std::complex<int16_t>>::value) {
+    if (std::is_same_v<vxsdr::wire_sample, std::complex<int16_t>>) {
         if ((res->at(5) & SAMPLE_DATATYPE_MASK) != SAMPLE_TYPE_COMPLEX_I16) {
             LOG_ERROR("library and device wire sample formats incompatible (0x{:x})", (res->at(5) & SAMPLE_DATATYPE_MASK));
             throw std::runtime_error("library and device wire sample formats incompatible");
@@ -106,10 +107,16 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
-    unsigned sample_granularity   = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
-    unsigned num_rx_subdevs       = res->at(6);
-    // the initial value is the maximum the device can support; the transport may reduce it if required
-    unsigned max_samps_per_packet = sample_granularity * ((res->at(7) / sizeof(vxsdr::wire_sample)) / sample_granularity);
+    const unsigned sample_granularity   = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
+    if (sample_granularity == 0) {
+        throw std::runtime_error("device reported zero sample granularity");
+    }
+    if (sample_granularity > 256) {
+        throw std::runtime_error("device reported sample granularity > 256");
+    }
+    const unsigned num_rx_subdevs       = res->at(6);
+    // the initial max_samps_per_packet value is the maximum the *device* can support; the transport may reduce it if required
+    const unsigned max_samps_per_packet = sample_granularity * ((res->at(7) / sizeof(vxsdr::wire_sample)) / sample_granularity);
 
     if (not vxsdr::imp::tx_stop() or not vxsdr::imp::rx_stop()) {
         LOG_ERROR("error stopping tx and rx");
@@ -134,7 +141,7 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
     }
 
     start_time = std::chrono::steady_clock::now();
-    while (data_tport->tx_state != packet_transport::TRANSPORT_READY and
+    while (data_tport->tx_state != packet_transport::TRANSPORT_READY or
            data_tport->rx_state != packet_transport::TRANSPORT_READY) {
         std::this_thread::sleep_for(transport_ready_wait);
         if ((std::chrono::steady_clock::now() - start_time) > transport_ready_timeout) {
@@ -250,12 +257,11 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
     }
 
     if (n_requested == 0) {
-        if (data.size() == 0) {
+        if (data.empty()) {
             LOG_WARN("get_rx_data() called with n_requested and data.size() both zero");
             return 0;
-        } else {
-            n_requested = data.size();
         }
+        n_requested = data.size();
     } else {
         if (data.size() < n_requested) {
             LOG_WARN("data.size() = {:d} but n_requested = {:d}; resizing data in get_rx_data()", data.size(), n_requested);
@@ -269,12 +275,12 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
 
     // first get any samples in the queue from previous packets
 
-    size_t saved_samples = data_tport->rx_sample_queue[subdev]->read_available();
+    const size_t saved_samples = data_tport->rx_sample_queue[subdev]->read_available();
 
     if (saved_samples > 0) {
-        size_t n_to_copy = std::min(n_requested, saved_samples);
+        const size_t n_to_copy = std::min(n_requested, saved_samples);
         std::vector<vxsdr::wire_sample> saved_data(n_to_copy);
-        int64_t n_saved = data_tport->rx_sample_queue[subdev]->pop(saved_data.data(), n_to_copy);
+        const auto n_saved = (int64_t)data_tport->rx_sample_queue[subdev]->pop(saved_data.data(), n_to_copy);
         if constexpr (std::is_same<T, int16_t>()) {
             for (int64_t i = 0; i < n_saved; i++) {
                 data[n_received + i] = saved_data[i];
@@ -290,7 +296,7 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
 
     // now get samples from new packets
     while (n_received < n_requested) {
-        int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
+        const int64_t n_remaining = (int64_t)n_requested - (int64_t)n_received;
 
         data_queue_element q;
         auto start_time = std::chrono::steady_clock::now();
@@ -308,10 +314,10 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
                       (unsigned)q.hdr.command);
         }
         auto packet_data     = vxsdr::imp::get_packet_data_span<vxsdr::wire_sample>(q);
-        int64_t data_samples = packet_data.size();
+        const auto data_samples = (int64_t)packet_data.size();
 
         if (data_samples > 0) {
-            int64_t n_to_copy = std::min(n_remaining, data_samples);
+            const int64_t n_to_copy = std::min(n_remaining, data_samples);
             if constexpr (std::is_same<T, int16_t>()) {
                 for (int64_t i = 0; i < n_to_copy; i++) {
                     data[n_received + i] = packet_data[i];
@@ -326,7 +332,7 @@ size_t vxsdr::imp::get_rx_data(std::vector<std::complex<T>>& data,
         }
         // if there are leftover samples, push them to the sample queue
         if (data_samples > n_remaining) {
-            int64_t n_pushed = data_tport->rx_sample_queue[subdev]->push(&packet_data[n_remaining], data_samples - n_remaining);
+            const auto n_pushed = (int64_t)data_tport->rx_sample_queue[subdev]->push(&packet_data[n_remaining], data_samples - n_remaining);
             if (n_pushed != data_samples - n_remaining) {
                 LOG_ERROR("error pushing data to rx sample queue for subdevice {:d} ({:d} of {:d} samples)", subdev, n_pushed,
                           data_samples - n_remaining);
@@ -374,12 +380,11 @@ size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data,
     }
 
     if (n_requested == 0) {
-        if (data.size() == 0) {
+        if (data.empty()) {
             LOG_WARN("put_tx_data() called with n_requested and data.size() both zero");
             return 0;
-        } else {
-            n_requested = data.size();
         }
+        n_requested = data.size();
     } else {
         if (data.size() < n_requested) {
             LOG_WARN("data.size() = {:d} but n_requested = {:d}; reducing n_requested in put_tx_data()", data.size(), n_requested);
@@ -389,12 +394,12 @@ size_t vxsdr::imp::put_tx_data(const std::vector<std::complex<T>>& data,
 
     // puts plain data_packets (no time, no stream)
     size_t n_put        = 0;
-    size_t n_packet_max = data_tport->get_max_samples_per_packet();
+    const size_t n_packet_max = data_tport->get_max_samples_per_packet();
     for (size_t i = 0; i < n_requested; i += n_packet_max) {
         data_queue_element q;
         auto* p               = std::bit_cast<data_packet*>(&q);
         auto n_samples        = (unsigned)std::min(n_packet_max, n_requested - i);
-        unsigned n_data_bytes = n_samples * sizeof(vxsdr::wire_sample);
+        const unsigned n_data_bytes = n_samples * sizeof(vxsdr::wire_sample);
         auto packet_size      = (uint16_t)(sizeof(packet_header) + n_data_bytes);
         p->hdr                = {PACKET_TYPE_TX_SIGNAL_DATA, 0, 0, subdev, 0, packet_size, 0};
         if constexpr (std::is_same<T, int16_t>()) {
@@ -503,6 +508,10 @@ double vxsdr::imp::get_host_command_timeout() const {
          (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
          (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
         q.hdr.command == p.hdr.command) {
+        if (q.hdr.packet_size != sizeof(error_packet)) {
+            LOG_ERROR("incorrect error response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, sizeof(error_packet), q.hdr.packet_size);
+            return false;
+        }
         LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return false;
     }
@@ -511,7 +520,8 @@ double vxsdr::imp::get_host_command_timeout() const {
 }
 
 [[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_command_and_return_response(packet& p,
-                                                                                                const std::string& cmd_name) {
+                                                                                                const std::string& cmd_name,
+                                                                                                const size_t expected_response_size) {
     if (not command_tport->tx_rx_usable()) {
         LOG_ERROR("send_command_and_return_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
         return std::nullopt;
@@ -533,12 +543,22 @@ double vxsdr::imp::get_host_command_timeout() const {
          (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
          (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
         q.hdr.command == p.hdr.command) {
+        if (expected_response_size > 0) {
+            if (q.hdr.packet_size != expected_response_size) {
+                LOG_ERROR("incorrect response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, expected_response_size, q.hdr.packet_size);
+                return std::nullopt;
+            }
+        }
         return q;
     }
     if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
          (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
          (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
         q.hdr.command == p.hdr.command) {
+        if (q.hdr.packet_size != sizeof(error_packet)) {
+            LOG_ERROR("incorrect error response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, sizeof(error_packet), q.hdr.packet_size);
+            return std::nullopt;
+        }
         LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return std::nullopt;
     }
@@ -586,7 +606,7 @@ void vxsdr::imp::async_handler(const vxsdr::async_message_handler output_type) {
 void vxsdr::imp::null_async_message_handler(const command_queue_element& a) const {}
 
 void vxsdr::imp::brief_async_message_handler(const command_queue_element& a) const {
-    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    const uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     switch (type) {
         case ASYNC_NO_ERROR:
             break;
@@ -627,15 +647,15 @@ void vxsdr::imp::brief_async_message_handler(const command_queue_element& a) con
 }
 
 void vxsdr::imp::stderr_async_message_handler(const command_queue_element& a) const {
-    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    const uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
         std::cerr << "async_msg: " + async_msg_to_name(a.hdr.command) + " subdevice " + std::to_string(a.hdr.subdevice)
-                  << std::endl;
+                  << '\n';
     }
 }
 
 void vxsdr::imp::log_async_message_handler(const command_queue_element& a) const {
-    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    const uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
         if (type == ASYNC_OUT_OF_SEQUENCE) {
             // out of sequence is special cased since it can be benign
@@ -647,11 +667,15 @@ void vxsdr::imp::log_async_message_handler(const command_queue_element& a) const
 }
 
 void vxsdr::imp::throw_async_message_handler(const command_queue_element& a) const {
-    uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
+    const uint8_t type = a.hdr.command & ASYNC_ERROR_TYPE_MASK;
     if (type != ASYNC_NO_ERROR) {
-        std::string msg = async_msg_to_name(a.hdr.command) + " subdevice " + std::to_string(a.hdr.subdevice);
+        const std::string msg = async_msg_to_name(a.hdr.command) + " subdevice " + std::to_string(a.hdr.subdevice);
         throw vxsdr::async_message_exception(msg);
     }
+}
+
+std::string vxsdr::imp::extract_string_from_name_packet(const name_packet* r) const {
+    return std::string{(const char *)r->name1, strnlen((const char *)r->name1, MAX_NAME_LENGTH_BYTES)};
 }
 
 void vxsdr::imp::time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) const {
@@ -711,6 +735,8 @@ std::string vxsdr::imp::error_to_string(const uint32_t reason) const {
             return "BAD_PACKET_SIZE";
         case ERR_FAILED:
             return "FAILED";
+        case ERR_INTERNAL_ERROR:
+            return "INTERNAL_ERROR";
         default:
             return "UNKNOWN ERROR";
     }
@@ -797,7 +823,7 @@ std::string vxsdr::imp::device_cmd_to_name(const uint8_t cmd) const {
         case DEVICE_CMD_SAVE_TRANSPORT_ADDR:
             return "SAVE_TRANSPORT_ADDR";
         case DEVICE_CMD_GET_NUM_SUBDEVS:
-            return "GET_NUM_SUDEVS";
+            return "GET_NUM_SUBDEVS";
         case DEVICE_CMD_GET_NUM_SENSORS:
             return "GET_NUM_SENSORS";
         case DEVICE_CMD_GET_TIMING_INFO:
@@ -820,37 +846,6 @@ std::string vxsdr::imp::device_cmd_to_name(const uint8_t cmd) const {
             return "RESET";
         default:
             return "UNKNOWN_DEVICE_CMD";
-    }
-}
-
-std::string vxsdr::imp::cmd_error_to_name(const uint32_t reason) const {
-    switch (reason) {
-        case ERR_NO_ERROR:
-            return "NO_ERROR";
-        case ERR_BAD_COMMAND:
-            return "BAD_COMMAND";
-        case ERR_BUSY:
-            return "BUSY";
-        case ERR_NO_SUCH_SUBDEVICE:
-            return "NO_SUCH_SUBDEVICE";
-        case ERR_NO_SUCH_CHANNEL:
-            return "NO_SUCH_CHANNEL";
-        case ERR_TIMEOUT:
-            return "TIMEOUT";
-        case ERR_BAD_HEADER_SIZE:
-            return "BAD_HEADER_SIZE";
-        case ERR_BAD_HEADER_FLAGS:
-            return "BAD_HEADER_FLAGS";
-        case ERR_BAD_PARAMETER:
-            return "BAD_PARAMETER";
-        case ERR_NOT_SUPPORTED:
-            return "NOT_SUPPORTED";
-        case ERR_BAD_PACKET_SIZE:
-            return "BAD_PACKET_SIZE";
-        case ERR_FAILED:
-            return "FAILED";
-        default:
-            return "UNKNOWN_DEVICE_CMD_ERROR";
     }
 }
 
@@ -922,8 +917,8 @@ std::string vxsdr::imp::radio_cmd_to_name(const uint8_t cmd) const {
 }
 
 std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
-    uint8_t typ = msg & ASYNC_ERROR_TYPE_MASK;
-    uint8_t sys = msg & ASYNC_AFFECTED_SYSTEM_MASK;
+    const uint8_t typ = msg & ASYNC_ERROR_TYPE_MASK;
+    const uint8_t sys = msg & ASYNC_AFFECTED_SYSTEM_MASK;
     std::string subsys;
     std::string typstr;
     switch (sys) {
@@ -956,11 +951,17 @@ std::string vxsdr::imp::async_msg_to_name(const uint8_t msg) const {
         case ASYNC_OVER_TEMP:
             typstr = "OVER_TEMP";
             break;
+        case ASYNC_POWER_ERROR:
+            typstr = "POWER_ERROR";
+            break;
         case ASYNC_FREQ_ERROR:
             typstr = "FREQ_ERROR";
             break;
         case ASYNC_OUT_OF_SEQUENCE:
             typstr = "OUT_OF_SEQUENCE";
+            break;
+        case ASYNC_CMD_ERROR:
+            typstr = "CMD_ERROR";
             break;
         case ASYNC_PPS_TIMEOUT:
             typstr = "PPS_TIMEOUT";

@@ -1,11 +1,11 @@
 #include <array>
 #include <atomic>
+#include <cerrno>
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <string>
 
-#include <errno.h>
 
 #include "logging.hpp"
 #include "vxsdr_packets.hpp"
@@ -68,6 +68,9 @@ void command_transport::command_receive() {
                     if (throw_on_rx_error) {
                         throw(std::runtime_error("packet size error in " + transport_type + " command rx"));
                     }
+                } else if (recv_buffer.hdr.packet_type >= packet_types_received.size()) {
+                    LOG_ERROR("packet type error in {:s} command rx (unknown type {:d})", transport_type,
+                              (uint16_t)recv_buffer.hdr.packet_type);
                 } else {
                     // update stats
                     packets_received++;
