@@ -108,8 +108,14 @@ vxsdr::imp::imp(const std::map<std::string, int64_t>& input_config) {
 
     // data transport constructor needs to know the sample granularity, number of subdevices, and  maximum samples_per_packet
     const unsigned sample_granularity   = (res->at(5) & SAMPLE_GRANULARITY_MASK) >> SAMPLE_GRANULARITY_SHIFT;
+    if (sample_granularity == 0) {
+        throw std::runtime_error("device reported zero sample granularity");
+    }
+    if (sample_granularity > 256) {
+        throw std::runtime_error("device reported sample granularity > 256");
+    }
     const unsigned num_rx_subdevs       = res->at(6);
-    // the initial value is the maximum the device can support; the transport may reduce it if required
+    // the initial max_samps_per_packet value is the maximum the *device* can support; the transport may reduce it if required
     const unsigned max_samps_per_packet = sample_granularity * ((res->at(7) / sizeof(vxsdr::wire_sample)) / sample_granularity);
 
     if (not vxsdr::imp::tx_stop() or not vxsdr::imp::rx_stop()) {
@@ -502,6 +508,10 @@ double vxsdr::imp::get_host_command_timeout() const {
          (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
          (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
         q.hdr.command == p.hdr.command) {
+        if (q.hdr.packet_size != sizeof(error_packet)) {
+            LOG_ERROR("incorrect error response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, sizeof(error_packet), q.hdr.packet_size);
+            return false;
+        }
         LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return false;
     }
@@ -510,7 +520,8 @@ double vxsdr::imp::get_host_command_timeout() const {
 }
 
 [[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_command_and_return_response(packet& p,
-                                                                                                const std::string& cmd_name) {
+                                                                                                const std::string& cmd_name,
+                                                                                                const size_t expected_response_size) {
     if (not command_tport->tx_rx_usable()) {
         LOG_ERROR("send_command_and_return_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
         return std::nullopt;
@@ -532,12 +543,22 @@ double vxsdr::imp::get_host_command_timeout() const {
          (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
          (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
         q.hdr.command == p.hdr.command) {
+        if (expected_response_size > 0) {
+            if (q.hdr.packet_size != expected_response_size) {
+                LOG_ERROR("incorrect response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, expected_response_size, q.hdr.packet_size);
+                return std::nullopt;
+            }
+        }
         return q;
     }
     if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
          (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
          (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
         q.hdr.command == p.hdr.command) {
+        if (q.hdr.packet_size != sizeof(error_packet)) {
+            LOG_ERROR("incorrect error response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, sizeof(error_packet), q.hdr.packet_size);
+            return std::nullopt;
+        }
         LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
         return std::nullopt;
     }

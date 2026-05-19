@@ -229,7 +229,9 @@ class vxsdr::imp {
 
   private:
     bool send_command_and_check_response(packet& p, const std::string& cmd_name = "unknown");
-    std::optional<command_queue_element> send_command_and_return_response(packet& p, const std::string& cmd_name = "unknown");
+    std::optional<command_queue_element> send_command_and_return_response(packet& p,
+                                                                          const std::string& cmd_name = "unknown",
+                                                                          const size_t expected_response_size = 0);
     [[nodiscard]] bool cmd_queue_push_check(packet& p, const std::string& cmd_name = "unknown");
     void async_handler(const vxsdr::async_message_handler output_type);
     void time_point_to_time_spec_t(const vxsdr::time_point& t, time_spec_t& ts) const;
@@ -249,37 +251,40 @@ class vxsdr::imp {
         constexpr unsigned packet_header_time_stream_size = sizeof(packet_header) + sizeof(time_spec_t) + sizeof(stream_spec_t);
         constexpr unsigned sample_size                    = sizeof(SampleType);
 
-        SampleType* d;
-        unsigned data_samples       = 0;
-        unsigned data_bytes         = 0;
-        const unsigned packet_bytes = q.hdr.packet_size;
+        SampleType* d         = nullptr;
+        unsigned data_bytes   = 0;
 
-        const bool has_time      = (bool)(q.hdr.flags & FLAGS_TIME_PRESENT);
-        const bool has_stream_id = (bool)(q.hdr.flags & FLAGS_STREAM_ID_PRESENT);
+        const unsigned packet_bytes = q.hdr.packet_size;
+        const bool has_time         = (bool)(q.hdr.flags & FLAGS_TIME_PRESENT);
+        const bool has_stream_id    = (bool)(q.hdr.flags & FLAGS_STREAM_ID_PRESENT);
 
         if (not has_time and not has_stream_id) {
-            auto* p    = std::bit_cast<data_packet*>(&q);
-            data_bytes = packet_bytes - packet_header_only_size;
-            d          = (SampleType*)p->data;
+            if (packet_bytes >= packet_header_only_size + sample_size) {
+                auto* p    = std::bit_cast<data_packet*>(&q);
+                data_bytes = packet_bytes - packet_header_only_size;
+                d          = (SampleType*)p->data;
+            }
         } else if (has_time and not has_stream_id) {
-            auto* p    = std::bit_cast<data_packet_time*>(&q);
-            data_bytes = packet_bytes - packet_header_time_size;
-            d          = (SampleType*)p->data;
+            if (packet_bytes >= packet_header_time_size + sample_size) {
+                auto* p    = std::bit_cast<data_packet_time*>(&q);
+                data_bytes = packet_bytes - packet_header_time_size;
+                d          = (SampleType*)p->data;
+            }
         } else if (has_stream_id and not has_time) {
-            auto* p    = std::bit_cast<data_packet_stream*>(&q);
-            data_bytes = packet_bytes - packet_header_stream_size;
-            d          = (SampleType*)p->data;
+            if (packet_bytes >= packet_header_stream_size + sample_size) {
+                auto* p    = std::bit_cast<data_packet_stream*>(&q);
+                data_bytes = packet_bytes - packet_header_stream_size;
+                d          = (SampleType*)p->data;
+            }
         } else {
-            auto* p    = std::bit_cast<data_packet_time_stream*>(&q);
-            data_bytes = packet_bytes - packet_header_time_stream_size;
-            d          = (SampleType*)p->data;
+            if (packet_bytes >= packet_header_time_stream_size + sample_size) {
+                auto* p    = std::bit_cast<data_packet_time_stream*>(&q);
+                data_bytes = packet_bytes - packet_header_time_stream_size;
+                d          = (SampleType*)p->data;
+            }
         }
-        if (data_bytes < sample_size) {
-            data_samples = 0;
-            d            = nullptr;
-        } else {
-            data_samples = data_bytes / sample_size;
-        }
+
+        unsigned data_samples = data_bytes / sample_size;
         return std::span(d, data_samples);
     }
 };
