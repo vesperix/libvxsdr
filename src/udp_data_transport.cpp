@@ -280,7 +280,6 @@ udp_data_transport::~udp_data_transport() noexcept {
     if (sender_thread.joinable()) {
         sender_thread.join();
     }
-    LOG_DEBUG("joining udp data receiver thread");
     rx_state                  = TRANSPORT_SHUTDOWN;
     receiver_thread_stop_flag = true;
     net_error_code::error_code err;

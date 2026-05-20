@@ -226,7 +226,7 @@ void data_transport::data_receive() {
         throw(std::runtime_error("queues not initialized in " + transport_type + " data rx"));
     }
 
-    auto queue_push_wait = std::chrono::microseconds(data_send_wait_us());
+    auto queue_push_wait = std::chrono::microseconds(data_receive_queue_wait_us());
     constexpr int max_push_tries = 32;
 
     rx_state = TRANSPORT_READY;
@@ -257,7 +257,7 @@ void data_transport::data_receive() {
                         throw(std::runtime_error("packet size error in " + transport_type + " data rx"));
                     }
                 } else if (recv_buffer.hdr.packet_type >= packet_types_received.size()) {
-                    LOG_ERROR("packet type error in {:s} command rx (unknown type {:d})", transport_type,
+                    LOG_ERROR("packet type error in {:s} data rx (unknown type {:d})", transport_type,
                               (uint16_t)recv_buffer.hdr.packet_type);
                     if (throw_on_rx_error) {
                         throw(std::runtime_error("packet type error in " + transport_type + " data rx"));

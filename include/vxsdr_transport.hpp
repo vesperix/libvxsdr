@@ -54,11 +54,7 @@ class packet_transport {
     std::atomic<bool> log_stats_on_exit{true};
 
   public:
-    packet_transport() = default;
-    packet_transport(const std::string& local_address,
-                     const std::string& device_address,
-                     const std::map<std::string, int64_t>& settings);
-
+    packet_transport()                                   = default;
     virtual ~packet_transport()                          = default;
     packet_transport(const packet_transport&)            = delete;
     packet_transport& operator=(const packet_transport&) = delete;
@@ -84,11 +80,11 @@ class packet_transport {
     std::atomic<transport_state> tx_state{TRANSPORT_UNINITIALIZED};
     std::atomic<transport_state> rx_state{TRANSPORT_UNINITIALIZED};
 
-    virtual size_t packet_send(const packet& packet, int& error_code) { return 0; };
+    virtual size_t packet_send(const packet& packet, int& error_code) = 0;
     virtual std::map<std::string, int64_t> get_default_settings() const { return {}; };
     std::map<std::string, int64_t> apply_transport_settings(const std::map<std::string, int64_t>& settings,
                                                             const std::map<std::string, int64_t>& default_settings) const {
-        std::map<std::string, int64_t> config = get_default_settings();
+        std::map<std::string, int64_t> config{default_settings};
         for (const auto& s : settings) {
             if (config.count(s.first) > 0) {
                 if (config[s.first] != s.second) {
@@ -293,7 +289,7 @@ class command_transport : public packet_transport {
 
     std::string get_payload_type() const noexcept final { return "command"; };
 
-    virtual size_t packet_receive(command_queue_element& packet, int& error_code) { return 0; };
+    virtual size_t packet_receive(command_queue_element& packet, int& error_code) = 0;
 
     void command_send();
     void command_receive();
@@ -329,6 +325,7 @@ class data_transport : public packet_transport {
 
     virtual unsigned data_throttle_wait_us() const noexcept { return 100; };
     virtual unsigned data_send_wait_us() const noexcept { return 100; };
+    virtual unsigned data_receive_queue_wait_us() const noexcept { return 100; };
 
     // how long to wait for a command response with stats at shutdown
     static constexpr vxsdr::duration final_stats_wait{20ms};
@@ -357,7 +354,7 @@ class data_transport : public packet_transport {
   public:
     data_transport(const unsigned granularity, const unsigned n_rx_subdevs, const unsigned max_samps_per_packet)
         : sample_granularity(granularity), num_rx_subdevs(n_rx_subdevs) {
-        max_samples_per_packet = sample_granularity * (max_samps_per_packet / sample_granularity);
+        max_samples_per_packet = sample_granularity * std::max(1U, max_samps_per_packet / sample_granularity);
     };
 
     virtual ~data_transport() = default;
@@ -374,7 +371,7 @@ class data_transport : public packet_transport {
     std::string get_payload_type() const noexcept final { return "data"; };
 
     bool send_packet(packet& packet) final;
-    virtual size_t packet_receive(data_queue_element& packet, int& error_code) { return 0; };
+    virtual size_t packet_receive(data_queue_element& packet, int& error_code) = 0;
 
     void data_send();
     void data_receive();
@@ -433,7 +430,7 @@ class data_transport : public packet_transport {
 
     bool set_max_samples_per_packet(const unsigned n_samples) noexcept {
         if (n_samples > 0 and n_samples <= MAX_DATA_LENGTH_SAMPLES) {
-            max_samples_per_packet = sample_granularity * (n_samples / sample_granularity);
+            max_samples_per_packet = sample_granularity * std::max(1U, n_samples / sample_granularity);
             return true;
         }
         return false;

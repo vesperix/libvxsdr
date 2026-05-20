@@ -31,7 +31,6 @@ pcie_data_transport::pcie_data_transport(const std::map<std::string, int64_t>& s
                                          const unsigned max_samps_per_packet)
     : data_transport(granularity, n_rx_subdevs, max_samps_per_packet) {
     LOG_DEBUG("pcie data transport constructor entered");
-    num_rx_subdevs = n_rx_subdevs;
 
     auto config = apply_transport_settings(settings, get_default_settings());
     // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
