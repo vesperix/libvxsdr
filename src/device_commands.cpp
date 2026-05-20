@@ -192,6 +192,9 @@ std::optional<double> vxsdr::imp::get_timing_resolution() {
 std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& local_addr_str,
                                                              const std::string& broadcast_addr_str,
                                                              const double timeout_s) {
+    constexpr double MIN_DISCOVER_TIMEOUT = 1e-3;
+    constexpr double MAX_DISCOVER_TIMEOUT =  600;
+
     const unsigned destination_port = 1030;
     auto local_addr                 = net::ip::make_address_v4(local_addr_str);
     auto broadcast_addr             = net::ip::make_address_v4(broadcast_addr_str);
@@ -199,15 +202,15 @@ std::vector<std::string> vxsdr::imp::discover_ipv4_addresses(const std::string& 
 
     double used_timeout_s = timeout_s;
 
-    if (used_timeout_s < 1e-3) {
-        used_timeout_s = 1e-3;
+    if (used_timeout_s < MIN_DISCOVER_TIMEOUT) {
+        used_timeout_s = MIN_DISCOVER_TIMEOUT;
     }
-    if (used_timeout_s > 600.0) {
-        used_timeout_s = 600.0;
+    if (used_timeout_s > MAX_DISCOVER_TIMEOUT) {
+        used_timeout_s = MAX_DISCOVER_TIMEOUT;
     }
 
-    // wait 1 / 1000 of the timeout specified each rx or 1 ms
-    const unsigned discover_wait_ms = std::max(1, lround(used_timeout_s));
+    // wait 1 / 1000 of the timeout specified each rx or 1 ms, whichever is longer
+    const unsigned discover_wait_ms = std::max(1L, lround(used_timeout_s));
 
     net_error_code::error_code error;
     net::io_context discover_context;

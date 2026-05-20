@@ -480,43 +480,7 @@ double vxsdr::imp::get_host_command_timeout() const {
 // private functions
 
 [[nodiscard]] bool vxsdr::imp::send_command_and_check_response(packet& p, const std::string& cmd_name) {
-    if (not command_tport->tx_rx_usable()) {
-        LOG_ERROR("send_command_and_check_response failed sending {:s}: command tx and/or rx not usable", cmd_name);
-        return false;
-    }
-    if (not vxsdr::imp::cmd_queue_push_check(p)) {
-        LOG_ERROR("send_command_and_check_response failed sending {:s}: cmd queue push failed", cmd_name);
-        return false;
-    }
-
-    command_queue_element q;
-    auto start_time = std::chrono::steady_clock::now();
-    while (not command_tport->response_queue.pop(q)) {
-        std::this_thread::sleep_for(command_response_wait);
-        if ((std::chrono::steady_clock::now() - start_time) > command_response_timeout) {
-            LOG_ERROR("timeout waiting for response in {:s}", cmd_name);
-            return false;
-        }
-    }
-    if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_RSP) or
-         (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_RSP) or
-         (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_RSP)) and
-        q.hdr.command == p.hdr.command) {
-        return true;
-    }
-    if (((p.hdr.packet_type == PACKET_TYPE_DEVICE_CMD and q.hdr.packet_type == PACKET_TYPE_DEVICE_CMD_ERR) or
-         (p.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_TX_RADIO_CMD_ERR) or
-         (p.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD and q.hdr.packet_type == PACKET_TYPE_RX_RADIO_CMD_ERR)) and
-        q.hdr.command == p.hdr.command) {
-        if (q.hdr.packet_size != sizeof(error_packet)) {
-            LOG_ERROR("incorrect error response size in {:s} (expected {:d} bytes, received {:d})", cmd_name, sizeof(error_packet), q.hdr.packet_size);
-            return false;
-        }
-        LOG_ERROR("command error in {:s}: {:s}", cmd_name, error_to_string(std::bit_cast<error_packet*>(&q)->value1));
-        return false;
-    }
-    LOG_ERROR("invalid response received in {:s}", cmd_name);
-    return false;
+    return (bool)send_command_and_return_response(p, cmd_name, sizeof(header_only_packet));
 }
 
 [[nodiscard]] std::optional<command_queue_element> vxsdr::imp::send_command_and_return_response(packet& p,
